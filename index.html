@@ -56,7 +56,15 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 /* combat stage */
 .stage{position:relative;height:clamp(318px,46vh,440px);overflow:hidden;border-bottom:1px solid #ffffff14;isolation:isolate}
 .stage>.bg{position:absolute;inset:0;width:100%;height:100%;z-index:-1}
-.stage{background:#140c0b}
+.stage{background:#140c0b;perspective:900px;perspective-origin:50% 45%}
+.L{position:absolute;inset:0;pointer-events:none}
+.bgL{inset:-7%;z-index:-3;transform:translateZ(-600px) scale(1.667)}.bgL>.bgimg{position:absolute;inset:0;width:100%;height:100%}
+.midL{z-index:-2;transform:translateZ(-220px) scale(1.244)}
+.fgL{z-index:3;transform:translateZ(160px) scale(.822)}
+.prop{position:absolute;width:auto;transform:translateX(-50%)}
+.midL .prop{filter:brightness(.78) saturate(.85) drop-shadow(0 6px 6px #0008)}
+.fgL .prop{filter:brightness(.68) saturate(.9) blur(.8px) drop-shadow(0 10px 14px #000c)}
+.info,.hint{position:relative;z-index:4}.hint{position:absolute}
 .bgimg{object-fit:cover;object-position:50% 74%;transform-origin:50% 80%;animation:drift 60s ease-in-out infinite alternate}
 @keyframes drift{from{transform:scale(1.02)}to{transform:scale(1.09) translateX(-1.5%)}}
 .shade{background:radial-gradient(120% 90% at 50% 40%,transparent 55%,#0009 100%),linear-gradient(to bottom,#0005 0%,transparent 22%,transparent 62%,#000a 100%)}
@@ -218,9 +226,15 @@ const brazier=x=>`<path d="M${x-3} 198V150h6V198Z" fill="#0c0606"/><path d="M${x
 const BGS=['assets/bg_ruins.webp','assets/bg_tree.webp','assets/bg_gate.webp'],BGI={};
 BGS.forEach((u,k)=>{const im=new Image();im.className='bg bgimg';im.alt='';im.decoding='async';im.src=u;BGI[k]=im});
 const biome=f=>f>=10?2:f>=5?1:0;
-function scene(f){let emb='';for(let i=0;i<14;i++)emb+=`<circle class="emb" cx="${(i*83+20)%400}" cy="${200+(i*29)%50}" r="${1+(i%3)*.6}" fill="${i%3?'#c9a2ff':'#ffd98a'}" style="animation-delay:-${(i*.61).toFixed(2)}s"/>`;
- return `<svg class="bg fx" viewBox="0 0 400 260" preserveAspectRatio="xMidYMax slice" aria-hidden="true">${emb}</svg><div class="bg shade"></div>`}
-function bgMount(st){const im=BGI[biome(G.floor)];if(!im)return;im.style.animationDelay=`-${(performance.now()/1000)%60}s`;st.insertBefore(im,st.firstChild)}
+const PROPS={
+0:{mid:[['b04',9,37,30],['b03',73,38,26],['a08',91,36,13]],fg:[['a09',2,-5,24],['a10',98,-6,26],['b27',7,'t',40],['b28',94,'t',38]]},
+1:{mid:[['b07',9,37,26],['b06',89,37,28],['a12',71,38,12]],fg:[['b21',2,-5,22],['b24',97,-4,22],['b26',8,'t',38],['a14',92,'t',32]]},
+2:{mid:[['b00',6,36,40],['b05',90,37,28],['b11',73,38,18]],fg:[['b15',4,-6,20],['b24',96,-4,22],['a13',8,'t',38],['a03',93,'t',44]]}};
+const propV=([n,x,b,h])=>`<img class="prop" src="assets/props/${n}.webp" alt="" style="left:${x}%;${b=='t'?'top:-4%':'bottom:'+b+'%'};height:${h}%">`;
+function scene(f){const P=PROPS[biome(f)];let emb='';for(let i=0;i<14;i++)emb+=`<circle class="emb" cx="${(i*83+20)%400}" cy="${200+(i*29)%50}" r="${1+(i%3)*.6}" fill="${i%3?'#c9a2ff':'#ffd98a'}" style="animation-delay:-${(i*.61).toFixed(2)}s"/>`;
+ return `<div class="L bgL"></div><div class="L midL">${P.mid.map(propV).join('')}</div><svg class="bg fx" viewBox="0 0 400 260" preserveAspectRatio="xMidYMax slice" aria-hidden="true">${emb}</svg><div class="bg shade"></div>`}
+const fgV=f=>`<div class="L fgL">${PROPS[biome(f)].fg.map(propV).join('')}</div>`;
+function bgMount(st){const im=BGI[biome(G.floor)],L=st.querySelector('.bgL');if(!im||!L)return;im.style.animationDelay=`-${(performance.now()/1000)%60}s`;L.appendChild(im)}
 function banner(sub,title){if(RM)return;const d=document.createElement('div');d.className='banner';d.innerHTML=`${sub?`<small>${sub}</small>`:''}<b></b>`;d.querySelector('b').textContent=title;document.body.appendChild(d);setTimeout(()=>d.remove(),2200)}
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -406,7 +420,7 @@ function handV(){const n=C.hand.length;if(!n)return '<p class="empty">No cards i
  return C.hand.map((c,i)=>{const o=i-mid,x=W/2+o*step-cw/2+12,rot=n>1?o*Math.min(5,26/n):0,y=o*o*Math.min(3.2,16/n),dl=c.dt?c.dt-now:-999,an=dl>-420&&!RM?`;animation:deal .42s ease-out ${dl|0}ms backwards`:'';
   return cardV(c,`data-a="card" data-v="${i}" style="left:${x.toFixed(1)}px;--r:${rot.toFixed(2)}deg;--y:${y.toFixed(1)}px;z-index:${i+1}${an}"`,(i==C.sel?'sel ':'')+(cost(c)>C.energy||cost(c)<0?'no':''))}).join('')}
 function combatV(){const tg=C.sel>=0,now=performance.now();
- return `<div class="stage">${scene(G.floor)}<p class="hint">${C.won?'Victory':C.busy?'Enemy turn':tg?'Drag to an enemy, or tap one':'Your turn '+C.turn}</p><div class="actors">${heroV(now)}<div class="foes">${C.foes.map(e=>foeV(e,tg,now)).join('')}</div></div></div>
+ return `<div class="stage">${scene(G.floor)}<p class="hint">${C.won?'Victory':C.busy?'Enemy turn':tg?'Drag to an enemy, or tap one':'Your turn '+C.turn}</p><div class="actors">${heroV(now)}<div class="foes">${C.foes.map(e=>foeV(e,tg,now)).join('')}</div></div>${fgV(G.floor)}</div>
  <div class="hand">${handV()}</div>
  <div class="ctl"><div class="orb" title="Energy"><b>${C.energy}</b><small>of 3</small></div><span class="piles">Draw ${C.draw.length} · Discard ${C.disc.length}${C.exh.length?'<br>Exhausted '+C.exh.length:''}</span><button class="btn pri" data-a="end" ${C.busy?'disabled':''}>End turn</button></div>`}
 function rewardV(){const r=RW.relic&&RELICS[RW.relic];return `<div class="panel"><h2>${RW.title||'Victory'}</h2>${RW.gold?`<p class="sub">You found ${RW.gold} gold.</p>`:''}${r?`<button class="btn relbtn" data-a="rrelic"><span class="rel">${r.n[0]}</span><span>Take ${r.n}: ${r.d}</span></button>`:''}
@@ -495,6 +509,7 @@ function muzzle(){if(RM||!RIG.cv||!RIG.cv.isConnected||!RIG.img.attack)return;co
 function rigMount(spr){if(!RIG.cv&&!RIG.fail)rigInit();if(RIG.fail||!RIG.cv){if(!spr.querySelector('.rigimg'))spr.insertAdjacentHTML('beforeend',`<img class="rigimg" src="${PIMG.idle}" alt="">`);return}
  spr.appendChild(RIG.cv);if(!RIG.loop){RIG.loop=true;RIG.last=performance.now();requestAnimationFrame(rigTick)}}
 function rigTick(now){const cv=RIG.cv,gl=RIG.gl;if(screen!='combat'||!cv.isConnected||RIG.fail){RIG.loop=false;return}requestAnimationFrame(rigTick);
+ const stg=$('.stage');if(stg&&!RM){const t=now/1000,px=matchMedia('(hover:hover)').matches?(AP.x/innerWidth-.5):0;stg.style.perspectiveOrigin=`${(50+Math.sin(t*.23)*7+px*10).toFixed(2)}% ${(45+Math.sin(t*.17)*3).toFixed(2)}%`}
  const dt=Math.min(.05,(now-RIG.last)/1000);RIG.last=now;RIG.whip*=Math.pow(.12,dt);RIG.flash*=Math.pow(.004,dt);
  const dpr=Math.min(2,devicePixelRatio||1),W=Math.round(cv.clientWidth*dpr),H=Math.round(cv.clientHeight*dpr);if(!W||!H)return;if(cv.width!=W||cv.height!=H){cv.width=W;cv.height=H}
  if(now>RIG.until)RIG.pose='idle';let k=RIG.pose;if(!RIG.img[k]||!RIG.wt[k])k='idle';if(!RIG.img[k]||!RIG.wt[k])return;
