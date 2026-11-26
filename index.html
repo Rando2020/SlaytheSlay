@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hollow Ascent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Alegreya+Sans:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: grim and candlelit, but quick and tactile, like cards slapped on an old table
+IDEA: a tarot spread on oxblood felt; every card a printed bone-coloured plate
+PICTURE: the battle board itself: drawn monsters, their intents, your hand at thumb height
+COLOUR and TYPE: charcoal-oxblood ground, bone ink, ember red accent, moss teal for block; Cinzel + Alegreya Sans
+LAYOUT: sticky run bar, board, player strip, hand, end turn; one column, built for a phone first */
+:root{color-scheme:dark;--bg:#17100e;--ink:#efe4d2;--mute:#bba993;--ember:#ff5a36;--moss:#5fb3a1;--gold:#e8c86a;--hex:#b58ae0;--tox:#9bd36a;--card:#f3e9d7;--cardink:#2a1a14}
+:root[data-theme=light],:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 'Alegreya Sans',system-ui,sans-serif;overflow-x:clip}
+body{min-height:100vh;background:radial-gradient(120% 70% at 50% 0%,#3d201a 0%,#1f1311 55%,#110b0a 100%) fixed}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;font-weight:800}
+#app{max-width:900px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+.top{display:flex;align-items:center;gap:8px 14px;padding:8px 14px;flex-wrap:wrap;position:sticky;top:0;background:#140c0bdd;backdrop-filter:blur(6px);border-bottom:1px solid #ffffff14;z-index:5}
+.stat{display:inline-flex;align-items:center;gap:5px;font-weight:800;white-space:nowrap}
+.stat.hp{color:#ff8a6e}.stat.gd{color:var(--gold)}
+.relics{display:flex;gap:5px;flex:1;flex-wrap:wrap}
+.rel{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--gold);background:radial-gradient(circle at 35% 30%,#4a3218,#1d140c);color:var(--gold);font:800 14px Cinzel,serif;display:inline-grid;place-items:center;padding:0;flex:none}
+.btn{min-height:44px;padding:0 18px;border-radius:10px;border:1.5px solid #ffffff30;background:#2d1b17;font-weight:800}
+.btn:hover:not(:disabled){border-color:#ffffff66}
+.btn.pri{background:var(--ember);border-color:var(--ember);color:#1a0d09}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.sm{padding:0 12px}
+/* title */
+.title{display:flex;flex-direction:column;min-height:100vh}
+.title .hero{width:100%;height:46vh;min-height:230px;display:block}
+.tbody{padding:18px max(5vw,18px) 40px;max-width:720px;margin:0 auto;width:100%}
+.title h1{font-size:clamp(40px,10vw,64px)}
+.lede{font-size:17px;color:var(--mute);max-width:52ch;margin:12px 0 20px}
+.how{margin-top:26px;border-top:1px solid #ffffff1a;padding-top:6px}
+.how summary{cursor:pointer;font-weight:800;min-height:44px;display:flex;align-items:center}
+.how li{margin:7px 0;color:var(--mute)}
+.emb{animation:rise 7s linear infinite}
+@keyframes rise{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(-150px);opacity:0}}
+/* map */
+.mapv{padding:14px 12px 34px}
+.maphead{text-align:center}.maphead h2{font-size:30px}.maphead p{color:var(--mute);margin:6px 0 0}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;justify-content:center;font-size:13px;color:var(--mute);margin:10px 0 8px}
+.legend span{display:inline-flex;align-items:center;gap:4px}
+.map{display:block;width:100%;max-width:440px;margin:0 auto;background:radial-gradient(90% 60% at 50% 40%,#2c1814,#1a100e);border-radius:20px;border:1px solid #ffffff12}
+.map line{stroke:#ffffff2a;stroke-width:2.5;stroke-dasharray:3 6;stroke-linecap:round}
+.map line.on{stroke:var(--gold);stroke-dasharray:none;stroke-width:3}
+.node .hit{fill:transparent}.node .c{fill:#2d1b17;stroke:#ffffff45;stroke-width:2}
+.node.can{cursor:pointer}.node.can .c{fill:#4e2219;stroke:var(--ember);stroke-width:3;animation:pulse 1.3s ease-in-out infinite}
+.node.vis .c{fill:#5a3a2c;stroke:var(--gold)}.node.dim{opacity:.32}
+.node.boss .c{fill:#2a1416;stroke:var(--gold);stroke-width:3}
+@keyframes pulse{50%{stroke-width:6}}
+/* combat stage */
+.stage{position:relative;height:clamp(318px,46vh,440px);overflow:hidden;border-bottom:1px solid #ffffff14;isolation:isolate}
+.stage>.bg{position:absolute;inset:0;width:100%;height:100%;z-index:-1}
+.stage.quake{animation:quake .4s}
+@keyframes quake{15%{transform:translate(-9px,4px)}30%{transform:translate(8px,-5px)}50%{transform:translate(-5px,3px)}70%{transform:translate(3px,-2px)}}
+.hint{position:absolute;top:10px;left:0;right:0;text-align:center;margin:0;font:800 15px Cinzel,serif;text-shadow:0 2px 8px #000}
+.actors{position:absolute;left:0;right:0;bottom:6px;display:flex;align-items:flex-end;justify-content:space-between;gap:6px;padding:0 10px 0 24px}
+.foes{display:flex;gap:2px;align-items:flex-end;justify-content:flex-end}
+.unit{width:120px;border:0;background:none;padding:2px;border-radius:14px;display:flex;flex-direction:column;align-items:center;gap:2px;color:inherit}
+.unit.big{width:160px}
+.spr{display:block;width:114px;height:95px;position:relative}
+.unit.big .spr{width:156px;height:130px}
+.spr>svg{width:100%;height:100%;overflow:visible;filter:drop-shadow(0 6px 8px #000b)}
+.bob{animation:bob 2.6s ease-in-out infinite}.bob.fly{animation-name:fly}
+@keyframes bob{50%{transform:translateY(-3px) scaleY(1.02)}}
+@keyframes fly{50%{transform:translateY(-10px)}}
+.spr.outR{animation:outR .11s ease-in forwards}@keyframes outR{to{transform:translateX(42px)}}
+.spr.retR{animation:retR .28s ease-out}@keyframes retR{from{transform:translateX(42px)}}
+.spr.outL{animation:outL .11s ease-in forwards}@keyframes outL{to{transform:translateX(-42px)}}
+.spr.retL{animation:retL .28s ease-out}@keyframes retL{from{transform:translateX(-42px)}}
+.spr.hitR{animation:hitR .34s}@keyframes hitR{0%{filter:brightness(4) saturate(0)}30%{transform:translateX(12px)}100%{filter:none;transform:none}}
+.spr.hitL{animation:hitL .34s}@keyframes hitL{0%{filter:brightness(4) saturate(0)}30%{transform:translateX(-12px)}100%{filter:none;transform:none}}
+.unit.tgt{cursor:crosshair}
+.unit.tgt .spr::after{content:'';position:absolute;left:12%;right:12%;bottom:-3px;height:12px;border-radius:50%;box-shadow:0 0 0 2px var(--ember),0 0 18px var(--ember);animation:ring 1s ease-in-out infinite}
+@keyframes ring{50%{opacity:.45}}
+.hero.guard .spr::before{content:'';position:absolute;inset:-4px 8px 0;border-radius:50% 50% 42% 42%;background:radial-gradient(closest-side,transparent 62%,#5fb3a150);box-shadow:inset 0 0 0 2px #5fb3a170}
+.unit.dying{animation:die .8s forwards;pointer-events:none}
+@keyframes die{to{opacity:0;filter:blur(4px) sepia(1) brightness(1.8);transform:translateY(-16px) scale(.88)}}
+.unit.dead{visibility:hidden;pointer-events:none}
+.info{width:100%;display:flex;flex-direction:column;align-items:center;gap:2px;background:#000000a0;border-radius:9px;padding:3px 6px 4px}
+.fn{font:800 12.5px Cinzel,serif;text-align:center;line-height:1.1}
+.ints{display:flex;gap:4px;min-height:26px}
+.it{display:inline-flex;gap:3px;align-items:center;font-weight:800;padding:2px 8px;border-radius:8px;font-size:15px;white-space:nowrap;background:#000a}
+.it.a{color:#ff9a80;box-shadow:inset 0 0 0 1.5px #ff5a3699}.it.b{color:#8fe0cf;box-shadow:inset 0 0 0 1.5px #5fb3a199}.it.u{color:var(--gold);box-shadow:inset 0 0 0 1.5px #e8c86a99}.it.d{color:#d2b6f2;box-shadow:inset 0 0 0 1.5px #b58ae099}
+.bar{display:block;width:100%;height:9px;border-radius:6px;background:#0009;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(#ff7a58,#c8371c);transition:width .3s}
+.hpt{font-size:13px;font-weight:800;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+.chips{display:flex;gap:3px;flex-wrap:wrap;justify-content:center}
+.chips:empty{display:none}
+.chip{font-size:13px;font-weight:800;padding:1px 6px;border-radius:7px;background:#0007;white-space:nowrap;display:inline-flex;align-items:center;gap:2px}
+.chip.blk,.chip.b{background:var(--moss);color:#0c201c}.chip.u{background:#e8c86a2e;color:var(--gold)}.chip.d{background:#b58ae02e;color:#d2b6f2}.chip.p{background:#9bd36a2e;color:var(--tox)}
+.hand{position:relative;height:204px;margin-top:2px}
+.hand .empty{position:absolute;inset:0;display:grid;place-items:center;color:var(--mute);margin:0}
+.hand .card{position:absolute;top:38px;transform-origin:50% 130%;transform:translateY(var(--y)) rotate(var(--r));transition:transform .18s ease-out}
+.hand .card.sel{transform:translateY(-32px) rotate(0) scale(1.07);z-index:40!important;box-shadow:0 0 0 3px var(--gold),0 16px 26px #000d}
+@keyframes deal{from{transform:translate(-170px,70px) rotate(-28deg);opacity:0}}
+.ctl{display:flex;align-items:center;gap:12px;padding:4px 14px 16px}
+.ctl .piles{flex:1;line-height:1.3}
+.orb{width:58px;height:58px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffb391,var(--ember) 55%,#7a1d0c);color:#1a0d09;display:grid;place-items:center;align-content:center;flex:none;box-shadow:0 0 22px #ff5a3677,inset 0 -4px 8px #0005;font-family:Cinzel,serif;line-height:1}
+.orb b{font-size:25px}.orb small{font-size:12px;font-weight:800}
+.piles{font-size:14px;color:var(--mute)}
+#aim{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:35;display:none;overflow:visible;color:var(--ember);filter:drop-shadow(0 0 5px currentColor) drop-shadow(0 2px 2px #000)}
+#aim g path{fill:none;stroke:currentColor;stroke-width:4.5;stroke-linecap:round;stroke-linejoin:round}#aim g path.head{fill:currentColor;stroke-width:2}
+.unit.aimed .spr::after{content:'';position:absolute;left:8%;right:8%;bottom:-4px;height:14px;border-radius:50%;box-shadow:0 0 0 3px var(--gold),0 0 26px var(--gold);animation:none}
+.unit.aimed .info{box-shadow:0 0 0 2px var(--gold)}
+.hand,.stage{-webkit-user-select:none;user-select:none}.hand .card{touch-action:none}
+.hand .card.lifted{visibility:hidden}
+.card.dragcard{position:fixed;margin:0;z-index:46;pointer-events:none;transition:box-shadow .15s;transform-origin:50% 50%}
+.card.dragcard.ready{box-shadow:0 0 0 3px var(--gold),0 0 30px #e8c86aaa,0 18px 30px #000c!important}
+.stage{transition:box-shadow .2s}.stage.drop{box-shadow:inset 0 0 0 2px #e8c86a77,inset 0 -40px 80px #e8c86a26}
+.hero{width:150px}.hero .spr{width:150px;height:226px}
+.rig{position:absolute;left:-22%;top:0;width:144%;height:100%;filter:drop-shadow(0 8px 10px #000c)}
+.rigimg{position:absolute;bottom:0;left:50%;height:96%;transform:translateX(-50%);filter:drop-shadow(0 8px 10px #000c)}
+.gshadow{position:absolute;left:14%;right:10%;bottom:-3px;height:10px;border-radius:50%;background:radial-gradient(closest-side,#000a,transparent)}
+.card.ghost{position:fixed;margin:0;z-index:45;pointer-events:none;transition:none}
+.spark{position:fixed;width:7px;height:7px;margin:-3px;border-radius:50%;background:#ffb36b;box-shadow:0 0 10px var(--ember);pointer-events:none;z-index:45}
+.banner{position:fixed;left:0;right:0;top:30%;z-index:40;text-align:center;pointer-events:none;animation:ban 2.1s forwards;background:linear-gradient(90deg,transparent,#000d 18%,#000d 82%,transparent);padding:16px 0 18px}
+.banner small{display:block;font:800 14px Cinzel,serif;color:var(--ember);letter-spacing:.18em;margin-bottom:4px}
+.banner b{font:800 clamp(30px,8vw,54px) Cinzel,serif;color:var(--gold);text-shadow:0 0 24px #e8c86a55}
+@keyframes ban{0%{opacity:0;transform:scaleY(.15)}10%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0}}
+.fl{transform-box:fill-box;transform-origin:50% 100%;animation:flick .6s ease-in-out infinite alternate}
+/* cards */
+.card{position:relative;flex:none;width:106px;height:152px;border-radius:11px;border:0;padding:0;background:var(--card);color:var(--cardink);box-shadow:0 8px 16px #000a,inset 0 0 0 3px var(--tc);display:flex;flex-direction:column;text-align:center;transition:transform .15s;scroll-snap-align:center}
+.card.t-atk{--tc:#c4452c}.card.t-skl{--tc:#3c8b7c}.card.t-pow{--tc:#c4962a}.card.t-curse{--tc:#5d4b62;background:#d6cbd6}
+.card .cost{position:absolute;top:-8px;left:-8px;width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffb391,var(--ember) 60%,#9a2810);color:#1a0d09;font:800 16px Cinzel,serif;display:grid;place-items:center;border:2px solid #1a0d09}
+.card .nm{font:800 12.5px/1.1 Cinzel,serif;padding:11px 8px 3px;min-height:34px;display:grid;place-items:center}
+.card.up .nm{color:#2f7d3e}
+.card .art{height:40px;margin:0 9px;border-radius:7px;background:linear-gradient(160deg,var(--tc),#00000066),var(--tc);display:grid;place-items:center}
+.card .ds{font-size:13px;line-height:1.18;padding:5px 7px;flex:1;display:grid;place-items:center}
+.card .ty{font-size:11px;font-weight:800;opacity:.6;padding-bottom:5px;letter-spacing:.02em}
+@media(hover:hover){.row .card:hover:not(:disabled):not(.no),.grid .card:hover{transform:translateY(-6px)}.hand .card:hover:not(.no){transform:translateY(-24px) rotate(0) scale(1.05);z-index:39!important}}
+.card.r2{box-shadow:0 8px 16px #000a,inset 0 0 0 3px var(--tc),0 0 0 2px #cfd8de}
+.card.r3{box-shadow:0 8px 16px #000a,inset 0 0 0 3px var(--tc),0 0 0 2px var(--gold),0 0 16px #e8c86a77}
+.card.r3::after{content:'';position:absolute;inset:0;border-radius:inherit;background:linear-gradient(115deg,transparent 38%,#fff8 50%,transparent 62%) no-repeat;background-size:260% 100%;animation:shine 3.4s linear infinite;pointer-events:none}
+@keyframes shine{from{background-position:140% 0}to{background-position:-140% 0}}
+.card.no{filter:saturate(.35) brightness(.72)}
+/* panels */
+.panel{max-width:680px;margin:0 auto;width:100%;padding:24px 16px 40px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}
+.panel h2{font-size:clamp(30px,7vw,42px)}.panel h3{font-size:20px}
+.sub{color:var(--mute);font-size:17px;margin:0;max-width:52ch}
+.row{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.row.l{justify-content:flex-start}
+.ware{display:flex;flex-direction:column;align-items:center;gap:8px}
+.price{font-weight:800;color:var(--gold);white-space:nowrap}.price.poor{color:#ff8a6e}
+.opts{display:flex;flex-direction:column;gap:10px;width:100%;max-width:440px}
+.opt{text-align:left;padding:10px 16px}
+.relbtn{display:inline-flex;align-items:center;gap:10px;text-align:left;padding:8px 14px}
+.pic{width:min(260px,72%);height:auto;display:block}
+.flame{transform-box:fill-box;transform-origin:50% 100%;animation:flick 1.2s ease-in-out infinite alternate}
+@keyframes flick{to{transform:scaleY(.9) scaleX(1.04)}}
+.end h1{font-size:clamp(38px,9vw,58px)}
+/* overlays */
+#modal:empty{display:none}
+.modal{position:fixed;inset:0;background:#0b0706ee;z-index:20;overflow:auto;padding:16px 14px 40px}
+.mhead{display:flex;justify-content:space-between;align-items:center;gap:12px;max-width:900px;margin:0 auto}
+.mhead h2{font-size:24px}
+.grid{display:flex;flex-wrap:wrap;gap:16px 12px;justify-content:center;padding-top:22px;max-width:900px;margin:0 auto}
+.pop{position:fixed;pointer-events:none;font:800 24px Cinzel,serif;color:#ff7a58;text-shadow:0 2px 0 #000,0 0 8px #000;animation:pop .9s forwards;z-index:50;transform:translateX(-50%)}
+.pop.b{color:#8fe0cf}.pop.p{color:var(--tox)}
+@keyframes pop{0%{opacity:0;margin-top:8px}15%{opacity:1}100%{opacity:0;margin-top:-46px}}
+.shake{animation:sh .32s}
+@keyframes sh{20%{transform:translateX(-7px)}45%{transform:translateX(6px)}70%{transform:translateX(-3px)}}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#2d1b17;border:1px solid var(--gold);padding:10px 16px;border-radius:12px;z-index:60;max-width:90vw;font-weight:700;box-shadow:0 10px 24px #000a}
+@media(max-width:600px){.card{width:98px;height:146px}.unit{width:110px}.spr{width:104px;height:87px}.unit.big{width:150px}.unit.big .spr{width:144px;height:120px}.hero{width:128px}.hero .spr{width:128px;height:198px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body>
+<div id="app"></div><div id="modal"></div><svg id="aim" aria-hidden="true"><path id="aimP" fill="none" stroke="none"/><g id="aimG"></g></svg>
+<script>
+(()=>{
+const $=s=>document.querySelector(s);
+const R=n=>Math.floor(Math.random()*n);
+const pick=a=>a[R(a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=R(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const SAVE='hollow-ascent-v1';
+const save=()=>{try{localStorage.setItem(SAVE,JSON.stringify(G))}catch(e){}};
+const load=()=>{try{return JSON.parse(localStorage.getItem(SAVE))}catch(e){return null}};
+const wipe=()=>{try{localStorage.removeItem(SAVE)}catch(e){}};
+let G=null,C=null,RW=null,SH=null,RS=null,EV=null,MD=null,screen='title',uid=1,Q=[];
+
+/* ---------- icons and art ---------- */
+const ico=(d,w=14)=>`<svg viewBox="-8 -8 16 16" width="${w}" height="${w}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const ICO={sword:ico('<path d="M-5 5L6-6M-6 1l5 5"/>'),shield:ico('<path d="M0-6L6-4V0C6 4 3 6 0 7C-3 6-6 4-6 0V-4Z"/>'),up:ico('<path d="M0 6V-6M-5-1L0-6L5-1"/>'),hex:ico('<circle r="5"/><circle r="1.4" fill="currentColor"/>'),heart:ico('<path d="M0 6C-7 1-7-5-3-5C-1-5 0-3 0-3S1-5 3-5C7-5 7 1 0 6Z" fill="currentColor" stroke="none"/>',16),coin:ico('<circle r="6"/><path d="M0-3v6"/>',16)};
+const AS='fill="none" stroke="#f3e9d7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"';
+const ART={atk:`<svg viewBox="-16 -16 32 32" width="32" height="32"><path ${AS} d="M-9 9L10-10M5-10h5v5M-11 3l8 8M-12 12l3-3"/></svg>`,
+skl:`<svg viewBox="-16 -16 32 32" width="32" height="32"><path d="M0-12L10-8V0C10 7 5 11 0 13C-5 11-10 7-10 0V-8Z" fill="#f3e9d7"/><path d="M0-8V9" stroke="#3c8b7c" stroke-width="2.5"/></svg>`,
+pow:`<svg viewBox="-16 -16 32 32" width="32" height="32"><circle r="6" fill="#f3e9d7"/><path ${AS} d="M0-13v4M0 9v4M-13 0h4M9 0h4M-9-9l3 3M6 6l3 3M9-9l-3 3M-6 6l-3 3"/></svg>`,
+curse:`<svg viewBox="-16 -16 32 32" width="32" height="32"><path ${AS} d="M-12 0C-6-8 6-8 12 0C6 8-6 8-12 0Z"/><circle r="3" fill="#f3e9d7"/><path ${AS} d="M-10 10L10-10"/></svg>`};
+const NS='stroke="#efe4d2" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"';
+const NI={fight:`<path ${NS} d="M-6 6L7-7M3-7h4v4M-7 0l7 7"/>`,
+elite:`<path d="M0-9C7-9 9-3 8 2L5 8H-5L-8 2C-9-3-7-9 0-9Z" fill="#efe4d2"/><circle cx="-3.2" cy="0" r="2.2" fill="#17100e"/><circle cx="3.2" cy="0" r="2.2" fill="#17100e"/>`,
+rest:`<path d="M0-10C7-3 7 3 3 7C1 9-1 9-3 7C-7 3-7-3 0-10Z" fill="#ff5a36"/><path d="M0-2C3 1 3 4 1 6C0 7 0 7-1 6C-3 4-3 1 0-2Z" fill="#e8c86a"/>`,
+shop:`<circle r="7.5" ${NS}/><path ${NS} d="M2.5-3.5H-1a2 2 0 0 0 0 4h2a2 2 0 0 1 0 4h-3.5M0-6v1.5M0 5v1.5"/>`,
+event:`<text y="6.5" text-anchor="middle" font-family="Cinzel,serif" font-weight="800" font-size="18" fill="#efe4d2">?</text>`,
+chest:`<rect x="-8" y="-5" width="16" height="11" rx="2" ${NS}/><path ${NS} d="M-8 0h16M0-1v3"/>`,
+boss:`<path d="M-10 6V-4L-5 1L0-8L5 1L10-4V6Z" fill="#e8c86a"/>`};
+const TL={fight:'Fight',elite:'Elite',rest:'Rest site',shop:'Shop',event:'Unknown',chest:'Treasure',boss:'Boss'};
+const sh=(rx=34)=>`<ellipse cx="60" cy="96" rx="${rx}" ry="4.5" fill="#000" opacity=".55"/>`;
+const SPR={
+blob:c=>`${sh()}<path d="M16 95C10 72 20 44 46 36C74 28 106 46 108 95Z" fill="${c}"/><path d="M16 95C40 86 80 86 108 95Z" fill="#000" opacity=".28"/><path d="M76 44C90 50 99 62 101 76" stroke="#fff" stroke-opacity=".28" stroke-width="5" fill="none" stroke-linecap="round"/><ellipse cx="34" cy="58" rx="7" ry="8.5" fill="#1a0d09"/><circle cx="32" cy="55" r="2.5" fill="#fff"/><ellipse cx="48" cy="56" rx="5" ry="6.5" fill="#1a0d09" opacity=".8"/><path d="M19 74Q28 69 35 76" stroke="#1a0d09" stroke-width="2.6" fill="none" stroke-linecap="round"/>`,
+moth:c=>`${sh(24)}<path d="M72 58C60 20 88 0 106 12C112 32 96 52 74 60Z" fill="${c}" opacity=".5"/><path d="M62 58C46 22 70 0 93 7C103 28 87 50 66 62Z" fill="${c}"/><circle cx="80" cy="26" r="7" fill="#000" opacity=".25"/><path d="M70 20C78 30 80 40 74 50" stroke="#000" stroke-opacity=".2" stroke-width="2" fill="none"/><ellipse cx="70" cy="64" rx="24" ry="9" fill="#3a2a1a"/><path d="M58 60v8M66 59v10M74 59v10M82 60v8" stroke="#000" stroke-opacity=".3" stroke-width="2"/><path d="M58 72l-4 10M68 73l-2 11M78 72l2 10" stroke="#3a2a1a" stroke-width="2.2" stroke-linecap="round"/><circle cx="42" cy="60" r="10" fill="#4a3622"/><circle cx="37" cy="58" r="3.2" fill="#ff5a36"/><path d="M38 51Q30 36 20 34M42 50Q38 34 30 27" stroke="#3a2a1a" stroke-width="2.2" fill="none" stroke-linecap="round"/>`,
+beetle:c=>`${sh(40)}<path d="M44 84l-6 12M60 86l-3 10M78 86l3 10M94 84l6 12" stroke="#1a0d09" stroke-width="4" stroke-linecap="round"/><path d="M32 88C32 56 56 40 84 42C104 44 114 66 112 88Z" fill="${c}"/><path d="M32 88C50 82 90 82 112 88Z" fill="#000" opacity=".3"/><path d="M58 48C72 44 92 48 100 60" stroke="#fff" stroke-opacity=".3" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M70 44C66 58 66 74 70 86" stroke="#000" stroke-opacity=".25" stroke-width="3" fill="none"/><path d="M38 87C20 89 11 78 15 68C19 59 32 59 39 70Z" fill="#2a2030"/><path d="M18 68L3 44L25 62Z" fill="#2a2030"/><circle cx="24" cy="73" r="3.2" fill="#ffd27a"/><path d="M15 81l-7 4" stroke="#2a2030" stroke-width="3" stroke-linecap="round"/>`,
+ghost:c=>`${sh(30)}<path d="M18 58C18 30 46 14 70 22C92 30 98 54 92 70C102 78 112 80 118 88C102 92 84 88 70 92C58 88 46 92 36 86C24 80 18 70 18 58Z" fill="${c}" opacity=".93"/><path d="M50 24C66 20 84 28 90 44" stroke="#fff" stroke-opacity=".3" stroke-width="5" fill="none" stroke-linecap="round"/><ellipse cx="34" cy="48" rx="6" ry="8.5" fill="#140b10"/><ellipse cx="50" cy="46" rx="4.5" ry="7" fill="#140b10" opacity=".8"/><path d="M24 66Q32 60 40 66" stroke="#140b10" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M44 72C34 80 22 80 12 72" stroke="${c}" stroke-width="7" stroke-linecap="round" fill="none"/>`,
+golem:c=>`${sh(40)}<rect x="50" y="76" width="16" height="20" rx="4" fill="${c}"/><rect x="80" y="76" width="16" height="20" rx="4" fill="${c}"/><rect x="80" y="76" width="16" height="20" rx="4" fill="#000" opacity=".3"/><rect x="76" y="40" width="22" height="34" rx="9" fill="${c}"/><rect x="76" y="40" width="22" height="34" rx="9" fill="#000" opacity=".3"/><rect x="40" y="34" width="60" height="48" rx="9" fill="${c}"/><rect x="40" y="64" width="60" height="18" rx="7" fill="#000" opacity=".25"/><path d="M52 46h40M52 54h40" stroke="#000" stroke-opacity=".3" stroke-width="2"/><rect x="24" y="15" width="34" height="29" rx="6" fill="${c}"/><rect x="21" y="25" width="23" height="8" rx="3" fill="#1a1416"/><circle cx="28" cy="29" r="3" fill="#ff5a36"/><circle cx="28" cy="29" r="6" fill="#ff5a36" opacity=".3"/><rect x="16" y="48" width="38" height="16" rx="8" fill="${c}"/><circle cx="15" cy="56" r="11" fill="${c}"/><circle cx="15" cy="56" r="11" fill="#000" opacity=".15"/>`,
+king:c=>`${sh(40)}<path d="M60 44C82 46 104 70 118 96H70Z" fill="#2a0f16"/><path d="M36 96L48 44H82L96 96Z" fill="#4a1f2a"/><path d="M48 44H82L90 70H40Z" fill="#000" opacity=".28"/><path d="M62 44L66 96" stroke="#e8c86a" stroke-opacity=".6" stroke-width="3"/><path d="M52 58L18 40" stroke="#e8c86a" stroke-width="4" stroke-linecap="round"/><circle cx="16" cy="38" r="11" fill="#ff5a36" opacity=".25"/><circle cx="16" cy="38" r="6" fill="#ff5a36"/><circle cx="52" cy="58" r="5" fill="#1e1416"/><circle cx="62" cy="32" r="15" fill="#1e1416"/><circle cx="53" cy="31" r="3" fill="#ff5a36"/><path d="M48 20V6L55 13L63 2L71 13L77 8V20Z" fill="${c}"/><path d="M48 20H77" stroke="#7a5a1a" stroke-width="2"/>`};
+const HERO=`${sh(28)}<path d="M50 46C36 52 18 74 8 96H50Z" fill="#2f6f63"/><path d="M30 96L42 44H68L80 96Z" fill="#5fb3a1"/><path d="M54 44L60 96H46Z" fill="#000" opacity=".18"/><path d="M36 46C34 20 70 12 76 36L72 48H40Z" fill="#4a9a89"/><ellipse cx="66" cy="36" rx="8" ry="9" fill="#120c0b"/><circle cx="70" cy="35" r="2.2" fill="#ff5a36"/><path d="M70 60L110 44" stroke="#efe4d2" stroke-width="4" stroke-linecap="round"/><path d="M69 52L74 67" stroke="#e8c86a" stroke-width="4" stroke-linecap="round"/><circle cx="66" cy="62" r="5" fill="#3c8b7c"/>`;
+const tree=(x,h,k=1,o=1)=>`<path d="M${x} 200L${x+2*k} ${200-h}M${x+1} ${200-h*.6}L${x-15*k} ${200-h*.86}M${x+1.5} ${200-h*.76}L${x+17*k} ${200-h}M${x+1} ${200-h*.42}L${x+13*k} ${200-h*.56}" stroke="#0b0f09" stroke-width="${4*k}" stroke-linecap="round" fill="none" opacity="${o}"/>`;
+const brazier=x=>`<path d="M${x-3} 198V150h6V198Z" fill="#0c0606"/><path d="M${x-16} 146h32l-6 10h-20Z" fill="#2a1410"/><path class="fl" d="M${x} 112C${x+14} 128 ${x+14} 138 ${x+8} 146H${x-8}C${x-14} 138 ${x-12} 126 ${x} 112Z" fill="#ff5a36"/><path class="fl" d="M${x} 128C${x+6} 136 ${x+6} 142 ${x+3} 146H${x-3}C${x-6} 142 ${x-5} 136 ${x} 128Z" fill="#e8c86a"/><circle cx="${x}" cy="136" r="40" fill="#ff5a36" opacity=".08"/>`;
+function scene(f){const b=f>=10?2:f>=5?1:0;let emb='';for(let i=0;i<12;i++)emb+=`<circle class="emb" cx="${(i*83+20)%400}" cy="${196+(i*29)%50}" r="${1+(i%3)*.5}" fill="${b?'#ff7a48':'#c9e07a'}" style="animation-delay:-${(i*.61).toFixed(2)}s"/>`;
+ const S=[`<defs><linearGradient id="g0" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a3522"/><stop offset=".75" stop-color="#141a11"/></linearGradient></defs><rect width="400" height="260" fill="url(#g0)"/><circle cx="318" cy="58" r="24" fill="#dfe8b8" opacity=".35"/><circle cx="318" cy="58" r="50" fill="#dfe8b8" opacity=".06"/>${tree(212,64,.5,.45)}${tree(150,80,.6,.6)}${tree(30,124)}${tree(96,84,.7)}${tree(300,140,1.1)}${tree(372,96,.8)}<ellipse cx="120" cy="178" rx="160" ry="14" fill="#9fb08a" opacity=".07"/><ellipse cx="300" cy="186" rx="140" ry="10" fill="#9fb08a" opacity=".08"/><path d="M0 198Q100 190 200 198T400 196V260H0Z" fill="#10150d"/><ellipse cx="200" cy="232" rx="170" ry="9" fill="#3a4a34" opacity=".4"/><path d="M14 200v-16M18 200v-22M22 200v-13M378 200v-18M382 200v-24M387 200v-14" stroke="#0b0f09" stroke-width="2"/>`,
+ `<defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2e1c18"/><stop offset=".8" stop-color="#140c0b"/></linearGradient></defs><rect width="400" height="260" fill="url(#g1)"/>${[-50,50,150,250,350].map(x=>`<path d="M${x+12} 196V96Q${x+50} 44 ${x+88} 96V196Z" fill="#0f0807"/><ellipse cx="${x+50}" cy="120" rx="18" ry="34" fill="#e8c86a" opacity=".05"/><rect x="${x+38}" y="58" width="24" height="56" fill="#5e1d18" opacity=".85"/><path d="M${x+38} 114l12-9 12 9" fill="#2e1c18"/>`).join('')}${[0,100,200,300,400].map(x=>`<rect x="${x-13}" y="30" width="26" height="170" fill="#22140f"/><rect x="${x-17}" y="30" width="34" height="10" fill="#2c1a14"/><rect x="${x-13}" y="30" width="7" height="170" fill="#fff" opacity=".04"/>`).join('')}<rect y="196" width="400" height="64" fill="#0e0807"/><path d="M0 214H400M0 236H400M60 196L20 260M140 196L120 260M260 196L280 260M340 196L380 260" stroke="#ffffff0d" stroke-width="1.5"/>`,
+ `<defs><linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3e1515"/><stop offset=".8" stop-color="#140808"/></linearGradient></defs><rect width="400" height="260" fill="url(#g2)"/>${[...Array(14)].map((_,i)=>`<rect x="${i*30}" y="0" width="15" height="196" fill="#000" opacity=".16"/>`).join('')}<path d="M164 198V84L182 62L200 24L218 62L236 84V198Z" fill="#0b0505" stroke="#e8c86a" stroke-opacity=".45" stroke-width="2"/><circle cx="200" cy="74" r="7" fill="#ff5a36" opacity=".7"/>${brazier(108)}${brazier(292)}<rect y="196" width="400" height="64" fill="#0d0606"/><path d="M180 260L192 196H208L220 260Z" fill="#6b1f1a" opacity=".85"/>`];
+ return `<svg class="bg" viewBox="0 0 400 260" preserveAspectRatio="xMidYMax slice" aria-hidden="true">${S[b]}${emb}</svg>`}
+function banner(sub,title){if(RM)return;const d=document.createElement('div');d.className='banner';d.innerHTML=`${sub?`<small>${sub}</small>`:''}<b></b>`;d.querySelector('b').textContent=title;document.body.appendChild(d);setTimeout(()=>d.remove(),2200)}
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- data ---------- */
+const D=(b,m=1)=>{if(!C)return b;let d=b+(C.p.st.str||0)*m;if(C.p.st.weak)d*=.75;return Math.max(0,Math.floor(d))};
+const K={
+strike:{n:'Strike',c:1,t:'atk',r:0,tg:1,d:u=>`Deal ${D(u?9:6)} damage.`,f:(u,e)=>atk(e,u?9:6)},
+defend:{n:'Defend',c:1,t:'skl',r:0,d:u=>`Gain ${u?8:5} Block.`,f:u=>blk(u?8:5)},
+bash:{n:'Bash',c:2,t:'atk',r:0,tg:1,d:u=>`Deal ${D(u?10:8)} damage. Apply ${u?3:2} Vulnerable.`,f:(u,e)=>{atk(e,u?10:8);debuff(e,'vuln',u?3:2)}},
+cleave:{n:'Cleave',c:1,t:'atk',r:1,d:u=>`Deal ${D(u?11:8)} damage to ALL enemies.`,f:u=>alive().forEach(e=>atk(e,u?11:8))},
+iron:{n:'Iron Wave',c:1,t:'atk',r:1,tg:1,d:u=>`Gain ${u?7:5} Block. Deal ${D(u?7:5)} damage.`,f:(u,e)=>{blk(u?7:5);atk(e,u?7:5)}},
+pommel:{n:'Pommel Strike',c:1,t:'atk',r:1,tg:1,d:u=>`Deal ${D(u?10:9)} damage. Draw ${u?2:1}.`,f:(u,e)=>{atk(e,u?10:9);draw(u?2:1)}},
+shrug:{n:'Shrug Off',c:1,t:'skl',r:1,d:u=>`Gain ${u?11:8} Block. Draw 1.`,f:u=>{blk(u?11:8);draw(1)}},
+twin:{n:'Twin Slash',c:1,t:'atk',r:1,tg:1,d:u=>`Deal ${D(u?7:5)} damage twice.`,f:(u,e)=>{atk(e,u?7:5);atk(e,u?7:5)}},
+stab:{n:'Venom Stab',c:1,t:'atk',r:1,tg:1,d:u=>`Deal ${D(u?8:6)} damage. Apply ${u?4:3} Poison.`,f:(u,e)=>{atk(e,u?8:6);debuff(e,'poison',u?4:3)}},
+toxin:{n:'Toxin Dart',c:1,t:'skl',r:1,tg:1,d:u=>`Apply ${u?8:5} Poison.`,f:(u,e)=>debuff(e,'poison',u?8:5)},
+thunder:{n:'Thunderclap',c:1,t:'atk',r:1,d:u=>`Deal ${D(u?7:4)} damage and 1 Vulnerable to ALL enemies.`,f:u=>alive().forEach(e=>{atk(e,u?7:4);debuff(e,'vuln',1)})},
+slam:{n:'Body Slam',c:[1,0],t:'atk',r:1,tg:1,d:()=>`Deal damage equal to your Block${C?' ('+D(C.p.block)+')':''}.`,f:(u,e)=>atk(e,C.p.block)},
+inflame:{n:'Inflame',c:1,t:'pow',r:2,d:u=>`Gain ${u?3:2} Strength.`,f:u=>buff('str',u?3:2)},
+upper:{n:'Uppercut',c:2,t:'atk',r:2,tg:1,d:u=>`Deal ${D(13)} damage. Apply ${u?2:1} Weak and ${u?2:1} Vulnerable.`,f:(u,e)=>{atk(e,13);debuff(e,'weak',u?2:1);debuff(e,'vuln',u?2:1)}},
+heavy:{n:'Heavy Blade',c:2,t:'atk',r:2,tg:1,d:u=>`Deal ${D(14,u?5:3)} damage. Strength counts ${u?5:3} times.`,f:(u,e)=>atk(e,14,u?5:3)},
+catalyst:{n:'Catalyst',c:1,t:'skl',r:2,tg:1,x:1,d:u=>`${u?'Triple':'Double'} the target's Poison. Exhaust.`,f:(u,e)=>{e.st.poison=(e.st.poison||0)*(u?3:2)}},
+blood:{n:'Bloodletting',c:0,t:'skl',r:2,d:u=>`Lose 3 HP. Gain ${u?3:2} Energy.`,f:u=>{loseHp(3);C.energy+=u?3:2}},
+trance:{n:'Battle Trance',c:0,t:'skl',r:2,d:u=>`Draw ${u?4:3} cards.`,f:u=>draw(u?4:3)},
+metal:{n:'Metallicize',c:1,t:'pow',r:2,d:u=>`At the end of your turn, gain ${u?4:3} Block.`,f:u=>buff('metal',u?4:3)},
+cloud:{n:'Toxic Cloud',c:[2,1],t:'pow',r:2,d:()=>`At the start of your turn, apply 2 Poison to ALL enemies.`,f:()=>buff('cloud',2)},
+imperv:{n:'Impervious',c:2,t:'skl',r:3,x:1,d:u=>`Gain ${u?40:30} Block. Exhaust.`,f:u=>blk(u?40:30)},
+demon:{n:'Demon Form',c:3,t:'pow',r:3,d:u=>`At the start of your turn, gain ${u?3:2} Strength.`,f:u=>buff('demon',u?3:2)},
+bludgeon:{n:'Bludgeon',c:3,t:'atk',r:3,tg:1,d:u=>`Deal ${D(u?42:32)} damage.`,f:(u,e)=>atk(e,u?42:32)},
+adren:{n:'Adrenaline',c:0,t:'skl',r:3,x:1,d:u=>`Gain ${u?2:1} Energy. Draw 2. Exhaust.`,f:u=>{C.energy+=u?2:1;draw(2)}},
+doubt:{n:'Doubt',c:-1,t:'curse',r:-1,d:()=>`Unplayable. Clogs your hand.`,f:()=>{}}};
+const POOL={1:[],2:[],3:[]};for(const id in K)if(K[id].r>0)POOL[K[id].r].push(id);
+const TN={atk:'Attack',skl:'Skill',pow:'Power',curse:'Curse'};
+const EN={
+slime:{n:'Bog Slime',hp:[18,22],col:'#7bbf5a',s:'blob',ai:t=>t%2?{a:4,weak:1}:{a:7}},
+moth:{n:'Cult Moth',hp:[44,48],col:'#c9a36b',s:'moth',ai:t=>t==0?{str:3}:{a:6}},
+beetle:{n:'Thorn Beetle',hp:[38,42],col:'#6b8fbf',s:'beetle',ai:t=>t%2?{b:9,a:5}:{a:11}},
+lurker:{n:'Lurker',hp:[12,15],col:'#b05a7a',s:'blob',ai:t=>t%2?{a:3,x:2}:{a:5}},
+shade:{n:'Shade',hp:[26,30],col:'#8f86c8',s:'ghost',ai:t=>[{a:6,vuln:1},{a:9},{b:8,str:2}][t%3]},
+warden:{n:'Iron Warden',hp:[82,86],col:'#a0a6ad',s:'golem',big:1,ai:t=>[{b:12,str:2},{a:14},{a:6,x:2}][t%3]},
+hex:{n:'Hex Mother',hp:[68,72],col:'#d0607a',s:'ghost',big:1,ai:t=>[{a:9,vuln:2},{a:6,x:3},{weak:2,str:3}][t%3]},
+king:{n:'The Hollow King',hp:[180,180],col:'#e8c86a',s:'king',big:1,boss:1,ai:t=>[{b:10,str:2},{a:8,x:2},{a:22},{weak:2,vuln:2,b:8}][t%4]}};
+const EASY=[['slime'],['lurker','lurker'],['moth']];
+const HARD=[['beetle'],['slime','lurker'],['shade'],['moth','slime'],['shade','lurker'],['beetle','lurker']];
+const ELITE=[['warden'],['hex']];
+const RELICS={heart:{n:'Ember Heart',d:'Heal 6 HP after each combat.'},fang:{n:'Iron Fang',d:'Start each combat with 1 Strength.'},lantern:{n:'Lantern',d:'Gain 1 extra Energy on your first turn.'},anchor:{n:'Anchor',d:'Start each combat with 10 Block.'},satchel:{n:'Satchel',d:'Draw 2 extra cards on your first turn.'},bell:{n:'Bronze Bell',d:'Enemies start combat with 1 Vulnerable.'},moss:{n:'Mending Moss',d:'Raise Max HP by 8.'}};
+const STN={str:['Str','u','Strength: adds damage to attacks'],vuln:['Vuln','d','Vulnerable: takes 50% more attack damage'],weak:['Weak','d','Weak: deals 25% less attack damage'],poison:['Poison','p','Poison: loses that much HP each turn, then it drops by 1'],metal:['Metal','b','Metallicize: gain Block at end of turn'],cloud:['Cloud','p','Toxic Cloud: poison all enemies each turn'],demon:['Demon','u','Demon Form: gain Strength each turn']};
+
+/* ---------- helpers ---------- */
+const mk=(id,up=0)=>({id,up,u:uid++});
+const cost=c=>{const k=K[c.id].c;return Array.isArray(k)?k[c.up?1:0]:k};
+const name=c=>K[c.id].n+(c.up?'+':'');
+const has=k=>G&&G.relics.includes(k);
+const heal=n=>{G.hp=Math.min(G.maxHp,G.hp+n)};
+const upgradable=()=>G.deck.filter(c=>!c.up&&K[c.id].r>=0);
+const randRelic=()=>{const a=Object.keys(RELICS).filter(k=>!G.relics.includes(k));return a.length?pick(a):null};
+const gainRelic=k=>{G.relics.push(k);if(k=='moss'){G.maxHp+=8;G.hp+=8}};
+function cardChoices(b){const out=[];let g=0;while(out.length<3&&g++<60){const r=Math.random(),t=r<.07+b*.13?3:r<.42+b*.13?2:1,id=pick(POOL[t]);if(!out.includes(id))out.push(id)}return out}
+function toast(m){const d=document.createElement('div');d.className='toast';d.textContent=m;document.body.appendChild(d);setTimeout(()=>d.remove(),2000)}
+const fx=(sel,txt,cls='',an='')=>Q.push([sel,txt,cls,an]);
+function flush(){const q=Q;Q=[];q.forEach(([sel,txt,cls,an])=>{const el=$(sel);if(!el)return;const r=el.getBoundingClientRect();
+ if(an=='burst'){if(!RM)for(let k=0;k<18;k++){const s=document.createElement('div');s.className='spark';s.style.left=(r.left+r.width/2+R(30)-15)+'px';s.style.top=(r.top+r.height*.6)+'px';document.body.appendChild(s);const a=Math.random()*Math.PI*2,d=25+R(65);s.animate([{transform:'translate(0,0)',opacity:1},{transform:`translate(${Math.cos(a)*d}px,${Math.sin(a)*d-50}px) scale(.2)`,opacity:0}],{duration:650+R(450),easing:'cubic-bezier(.2,.7,.4,1)'}).onfinish=()=>s.remove()}}
+ else if(an){el.classList.remove(an);void el.offsetWidth;el.classList.add(an);if(!an.startsWith('out'))setTimeout(()=>el.classList.remove(an),460)}
+ if(txt){const d=document.createElement('div');d.className='pop '+cls;d.textContent=txt;d.style.left=(r.left+r.width/2+R(25)-12)+'px';d.style.top=(r.top+r.height*.25+R(15))+'px';document.body.appendChild(d);setTimeout(()=>d.remove(),950)}})}
+
+/* ---------- combat ---------- */
+const alive=()=>C.foes.filter(e=>e.hp>0);
+const fell=e=>{if(e.hp<=0&&!e.dieAt){e.dieAt=performance.now();fx('#f'+e.i+' .spr','','','burst')}};
+function atk(e,b,m=1){if(!e||e.hp<=0)return;let d=b+(C.p.st.str||0)*m;if(C.p.st.weak)d*=.75;if(e.st.vuln)d*=1.5;d=Math.max(0,Math.floor(d));const ab=Math.min(e.block,d);e.block-=ab;const n=d-ab;e.hp=Math.max(0,e.hp-n);fx('#f'+e.i,n?'-'+n:'Blocked',n?'':'b');fx('#f'+e.i+' .spr','','','hitR');if(n>=15)fx('.stage','','','quake');fell(e)}
+const blk=n=>{C.p.block+=n;fx('#hero','+'+n+' Block','b')};
+const debuff=(e,k,n)=>{if(e&&e.hp>0)e.st[k]=(e.st[k]||0)+n};
+const buff=(k,n)=>{C.p.st[k]=(C.p.st[k]||0)+n};
+const loseHp=n=>{G.hp=Math.max(1,G.hp-n);fx('#hero','-'+n,'');fx('#hero .spr','','','hitL')};
+function draw(n){const t=performance.now();let k=0;for(let i=0;i<n;i++){if(C.hand.length>=10)break;if(!C.draw.length){if(!C.disc.length)break;C.draw=shuf(C.disc);C.disc=[]}const c=C.draw.pop();c.dt=t+k++*85;C.hand.push(c)}}
+const dec=s=>['weak','vuln'].forEach(k=>{if(s[k])s[k]--});
+function startCombat(keys,kind){
+ const sc=1+(G.floor-1)*.03;
+ C={kind,foes:keys.map((k,i)=>{const d=EN[k];const hp=Math.round((d.hp[0]+R(d.hp[1]-d.hp[0]+1))*(d.boss?1:sc));return{i,k,hp,max:hp,block:0,st:{},t:0,int:d.ai(0)}}),p:{block:0,st:{}},energy:0,draw:shuf(G.deck.map(c=>({...c}))),disc:[],exh:[],hand:[],turn:0,busy:false,lock:false,sel:-1,won:false};
+ if(has('bell'))C.foes.forEach(e=>e.st.vuln=1);
+ if(has('fang'))C.p.st.str=1;
+ screen='combat';window.scrollTo(0,0);startTurn();
+ if(kind=='boss')banner('Floor 13','The Hollow King');else if(kind=='elite')banner('Elite',EN[keys[0]].n)}
+function startTurn(){C.turn++;C.p.block=C.turn==1&&has('anchor')?10:0;C.energy=3+(C.turn==1&&has('lantern')?1:0);
+ if(C.p.st.demon)buff('str',C.p.st.demon);
+ if(C.p.st.cloud){alive().forEach(e=>{debuff(e,'poison',C.p.st.cloud)})}
+ draw(5+(C.turn==1&&has('satchel')?2:0));C.busy=false;C.sel=-1;render()}
+function tapCard(i,quick){if(!C||C.busy||C.lock)return;const c=C.hand[i];if(!c)return;const k=K[c.id],co=cost(c);
+ if(co<0)return toast('Doubt cannot be played.');
+ if(co>C.energy)return toast('Not enough energy.');
+ if(k.tg){if(quick&&alive().length==1)return play(i,alive()[0]);C.sel=C.sel==i?-1:i;AP.moved=false;return render()}
+ play(i,null)}
+async function flyCard(el,tgt){if(!el||RM)return;const r=el.getBoundingClientRect(),g=el.cloneNode(true);g.removeAttribute('data-a');g.classList.add('ghost');g.classList.remove('sel');g.style.cssText=`left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;transform:none;animation:none`;document.body.appendChild(g);
+ const t=tgt&&tgt.getBoundingClientRect();const dx=t?t.left+t.width/2-(r.left+r.width/2):0,dy=t?t.top+t.height/2-(r.top+r.height/2):-120;
+ try{await g.animate([{transform:'none',opacity:1},{transform:`translate(${dx*.5}px,${dy*.5-40}px) scale(.8) rotate(${dx>0?8:-8}deg)`,opacity:1,offset:.5},{transform:`translate(${dx}px,${dy}px) scale(.3) rotate(${dx>0?18:-18}deg)`,opacity:.15}],{duration:300,easing:'ease-in'}).finished}catch(e){}g.remove()}
+async function play(i,e,src){const c=C.hand[i],k=K[c.id],el=src||$(`.hand .card[data-v="${i}"]`);C.lock=true;C.energy-=cost(c);C.hand.splice(i,1);C.sel=-1;
+ const fly=flyCard(el,e?$('#f'+e.i+' .spr'):k.t=='atk'?$('.foes'):$('#hero .spr'));render();await fly;
+ if(k.t=='atk'){rigPose('attack',700);setTimeout(muzzle,90)}else rigPose(k.t=='pow'?'power':'cast',650);
+ if(k.t=='atk'&&!RM){fx('#hero .spr','','','outR');render();await sleep(110);fx('#hero .spr','','','retR')}
+ k.f(c.up,e);if(k.t!='pow')(k.x?C.exh:C.disc).push(c);C.lock=false;render();checkWin()}
+function tapFoe(j){if(!C||C.busy||C.lock||C.sel<0)return;const e=C.foes[j];if(e&&e.hp>0)play(C.sel,e)}
+function checkWin(){if(C&&!C.won&&!alive().length){C.won=true;C.busy=true;render();setTimeout(winCombat,1100)}}
+function hitMe(e,a){let d=a+(e.st.str||0);if(e.st.weak)d*=.75;if(C.p.st.vuln)d*=1.5;d=Math.floor(d);const ab=Math.min(C.p.block,d);C.p.block-=ab;const n=d-ab;G.hp=Math.max(0,G.hp-n);fx('#hero',n?'-'+n:'Blocked',n?'':'b');fx('#hero .spr','','','hitL');if(n){rigPose('hurt',430);RIG.flash=.85;RIG.whip=Math.max(RIG.whip,.7)}fx('#f'+e.i+' .spr','','','retL');if(n>=15)fx('.stage','','','quake')}
+async function endTurn(){if(!C||C.busy||C.lock)return;C.busy=true;C.sel=-1;
+ if(C.p.st.metal)blk(C.p.st.metal);
+ C.disc.push(...C.hand);C.hand=[];dec(C.p.st);render();await sleep(400);
+ for(const e of C.foes){if(e.hp<=0)continue;
+  if(e.st.poison){e.hp=Math.max(0,e.hp-e.st.poison);fx('#f'+e.i,'-'+e.st.poison,'p');fx('#f'+e.i+' .spr','','','hitR');e.st.poison--;fell(e);render();await sleep(380);if(e.hp<=0)continue}
+  e.block=0;const n=e.int;
+  if(n.str){e.st.str=(e.st.str||0)+n.str;fx('#f'+e.i,'+'+n.str+' Str','')}
+  if(n.b){e.block+=n.b;fx('#f'+e.i,'+'+n.b+' Block','b')}
+  if(n.a)for(let h=0;h<(n.x||1);h++){if(!RM){fx('#f'+e.i+' .spr','','','outL');render();await sleep(110)}hitMe(e,n.a);render();await sleep(300);if(G.hp<=0)break}
+  if(n.weak)buff('weak',n.weak);if(n.vuln)buff('vuln',n.vuln);
+  dec(e.st);e.t++;e.int=EN[e.k].ai(e.t);render();await sleep(300);
+  if(G.hp<=0)return die()}
+ if(!alive().length)return checkWin();
+ startTurn()}
+function winCombat(){if(!C)return;const kind=C.kind;C=null;if(has('heart'))heal(6);
+ if(kind=='boss'){wipe();screen='win';return render()}
+ const gold=kind=='elite'?25+R(11):10+R(11);G.gold+=gold;
+ RW={gold,cards:cardChoices(kind=='elite'?1:0),relic:kind=='elite'?randRelic():null,taken:false};screen='reward';render()}
+function die(){wipe();C=null;screen='dead';render()}
+
+/* ---------- run and map ---------- */
+function roll(f){const r=Math.random();if(f<4)return r<.68?'fight':r<.88?'event':'shop';return r<.44?'fight':r<.6?'event':r<.73?'elite':r<.85?'rest':'shop'}
+function genMap(){const F=13,m=[];
+ for(let f=0;f<F-1;f++)m.push([0,1,2,3].map(()=>({t:f==0?'fight':f==F-2?'rest':f==6?'chest':roll(f),next:[],jx:R(17)-8,jy:R(13)-6})));
+ for(let f=0;f<F-2;f++)m[f].forEach((n,l)=>{n.next=[l];if(Math.random()<.55){const o=l+(Math.random()<.5?-1:1);if(o>=0&&o<4&&!(o==l-1&&m[f][o].next.includes(l)))n.next.push(o)}});
+ m[F-2].forEach(n=>n.next=[0]);m.push([{t:'boss',next:[],jx:0,jy:0}]);return m}
+function avail(){const m=G.map;if(!G.pos)return m[0].map((n,l)=>[0,l]);const{f,l}=G.pos;return f>=m.length-1?[]:m[f][l].next.map(nl=>[f+1,nl])}
+function newRun(){uid=1;G={hp:70,maxHp:70,gold:99,deck:[...Array(5)].map(()=>mk('strike')).concat([...Array(4)].map(()=>mk('defend')),[mk('bash')]),relics:['heart'],map:genMap(),pos:null,path:[],floor:0};goMap()}
+function goMap(){closeModal();C=null;screen='map';save();render()}
+function mkShop(){const ids=[];[1,1,2,2,3].forEach(t=>{let id,g=0;do{id=pick(POOL[t])}while(ids.includes(id)&&g++<20);ids.push(id)});
+ const r=randRelic();return{cards:ids.map(id=>({id,p:{1:50,2:75,3:145}[K[id].r]+R(11)-5,sold:0})),relic:r?{k:r,p:140+R(21),sold:0}:null,removed:0}}
+function enter(f,l){if(!avail().some(([a,b])=>a==f&&b==l))return;G.pos={f,l};G.path.push([f,l]);G.floor=f+1;const t=G.map[f][l].t;
+ if(t=='fight')startCombat(pick(f<4?EASY:HARD),'fight');
+ else if(t=='elite')startCombat(pick(ELITE),'elite');
+ else if(t=='boss')startCombat(['king'],'boss');
+ else{if(t=='rest'){RS={done:0,msg:''};screen='rest'}
+  else if(t=='shop'){SH=mkShop();screen='shop'}
+  else if(t=='event'){EV={e:pick(EVENTS),done:0,msg:''};screen='event'}
+  else{const r=randRelic(),gold=r?20:90;G.gold+=gold;RW={gold,cards:[],relic:r,taken:true,title:'Treasure'};screen='reward'}
+  render()}}
+const EVENTS=[
+{n:'Whispering Shrine',t:'A cracked altar hums in the dark. It asks for blood and offers something old in return.',o:[
+ {l:'Pray: lose 8 HP, gain a relic',f:()=>{G.hp=Math.max(1,G.hp-8);const r=randRelic();if(r){gainRelic(r);return 'The altar gives you '+RELICS[r].n+'. '+RELICS[r].d}G.gold+=60;return 'The altar is empty. You find 60 gold in the cracks.'}},
+ {l:'Leave it to its whispers',f:()=>'You keep walking. The humming fades behind you.'}]},
+{n:'Wandering Smith',t:'A soot-black smith sits by a portable anvil and offers to rework one of your cards.',o:[
+ {l:'Pay 35 gold: upgrade a card',ok:()=>G.gold>=35&&upgradable().length>0,f:()=>{openPick('Upgrade a card (35 gold)',upgradable(),c=>{G.gold-=35;c.up=1;EV.msg='The smith hands back '+name(c)+', still warm.';EV.done=1;render()});return null}},
+ {l:'Decline',f:()=>'He shrugs and goes back to hammering.'}]},
+{n:'Golden Idol',t:'An idol of solid gold rests on a pedestal. Every instinct says this is a bad idea.',o:[
+ {l:'Take it: gain 90 gold, add Doubt to your deck',f:()=>{G.gold+=90;G.deck.push(mk('doubt'));return 'Heavy in your pack, heavier in your head.'}},
+ {l:'Leave it',f:()=>'Wise, probably.'}]},
+{n:'Mushroom Ring',t:'Pale mushrooms glow in a perfect circle. The air inside is warm and still.',o:[
+ {l:'Sleep in the ring: heal 18 HP',f:()=>{heal(18);return 'You wake up rested, and slightly sparkly.'}},
+ {l:'Harvest spores: gain Toxin Dart',f:()=>{G.deck.push(mk('toxin'));return 'You pocket a handful of spores. Toxin Dart added.'}}]},
+{n:'Burned Library',t:'Half the shelves are ash. A few pages still glow with stubborn ink.',o:[
+ {l:'Study: choose 1 of 3 cards',f:()=>{openPick('Choose a card to add',cardChoices(0).map(id=>mk(id)),c=>{G.deck.push(c);EV.msg='You learn '+name(c)+'.';EV.done=1;render()});return null}},
+ {l:'Burn a page: remove a card',ok:()=>G.deck.length>1,f:()=>{openPick('Remove a card',G.deck,c=>{G.deck.splice(G.deck.indexOf(c),1);EV.msg=name(c)+' goes up in smoke.';EV.done=1;render()});return null}}]}];
+
+/* ---------- views ---------- */
+const stV=st=>Object.keys(st).filter(k=>st[k]&&STN[k]).map(k=>`<span class="chip ${STN[k][1]}" title="${STN[k][2]}">${STN[k][0]} ${st[k]}</span>`).join('');
+function cardV(c,attrs='',cls=''){const k=K[c.id],co=cost(c);return `<button class="card t-${k.t} r${k.r}${c.up?' up':''} ${cls}" ${attrs}>${co>=0?`<span class="cost">${co}</span>`:''}<span class="nm">${name(c)}</span><span class="art">${ART[k.t]}</span><span class="ds">${k.d(c.up)}</span><span class="ty">${TN[k.t]}</span></button>`}
+function intV(e){const n=e.int,o=[];if(n.a){let d=n.a+(e.st.str||0);if(e.st.weak)d*=.75;if(C.p.st.vuln)d*=1.5;o.push(`<span class="it a" title="Attack">${ICO.sword}${Math.floor(d)}${n.x>1?'×'+n.x:''}</span>`)}
+ if(n.b)o.push(`<span class="it b" title="Block">${ICO.shield}${n.b}</span>`);if(n.str)o.push(`<span class="it u" title="Buff">${ICO.up}</span>`);if(n.weak||n.vuln)o.push(`<span class="it d" title="Debuff">${ICO.hex}</span>`);return o.join('')}
+function topV(){return `<div class="top"><span class="stat hp">${ICO.heart}${G.hp}/${G.maxHp}</span><span class="stat gd">${ICO.coin}${G.gold}</span><span class="stat">Floor ${G.floor}/13</span><span class="relics">${G.relics.map(k=>`<button class="rel" data-a="rel" data-v="${k}" aria-label="${RELICS[k].n}">${RELICS[k].n[0]}</button>`).join('')}</span><button class="btn sm" data-a="deck">Deck ${G.deck.length}</button></div>`}
+function titleV(){const s=load();let emb='';for(let i=0;i<14;i++)emb+=`<circle class="emb" cx="${(i*67)%400}" cy="${200+(i*37)%40}" r="${1+(i%3)*.6}" fill="#ff5a36" style="animation-delay:${-(i*.53).toFixed(2)}s"/>`;
+ return `<div class="title"><svg class="hero" viewBox="0 0 400 240" preserveAspectRatio="xMidYMax slice" aria-hidden="true"><defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a2419"/><stop offset="1" stop-color="#17100e"/></linearGradient></defs><rect width="400" height="240" fill="url(#sky)"/><circle cx="290" cy="72" r="40" fill="#efe4d2" opacity=".9"/><circle cx="303" cy="63" r="35" fill="#4a2419" opacity=".4"/>${emb}<path d="M0 240V198L60 182L120 194L170 178L230 192L300 174L360 188L400 180V240Z" fill="#120b0a"/><path d="M134 240V172L146 158L158 172V240Z" fill="#0d0807"/><path d="M242 240V162L254 146L266 162V240Z" fill="#0d0807"/><path d="M174 240V122L185 113V72L195 62L200 14L205 62L215 72V113L226 122V240Z" fill="#0d0807"/><rect x="197" y="82" width="6" height="11" rx="3" fill="#ff5a36"/><rect x="189" y="134" width="6" height="11" rx="3" fill="#ff5a36" opacity=".8"/><rect x="207" y="164" width="6" height="11" rx="3" fill="#e8c86a" opacity=".8"/><rect x="251" y="176" width="5" height="9" rx="2.5" fill="#ff5a36" opacity=".7"/></svg>
+ <div class="tbody"><h1>Hollow Ascent</h1><p class="lede">A roguelike deckbuilder. Climb thirteen floors, shape your deck one card at a time, and topple the Hollow King at the top.</p><div class="row l"><button class="btn pri" data-a="new">Begin ascent</button>${s?`<button class="btn" data-a="cont">Continue from floor ${s.floor}</button>`:''}</div>
+ <details class="how"><summary>How to play</summary><ul><li>Tap a card to play it. If several enemies are alive, attacks ask you to tap a target.</li><li>Each turn you get 3 energy and draw 5 cards. Block fades at the start of your turn.</li><li>Enemy intents show their next move: red attacks, teal blocks, gold buffs, violet debuffs.</li><li>Vulnerable takes 50% more damage, Weak deals 25% less, Poison ticks every turn.</li><li>After fights, add a card or skip. A lean deck is often stronger. Rest sites heal or upgrade.</li><li>On a keyboard: 1 to 9 plays cards, E ends your turn.</li></ul></details></div></div>`}
+function mapV(){const m=G.map,F=m.length,H=(F-1)*64+92;
+ const xy=(f,l)=>f==F-1?[180,48]:[60+l*80+m[f][l].jx,H-38-f*64+m[f][l].jy];
+ const av=new Set(avail().map(a=>a.join())),vis=new Set(G.path.map(a=>a.join())),ed=new Set(G.path.map((p,k)=>k?G.path[k-1].join()+'>'+p.join():''));
+ const cf=G.pos?G.pos.f:-1;let ln='',nd='';
+ m.forEach((row,f)=>row.forEach((n,l)=>{const[x,y]=xy(f,l);
+  n.next.forEach(nl=>{const[x2,y2]=xy(f+1,nl);ln+=`<line x1="${x}" y1="${y}" x2="${x2}" y2="${y2}" class="${ed.has(f+','+l+'>'+(f+1)+','+nl)?'on':''}"/>`});
+  const k=f+','+l,can=av.has(k),v=vis.has(k),dim=f<=cf&&!v,b=n.t=='boss',r=b?30:19;
+  nd+=`<g class="node${can?' can':''}${v?' vis':''}${dim?' dim':''}${b?' boss':''}" transform="translate(${x} ${y})"${can?` data-a="go" data-v="${k}" role="button" aria-label="${TL[n.t]}"`:''}><circle class="hit" r="${r+9}"/><circle class="c" r="${r}"/>${b?`<g transform="scale(1.7)">${NI.boss}</g>`:NI[n.t]}</g>`}));
+ return `<div class="mapv"><div class="maphead"><h2>${G.pos?'Choose your path':'Begin the ascent'}</h2><p>${G.pos?'Tap a glowing node to move up a floor.':'Pick any starting room on the bottom floor.'}</p></div><div class="legend">${Object.keys(TL).map(t=>`<span><svg viewBox="-12 -12 24 24" width="22" height="22" aria-hidden="true">${NI[t]}</svg>${TL[t]}</span>`).join('')}</div><svg class="map" viewBox="0 0 360 ${H}">${ln}${nd}</svg></div>`}
+function heroV(now){const p=C.p;return `<div class="unit hero${p.block?' guard':''}" id="hero"><span class="spr"><i class="gshadow"></i></span><span class="info"><span class="fn">Aetherwright</span><span class="bar"><i style="width:${G.hp/G.maxHp*100}%"></i></span><span class="hpt">${G.hp}/${G.maxHp}${p.block?` <span class="chip blk">${ICO.shield}${p.block}</span>`:''}</span><span class="chips">${stV(p.st)}</span></span></div>`}
+function foeV(e,tg,now){const d=EN[e.k],dead=e.hp<=0,el=dead?now-(e.dieAt||0):0,st=dead?(el<800?' dying':' dead'):'';
+ return `<button class="unit${d.big?' big':''}${tg&&!dead?' tgt':''}${st}" id="f${e.i}" data-a="foe" data-v="${e.i}" aria-label="${d.n}"${st==' dying'?` style="animation-delay:-${el|0}ms"`:''}><span class="ints">${dead?'':intV(e)}</span><span class="spr"><svg class="bob${d.s=='moth'||d.s=='ghost'?' fly':''}" viewBox="0 0 120 100" style="animation-delay:-${(now+e.i*900)%2600|0}ms" aria-hidden="true">${SPR[d.s](d.col)}</svg></span><span class="info"><span class="fn">${d.n}</span><span class="bar"><i style="width:${e.hp/e.max*100}%"></i></span><span class="hpt">${e.hp}/${e.max}${e.block?` <span class="chip blk">${ICO.shield}${e.block}</span>`:''}</span><span class="chips">${stV(e.st)}</span></span></button>`}
+function handV(){const n=C.hand.length;if(!n)return '<p class="empty">No cards in hand</p>';const W=($('#app').clientWidth||innerWidth)-24,cw=W<580?98:106,mid=(n-1)/2,step=n>1?Math.min(cw+10,(W-cw-26)/(n-1)):0,now=performance.now();
+ return C.hand.map((c,i)=>{const o=i-mid,x=W/2+o*step-cw/2+12,rot=n>1?o*Math.min(5,26/n):0,y=o*o*Math.min(3.2,16/n),dl=c.dt?c.dt-now:-999,an=dl>-420&&!RM?`;animation:deal .42s ease-out ${dl|0}ms backwards`:'';
+  return cardV(c,`data-a="card" data-v="${i}" style="left:${x.toFixed(1)}px;--r:${rot.toFixed(2)}deg;--y:${y.toFixed(1)}px;z-index:${i+1}${an}"`,(i==C.sel?'sel ':'')+(cost(c)>C.energy||cost(c)<0?'no':''))}).join('')}
+function combatV(){const tg=C.sel>=0,now=performance.now();
+ return `<div class="stage">${scene(G.floor)}<p class="hint">${C.won?'Victory':C.busy?'Enemy turn':tg?'Drag to an enemy, or tap one':'Your turn '+C.turn}</p><div class="actors">${heroV(now)}<div class="foes">${C.foes.map(e=>foeV(e,tg,now)).join('')}</div></div></div>
+ <div class="hand">${handV()}</div>
+ <div class="ctl"><div class="orb" title="Energy"><b>${C.energy}</b><small>of 3</small></div><span class="piles">Draw ${C.draw.length} · Discard ${C.disc.length}${C.exh.length?'<br>Exhausted '+C.exh.length:''}</span><button class="btn pri" data-a="end" ${C.busy?'disabled':''}>End turn</button></div>`}
+function rewardV(){const r=RW.relic&&RELICS[RW.relic];return `<div class="panel"><h2>${RW.title||'Victory'}</h2>${RW.gold?`<p class="sub">You found ${RW.gold} gold.</p>`:''}${r?`<button class="btn relbtn" data-a="rrelic"><span class="rel">${r.n[0]}</span><span>Take ${r.n}: ${r.d}</span></button>`:''}
+ ${RW.cards.length?`<h3>${RW.taken?'Card added to your deck':'Choose a card to add'}</h3><div class="row">${RW.cards.map((id,i)=>cardV({id,up:0},RW.taken?'disabled':`data-a="rcard" data-v="${i}"`,RW.taken?'no':'')).join('')}</div>`:''}
+ <button class="btn pri" data-a="map">${RW.cards.length&&!RW.taken?'Skip card and continue':'Continue'}</button></div>`}
+function shopV(){return `<div class="panel"><h2>The Merchant</h2><p class="sub">Everything has a price. You have ${G.gold} gold.</p><div class="row">${SH.cards.map((s,i)=>`<div class="ware">${cardV({id:s.id,up:0},s.sold?'disabled':`data-a="buy" data-v="${i}"`,s.sold?'no':'')}<span class="price${!s.sold&&G.gold<s.p?' poor':''}">${s.sold?'Sold':s.p+' gold'}</span></div>`).join('')}</div>
+ <div class="opts">${SH.relic?`<button class="btn opt" data-a="buyrel" ${SH.relic.sold?'disabled':''}>${SH.relic.sold?'Relic sold':`Relic, ${SH.relic.p} gold: ${RELICS[SH.relic.k].n}. ${RELICS[SH.relic.k].d}`}</button>`:''}<button class="btn opt" data-a="remove" ${SH.removed?'disabled':''}>${SH.removed?'Card removed':'Remove a card from your deck: 75 gold'}</button></div><button class="btn pri" data-a="map">Leave the shop</button></div>`}
+function restV(){return `<div class="panel"><svg class="pic" viewBox="0 0 200 120" aria-hidden="true"><ellipse cx="100" cy="108" rx="72" ry="8" fill="#000" opacity=".5"/><path d="M58 104L142 88M58 88L142 104" stroke="#6b3b22" stroke-width="11" stroke-linecap="round"/><path class="flame" d="M100 18C127 50 129 72 112 92C106 98 94 98 88 92C71 72 74 50 100 18Z" fill="#ff5a36"/><path class="flame" d="M100 50C112 66 112 80 104 90C101 93 99 93 96 90C88 80 89 66 100 50Z" fill="#e8c86a"/></svg><h2>Rest site</h2><p class="sub">${RS.msg||'The fire is warm. There is time for one thing before you climb on.'}</p>
+ ${RS.done?'':`<div class="row"><button class="btn" data-a="rheal">Rest: heal ${Math.round(G.maxHp*.3)} HP</button><button class="btn" data-a="rsmith">Smith: upgrade a card</button></div>`}<button class="btn${RS.done?' pri':''}" data-a="map">${RS.done?'Continue':'Skip'}</button></div>`}
+function eventV(){const e=EV.e;return `<div class="panel"><svg class="pic" viewBox="0 0 200 120" aria-hidden="true"><ellipse cx="100" cy="114" rx="70" ry="6" fill="#000" opacity=".5"/><path d="M58 114V58C58 31 77 14 100 14S142 31 142 58V114Z" fill="#0d0807" stroke="#e8c86a" stroke-width="3"/><circle cx="100" cy="68" r="22" fill="#ff5a36" opacity=".25"/><circle cx="100" cy="68" r="9" fill="#ff5a36"/><text x="100" y="74" text-anchor="middle" font-family="Cinzel,serif" font-weight="800" font-size="16" fill="#1a0d09">?</text></svg><h2>${e.n}</h2><p class="sub">${EV.msg||e.t}</p>
+ ${EV.done?`<button class="btn pri" data-a="map">Continue</button>`:`<div class="opts">${e.o.map((o,i)=>`<button class="btn opt" data-a="evo" data-v="${i}" ${o.ok&&!o.ok()?'disabled':''}>${o.l}</button>`).join('')}</div>`}</div>`}
+function endV(){const w=screen=='win';return `<div class="panel end"><svg class="pic" viewBox="0 0 200 120" aria-hidden="true">${w?`<g transform="translate(100 64) scale(4.2)">${NI.boss}</g>`:`<g transform="translate(100 62) scale(4.2)">${NI.elite}</g>`}</svg><h1>${w?'The King falls':'Your climb ends'}</h1><p class="sub">${w?`You toppled the Hollow King with a deck of ${G.deck.length} cards and ${G.relics.length} relics.`:`You fell on floor ${G.floor} of 13 with ${G.deck.length} cards in your deck.`}</p><button class="btn pri" data-a="new">Start a new run</button></div>`}
+const VIEWS={map:mapV,combat:combatV,reward:rewardV,shop:shopV,rest:restV,event:eventV,dead:endV,win:endV};
+function render(){$('#app').innerHTML=screen=='title'?titleV():topV()+VIEWS[screen]();
+ if(screen=='map'){const n=$('.node.can');if(n)try{n.scrollIntoView({block:'center'})}catch(e){}}else if(screen!='combat')window.scrollTo(0,0);
+ if(screen=='combat'){const hs=$('#hero .spr');if(hs)rigMount(hs)}
+ flush();if(screen=='combat'&&C&&C.sel>=0&&!aimOn){aimOn=true;requestAnimationFrame(aimTick)}}
+function openPick(title,cards,cb){const list=cb?cards:[...cards].sort((a,b)=>K[a.id].t.localeCompare(K[b.id].t)||K[a.id].n.localeCompare(K[b.id].n));MD={cards:list,cb};
+ $('#modal').innerHTML=`<div class="modal" role="dialog" aria-label="${title}"><div class="mhead"><h2>${title}</h2><button class="btn" data-a="mclose">${cb?'Cancel':'Close'}</button></div><div class="grid">${list.map((c,i)=>cardV(c,cb?`data-a="mpick" data-v="${i}"`:'')).join('')||'<p class="sub">No cards to choose.</p>'}</div></div>`}
+function closeModal(){MD=null;$('#modal').innerHTML=''}
+
+/* ---------- input ---------- */
+const A={
+new:newRun,
+cont:()=>{G=load();if(!G)return;uid=Math.max(0,...G.deck.map(c=>c.u||0))+1;goMap()},
+deck:()=>openPick('Your deck ('+G.deck.length+' cards)',G.deck,null),
+rel:v=>toast(RELICS[v].n+': '+RELICS[v].d),
+go:v=>{const[f,l]=v.split(',').map(Number);enter(f,l)},
+card:v=>tapCard(+v),foe:v=>tapFoe(+v),end:()=>endTurn(),
+rcard:v=>{if(RW.taken)return;G.deck.push(mk(RW.cards[+v]));RW.taken=true;render()},
+rrelic:()=>{if(!RW.relic)return;gainRelic(RW.relic);toast('Gained '+RELICS[RW.relic].n);RW.relic=null;render()},
+map:goMap,
+buy:v=>{const s=SH.cards[+v];if(s.sold)return;if(G.gold<s.p)return toast('Not enough gold.');G.gold-=s.p;s.sold=1;G.deck.push(mk(s.id));render()},
+buyrel:()=>{const r=SH.relic;if(!r||r.sold)return;if(G.gold<r.p)return toast('Not enough gold.');G.gold-=r.p;r.sold=1;gainRelic(r.k);render()},
+remove:()=>{if(SH.removed)return;if(G.gold<75)return toast('Not enough gold.');openPick('Remove a card (75 gold)',G.deck,c=>{G.gold-=75;SH.removed=1;G.deck.splice(G.deck.indexOf(c),1);toast(name(c)+' removed.');render()})},
+rheal:()=>{if(RS.done)return;const n=Math.round(G.maxHp*.3),b=G.hp;heal(n);RS.done=1;RS.msg='You rest by the fire and recover '+(G.hp-b)+' HP.';render()},
+rsmith:()=>{if(RS.done)return;if(!upgradable().length)return toast('Every card is already upgraded.');openPick('Upgrade a card',upgradable(),c=>{c.up=1;RS.done=1;RS.msg='You hammer '+name(c)+' into shape.';render()})},
+evo:v=>{if(EV.done)return;const o=EV.e.o[+v];if(o.ok&&!o.ok())return;const m=o.f();if(m!=null){EV.msg=m;EV.done=1}render()},
+mpick:v=>{const c=MD.cards[+v],cb=MD.cb;closeModal();if(cb)cb(c)},
+mclose:closeModal};
+document.addEventListener('click',e=>{if(performance.now()-ignoreClick<350)return;const b=e.target.closest('[data-a]');if(!b&&C&&C.sel>=0&&screen=='combat'&&e.target.closest('.stage')){C.sel=-1;return render()}if(!b||b.disabled)return;const f=A[b.dataset.a];if(f)f(b.dataset.v)});
+document.addEventListener('keydown',e=>{if(MD&&e.key=='Escape')return closeModal();if(screen!='combat'||!C||MD)return;
+ if(e.key>='1'&&e.key<='9')tapCard(+e.key-1,true);else if(e.key=='e'||e.key=='E')endTurn();else if(e.key=='Escape'&&C.sel>=0){C.sel=-1;render()}});
+/* ---------- hero rig: painted art on a deforming WebGL mesh ---------- */
+const RIG={cv:null,gl:null,img:{},wt:{},tex:{},buf:{},pose:'idle',until:0,whip:0,flash:0,loop:false,fail:false,last:0};
+const PIMG={idle:'assets/hero_idle.webp',attack:'assets/hero_attack.webp',cast:'assets/hero_cast2.webp',power:'assets/hero_cast.webp',hurt:'assets/hero_hurt.webp'};
+const GX=20,GY=30;
+const sm=(a,b,x)=>{const t=Math.min(1,Math.max(0,(x-a)/(b-a)));return t*t*(3-2*t)};
+function rigWeights(im,k){const c=document.createElement('canvas'),W=c.width=Math.round(im.width/2),H=c.height=Math.round(im.height/2),x=c.getContext('2d');x.drawImage(im,0,0,W,H);const d=x.getImageData(0,0,W,H).data;
+ let w=new Float32Array(GX*GY*2);
+ for(let j=0;j<GY;j++)for(let i=0;i<GX;i++){const u=i/(GX-1),v=j/(GY-1);let cape=0,hair=0,n=0;
+  for(let a=-2;a<=2;a++)for(let b=-2;b<=2;b++){const px=Math.min(W-1,Math.max(0,Math.round(u*(W-1)+a*W/GX/4))),py=Math.min(H-1,Math.max(0,Math.round(v*(H-1)+b*H/GY/4))),o=(py*W+px)*4;if(d[o+3]<100)continue;const r=d[o],g=d[o+1],bl=d[o+2];n++;
+   if(r>55&&r>g*1.5&&r>bl*1.1)cape++;const mx=Math.max(r,g,bl),mn=Math.min(r,g,bl);if(mn>140&&mx-mn<40)hair++}
+  const hm=k=='idle'?(v<.2||(u>.56&&u<.86&&v<.34)):v<.22;
+  w[(j*GX+i)*2]=n?cape/n*sm(.2,.6,v)*(1-sm(.8,.95,v)):0;w[(j*GX+i)*2+1]=n&&hm?Math.min(1,hair/n*1.6):0}
+ for(let p=0;p<2;p++){const o=new Float32Array(w.length);for(let j=0;j<GY;j++)for(let i=0;i<GX;i++)for(let ch=0;ch<2;ch++){let s=0,c=0;for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const ii=i+a,jj=j+b;if(ii<0||jj<0||ii>=GX||jj>=GY)continue;s+=w[(jj*GX+ii)*2+ch];c++}o[(j*GX+i)*2+ch]=s/c}w=o}
+ return w}
+function rigLoad(){for(const k in PIMG){const im=new Image();im.onload=()=>{RIG.img[k]=im;try{RIG.wt[k]=rigWeights(im,k)}catch(e){RIG.wt[k]=new Float32Array(GX*GY*2)}};im.src=PIMG[k]}}
+const VS=`attribute vec2 a_uv;attribute vec2 a_w;uniform float u_t,u_whip;uniform vec2 u_sc,u_off;varying vec2 v_uv;
+void main(){vec2 p=a_uv;float t=u_t;float b=.5+.5*sin(t*2.1);float up=clamp((.56-p.y)/.56,0.,1.);
+p.y-=up*.013*b;p.x+=up*up*.006*sin(t*1.05);
+float amp=.016+u_whip*.05;p.x+=a_w.x*amp*sin(t*1.7+p.y*5.+p.x*2.);p.y+=a_w.x*amp*.35*cos(t*1.9+p.x*4.);
+p.x+=a_w.y*(.007+u_whip*.02)*sin(t*2.6+p.y*9.);p.y+=a_w.y*.004*cos(t*2.3+p.x*7.);
+gl_Position=vec4(vec2(p.x-.5,1.-p.y)*u_sc+u_off,0.,1.);v_uv=a_uv;}`;
+const FS=`precision mediump float;varying vec2 v_uv;uniform sampler2D u_tex;uniform float u_tf,u_flash;
+void main(){vec4 c=texture2D(u_tex,v_uv);float pur=smoothstep(.06,.3,c.b-max(c.g,c.r*.85));c.rgb*=1.+pur*(.22+.22*sin(u_tf*4.));c.rgb+=u_flash*c.a*.9;gl_FragColor=c;}`;
+function rigInit(){const cv=document.createElement('canvas');cv.className='rig';RIG.cv=cv;let gl=null;try{gl=cv.getContext('webgl',{premultipliedAlpha:true,alpha:true,antialias:true})}catch(e){}
+ if(!gl){RIG.fail=true;return}
+ const sh=(t,src)=>{const o=gl.createShader(t);gl.shaderSource(o,src);gl.compileShader(o);if(!gl.getShaderParameter(o,gl.COMPILE_STATUS))throw gl.getShaderInfoLog(o);return o};
+ try{const p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,VS));gl.attachShader(p,sh(gl.FRAGMENT_SHADER,FS));gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw gl.getProgramInfoLog(p);gl.useProgram(p);RIG.p=p}catch(e){RIG.fail=true;return}
+ const uv=new Float32Array(GX*GY*2);for(let j=0;j<GY;j++)for(let i=0;i<GX;i++){uv[(j*GX+i)*2]=i/(GX-1);uv[(j*GX+i)*2+1]=j/(GY-1)}
+ const idx=[];for(let j=0;j<GY-1;j++)for(let i=0;i<GX-1;i++){const a=j*GX+i;idx.push(a,a+1,a+GX,a+1,a+GX+1,a+GX)}
+ RIG.uvb=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,RIG.uvb);gl.bufferData(gl.ARRAY_BUFFER,uv,gl.STATIC_DRAW);
+ RIG.ib=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,RIG.ib);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(idx),gl.STATIC_DRAW);RIG.n=idx.length;
+ RIG.L={uv:gl.getAttribLocation(RIG.p,'a_uv'),w:gl.getAttribLocation(RIG.p,'a_w'),t:gl.getUniformLocation(RIG.p,'u_t'),tf:gl.getUniformLocation(RIG.p,'u_tf'),whip:gl.getUniformLocation(RIG.p,'u_whip'),sc:gl.getUniformLocation(RIG.p,'u_sc'),off:gl.getUniformLocation(RIG.p,'u_off'),fl:gl.getUniformLocation(RIG.p,'u_flash')};
+ gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);RIG.gl=gl;
+ cv.addEventListener('webglcontextlost',e=>{e.preventDefault();RIG.fail=true})}
+function rigTex(k,h){const gl=RIG.gl,im=RIG.img[k],t=RIG.tex[k];if(t&&t.h==h)return t.t;if(t)gl.deleteTexture(t.t);
+ const c=document.createElement('canvas');c.height=Math.min(im.height,h);c.width=Math.round(im.width*c.height/im.height);const x=c.getContext('2d');x.imageSmoothingQuality='high';x.drawImage(im,0,0,c.width,c.height);
+ const tx=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tx);gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,true);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,c);
+ [gl.TEXTURE_MIN_FILTER,gl.TEXTURE_MAG_FILTER].forEach(p=>gl.texParameteri(gl.TEXTURE_2D,p,gl.LINEAR));[gl.TEXTURE_WRAP_S,gl.TEXTURE_WRAP_T].forEach(p=>gl.texParameteri(gl.TEXTURE_2D,p,gl.CLAMP_TO_EDGE));
+ RIG.tex[k]={t:tx,h};return tx}
+function rigPose(k,ms){if(!RIG.img[k])return;RIG.pose=k;RIG.until=performance.now()+ms;RIG.whip=1}
+function muzzle(){if(RM||!RIG.cv||!RIG.cv.isConnected||!RIG.img.attack)return;const r=RIG.cv.getBoundingClientRect(),im=RIG.img.attack,fh=r.height*.96,fw=fh*im.width/im.height,x=r.left+r.width/2+(.9-.5)*fw,y=r.bottom-r.height*.0075-fh*(1-.17);
+ for(let k=0;k<14;k++){const s=document.createElement('div');s.className='spark';s.style.background=k%3?'#c9a2ff':'#fff';s.style.boxShadow='0 0 10px #a46bff';s.style.left=x+'px';s.style.top=y+'px';document.body.appendChild(s);const a=(Math.random()-.5)*1.1,d=30+R(70);s.animate([{transform:'translate(0,0)',opacity:1},{transform:`translate(${Math.cos(a)*d}px,${Math.sin(a)*d}px) scale(.2)`,opacity:0}],{duration:350+R(300),easing:'ease-out'}).onfinish=()=>s.remove()}}
+function rigMount(spr){if(!RIG.cv&&!RIG.fail)rigInit();if(RIG.fail||!RIG.cv){if(!spr.querySelector('.rigimg'))spr.insertAdjacentHTML('beforeend',`<img class="rigimg" src="${PIMG.idle}" alt="">`);return}
+ spr.appendChild(RIG.cv);if(!RIG.loop){RIG.loop=true;RIG.last=performance.now();requestAnimationFrame(rigTick)}}
+function rigTick(now){const cv=RIG.cv,gl=RIG.gl;if(screen!='combat'||!cv.isConnected||RIG.fail){RIG.loop=false;return}requestAnimationFrame(rigTick);
+ const dt=Math.min(.05,(now-RIG.last)/1000);RIG.last=now;RIG.whip*=Math.pow(.12,dt);RIG.flash*=Math.pow(.004,dt);
+ const dpr=Math.min(2,devicePixelRatio||1),W=Math.round(cv.clientWidth*dpr),H=Math.round(cv.clientHeight*dpr);if(!W||!H)return;if(cv.width!=W||cv.height!=H){cv.width=W;cv.height=H}
+ if(now>RIG.until)RIG.pose='idle';let k=RIG.pose;if(!RIG.img[k]||!RIG.wt[k])k='idle';if(!RIG.img[k]||!RIG.wt[k])return;
+ if(!RIG.buf[k]){RIG.buf[k]=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,RIG.buf[k]);gl.bufferData(gl.ARRAY_BUFFER,RIG.wt[k],gl.STATIC_DRAW)}
+ const im=RIG.img[k],fh=1.92,fw=fh*(im.width/im.height)*(H/W);
+ gl.viewport(0,0,W,H);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
+ gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,rigTex(k,Math.ceil(H*.98)));
+ gl.bindBuffer(gl.ARRAY_BUFFER,RIG.uvb);gl.enableVertexAttribArray(RIG.L.uv);gl.vertexAttribPointer(RIG.L.uv,2,gl.FLOAT,false,0,0);
+ gl.bindBuffer(gl.ARRAY_BUFFER,RIG.buf[k]);gl.enableVertexAttribArray(RIG.L.w);gl.vertexAttribPointer(RIG.L.w,2,gl.FLOAT,false,0,0);
+ gl.uniform1f(RIG.L.t,RM?0:now/1000);gl.uniform1f(RIG.L.tf,RM?0:(now/1000)%62.83);gl.uniform1f(RIG.L.whip,RM?0:RIG.whip);gl.uniform1f(RIG.L.fl,RIG.flash);gl.uniform2f(RIG.L.sc,fw,fh);gl.uniform2f(RIG.L.off,0,-.985);
+ gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,RIG.ib);gl.drawElements(gl.TRIANGLES,RIG.n,gl.UNSIGNED_SHORT,0)}
+rigLoad();
+
+/* ---------- targeting arrow ---------- */
+let AP={x:0,y:0,moved:false},aimOn=false,drag=null,ignoreClick=0;
+const liveFoe='.unit[data-a=foe]:not(.dead):not(.dying)';
+function aimTick(){const svg=$('#aim'),on=screen=='combat'&&C&&C.sel>=0&&!C.busy&&!C.lock;
+ if(!on){svg.style.display='none';document.querySelectorAll('.unit.aimed').forEach(u=>u.classList.remove('aimed'));aimOn=false;return}
+ const card=$('.hand .card.sel');if(!card){svg.style.display='none';return requestAnimationFrame(aimTick)}
+ svg.style.display='block';const cr=card.getBoundingClientRect(),sx=cr.left+cr.width/2,sy=cr.top+10;
+ let over=null;if(AP.moved){const el=document.elementFromPoint(AP.x,AP.y);over=el&&el.closest(liveFoe)}else over=$(liveFoe);
+ document.querySelectorAll('.unit.aimed').forEach(u=>{if(u!==over)u.classList.remove('aimed')});if(over)over.classList.add('aimed');
+ let ex=AP.x,ey=AP.y;if(over){const r=over.querySelector('.spr').getBoundingClientRect();ex=r.left+r.width/2;ey=r.top+r.height*.45}
+ const qx=sx+(ex-sx)*.1,qy=Math.min(sy,ey)-Math.max(70,Math.abs(ex-sx)*.4);
+ const P=$('#aimP');P.setAttribute('d',`M${sx} ${sy}Q${qx} ${qy} ${ex} ${ey}`);const L=P.getTotalLength(),gap=24,ph=RM?0:(performance.now()/24)%gap;let h='';
+ for(let d=ph;d<L-30;d+=gap){const p=P.getPointAtLength(d),q=P.getPointAtLength(Math.min(L,d+1)),a=Math.atan2(q.y-p.y,q.x-p.x)*57.2958,sc=.55+.55*d/L;h+=`<path d="M-5-6L3 0L-5 6" transform="translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) rotate(${a.toFixed(1)}) scale(${sc.toFixed(2)})"/>`}
+ if(L>4){const p=P.getPointAtLength(L),q=P.getPointAtLength(L-3),a=Math.atan2(p.y-q.y,p.x-q.x)*57.2958;h+=`<path class="head" d="M-15-13L7 0L-15 13L-9 0Z" transform="translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) rotate(${a.toFixed(1)})${over?' scale(1.2)':''}"/>`}
+ svg.style.color=over?'var(--gold)':'var(--ember)';$('#aimG').innerHTML=h;requestAnimationFrame(aimTick)}
+document.addEventListener('pointerdown',e=>{AP.x=e.clientX;AP.y=e.clientY;const b=e.target.closest('.hand .card[data-a=card]');if(!b||!C||C.busy||C.lock)return;const i=+b.dataset.v,c=C.hand[i];if(!c||cost(c)<0||cost(c)>C.energy)return;drag={i,x:e.clientX,y:e.clientY,active:false,tg:!!K[c.id].tg,el:b,lx:e.clientX,tilt:0}});
+function dragMove(){const d=drag;if(!d||!d.g)return;const vx=AP.x-d.lx;d.lx=AP.x;d.tilt=Math.max(-14,Math.min(14,d.tilt*.8+vx*.9));d.g.style.left=(AP.x-d.ox)+'px';d.g.style.top=(AP.y-d.oy)+'px';d.g.style.transform=`scale(1.08) rotate(${d.tilt.toFixed(1)}deg)`;
+ const h=$('.hand'),ready=!!h&&AP.y<h.getBoundingClientRect().top+16;d.ready=ready;d.g.classList.toggle('ready',ready);const st=$('.stage');if(st)st.classList.toggle('drop',ready);const hi=$('.hint');if(hi)hi.textContent=ready?'Release to play':'Drag up to play'}
+function endFree(){const st=$('.stage');if(st)st.classList.remove('drop')}
+document.addEventListener('pointermove',e=>{AP.x=e.clientX;AP.y=e.clientY;if(C&&C.sel>=0)AP.moved=true;
+ if(drag&&!drag.active&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>12){drag.active=true;if(!C||C.busy||C.lock){drag=null;return}
+  if(drag.tg){C.sel=drag.i;AP.moved=true;render()}
+  else{if(C.sel>=0){C.sel=-1;render();drag.el=$(`.hand .card[data-v="${drag.i}"]`)}const b=drag.el,r=b.getBoundingClientRect(),g=b.cloneNode(true);g.removeAttribute('data-a');g.classList.add('dragcard');g.classList.remove('sel');g.style.cssText=`left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;animation:none`;drag.ox=drag.x-r.left;drag.oy=drag.y-r.top;document.body.appendChild(g);drag.g=g;b.classList.add('lifted')}}
+ if(drag&&drag.g)dragMove()},{passive:true});
+document.addEventListener('pointerup',e=>{const d=drag;drag=null;if(!d||!d.active||!C)return;ignoreClick=performance.now();
+ if(!d.tg){endFree();const g=d.g;if(!g)return;
+  if(d.ready&&!C.busy&&!C.lock&&C.hand[d.i]&&cost(C.hand[d.i])<=C.energy){play(d.i,null,g);g.remove();return}
+  const hint=$('.hint');if(hint)hint.textContent='Your turn '+C.turn;const r=d.el.getBoundingClientRect(),gr=g.getBoundingClientRect();
+  const fin=()=>{g.remove();d.el.classList.remove('lifted')};if(RM)return fin();
+  g.animate([{transform:g.style.transform},{transform:`translate(${r.left-gr.left}px,${r.top-gr.top}px) scale(1) rotate(0)`}],{duration:180,easing:'ease-out'}).onfinish=fin;return}
+ if(C.busy||C.lock)return;const el=document.elementFromPoint(e.clientX,e.clientY),u=el&&el.closest(liveFoe);if(u&&C.sel>=0){const f=C.foes[+u.dataset.v];if(f&&f.hp>0)return play(C.sel,f)}C.sel=-1;AP.moved=false;render()});
+document.addEventListener('pointercancel',()=>{if(drag&&drag.g){drag.g.remove();drag.el.classList.remove('lifted');endFree()}drag=null});
+let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(screen=='combat'&&C&&!C.busy&&!C.lock)render()},150)});
+render();
+})();
+</script>
+</body></html>
