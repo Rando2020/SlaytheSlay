@@ -18,7 +18,7 @@ then visit `http://localhost:8000`.
 
 - Branching 13-floor map: fights, elites, rest sites, shops, events, treasure and a boss
 - 25 cards with upgrades, 7 relics, Strength, Vulnerable, Weak and Poison
-- Side-view combat stage with a different backdrop for each third of the climb
+- Side-view combat stage with a painted backdrop for each third of the climb: sunlit ruins (floors 1 to 4), the great aether tree (5 to 9) and the storm-sealed gate (10 to 13, also the title art)
 - Fanned hand, drag-to-play, a targeting arrow for attacks, card flight, lunges, hit flashes, screen shake and death dissolves
 - The Aetherwright rendered as painted art on a WebGL mesh: breathing, cape and braid sway, pose swaps for attack, cast, power and hurt
 - Run saves to the browser's local storage when you're on the map
