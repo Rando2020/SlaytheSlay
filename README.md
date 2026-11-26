@@ -20,6 +20,8 @@ then visit `http://localhost:8000`.
 - 25 cards with upgrades, 7 relics, Strength, Vulnerable, Weak and Poison
 - Side-view combat stage with a painted backdrop for each third of the climb: sunlit ruins (floors 1 to 4), the great aether tree (5 to 9) and the storm-sealed gate (10 to 13, also the title art)
 - Diorama depth: the backdrop, a midground prop layer and a blurred foreground layer sit at different depths and slide past each other as the camera slowly sways (and follows the mouse on desktop)
+- Ambient effects per area (screen-blended): drifting fog, light rays, motes, glowing moths and falling leaves in the ruins; green motes, glowing mushrooms and petals at the tree; violet rain, an energy pillar and lightning flashes at the gate
+- Combat bursts: slash on hits, ripple on Block, rune circle and pillar on powers, vortex on targeted skills, green puff on Poison, shard burst on kills
 - Fanned hand, drag-to-play, a targeting arrow for attacks, card flight, lunges, hit flashes, screen shake and death dissolves
 - The Aetherwright rendered as painted art on a WebGL mesh: breathing, cape and braid sway, pose swaps for attack, cast, power and hurt
 - Run saves to the browser's local storage when you're on the map
@@ -34,6 +36,8 @@ then visit `http://localhost:8000`.
 | `art/source/hero/` | Original generated hero poses and the parts sheet |
 | `assets/props/` | Props placed in each biome's midground and foreground |
 | `art/cutouts/props/` | All 50 props cut from the prop sheets, plus a numbered contact sheet |
+| `assets/fx/` | Ambient and combat effects (black background, drawn with screen blending) |
+| `art/cutouts/fx/` | Every effect cut from the two FX sheets, with contact sheets |
 | `tools/` | Python scripts used to cut the hero poses out of their backgrounds |
 
 ## Art pipeline
