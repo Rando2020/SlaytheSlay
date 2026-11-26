@@ -22,6 +22,8 @@ then visit `http://localhost:8000`.
 - Diorama depth: the backdrop, a midground prop layer and a blurred foreground layer sit at different depths and slide past each other as the camera slowly sways (and follows the mouse on desktop)
 - Ambient effects per area (screen-blended): drifting fog, light rays, motes, glowing moths and falling leaves in the ruins; green motes, glowing mushrooms and petals at the tree; violet rain, an energy pillar and lightning flashes at the gate
 - Combat bursts: slash on hits, ripple on Block, rune circle and pillar on powers, vortex on targeted skills, green puff on Poison, shard burst on kills
+- Damage preview: aiming a card at an enemy recolors its numbers for Strength, Weak and Vulnerable (green up, red down), flashes the HP the target would lose and flags lethal hits; dragging a skill shows the Block you'd gain
+- Scales up on large screens (QHD and 4K) and renders the hero at up to 3x pixel density; art is exported at full source resolution
 - Fanned hand, drag-to-play, a targeting arrow for attacks, card flight, lunges, hit flashes, screen shake and death dissolves
 - The Aetherwright rendered as painted art on a WebGL mesh: breathing, cape and braid sway, pose swaps for attack, cast, power and hurt
 - Run saves to the browser's local storage when you're on the map

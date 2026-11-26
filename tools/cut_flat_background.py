@@ -33,10 +33,10 @@ col=np.clip((im-bg*(1-al))/al,0,255)
 col=np.where(alpha[...,None]>0.98,im,col)
 out=np.dstack([col,alpha*255]).astype(np.uint8)
 b=Image.fromarray(out,'RGBA')
-def norm(img,name,h=760):
+def norm(img,name,h=None):
     bb=img.getchannel('A').point(lambda v:255 if v>20 else 0).getbbox()
-    img=img.crop(bb);s=h/img.height;img=img.resize((round(img.width*s),h),Image.LANCZOS)
-    img.save(f'assets/{name}.webp',quality=88,method=6);img.save(f'/tmp/{name}.png')
+    img=img.crop(bb)
+    img.save(f'/home/claude/slaytheslay/assets/{name}.webp',quality=90,method=6);img.save(f'/tmp/{name}.png')
     print(name,img.size)
     return img
 i1=norm(a,'hero_idle');b2=np.array(b);hh,ww=b2.shape[:2]

@@ -28,10 +28,9 @@ for f,name in [('57c5f86a','attack'),('30b43041','hurt'),('e36c644d','cast2')]:
     o=np.dstack([rgb,np.clip(a,0,1)*255]).astype(np.uint8)
     im=Image.fromarray(o,'RGBA')
     bb=im.getchannel('A').point(lambda v:255 if v>30 else 0).getbbox();im=im.crop(bb)
-    s=760/im.height;im=im.resize((round(im.width*s),760),Image.LANCZOS)
-    im.save(f'/home/claude/hollow-ascent/assets/hero_{name}.webp',quality=88,method=6)
+    im.save(f'/home/claude/slaytheslay/assets/hero_{name}.webp',quality=90,method=6)
     c=Image.new('RGBA',im.size,(40,140,90,255));c.alpha_composite(im);out[name]=c.convert('RGB')
     print(name,im.size)
-W=sum(i.width for i in out.values());c=Image.new('RGB',(W,760));x=0
+W=sum(i.width for i in out.values());c=Image.new('RGB',(W,max(i.height for i in out.values())));x=0
 for i in out.values():c.paste(i,(x,0));x+=i.width
-c.resize((W*512//760,512)).save('/tmp/chk_all.jpg')
+c.resize((max(1,W*512//c.height),512)).save('/tmp/chk_all.jpg')
