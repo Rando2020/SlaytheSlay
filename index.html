@@ -1358,7 +1358,14 @@ function intV(e){const n=e.int,o=[],d0=EN[e.k];if(n.a){const bl=n.slam&&d0.keep?
  if(n.b)o.push(`<span class="it b" title="Block">${hudIcon("intent-block",14)}${n.b}</span>`);if(n.str)o.push(`<span class="it u" title="Buff">${hudIcon("intent-buff",14)}</span>`);if(n.weak||n.vuln||n.poison)o.push(`<span class="it d" title="Debuff">${hudIcon("intent-debuff",14)}${n.poison||''}</span>`);return (n.n?`<span class="iname">${n.n}</span>`:'')+`<span class="irow">${o.join('')}</span>`}
 const relicArtwork={
  heart:'ember-heart',fang:'iron-fang',lantern:'lantern',anchor:'anchor',
- satchel:'satchel',bell:'bronze-bell',moss:'mending-moss',unbroken:'pilgrim-star'
+ satchel:'satchel',bell:'bronze-bell',moss:'mending-moss',unbroken:'pilgrim-star',
+ circlet:'saints-circlet',bloodstone:'bloodstone',granite:'heart-of-granite',
+ mbell:'mourning-bell',pseal:'pilgrims-seal',testament:'ancient-testament',
+ sreliq:'sacred-reliquary',ring:'ring-of-remembrance',chalice:'ashen-chalice',
+ thorns:'crown-of-thorns',key:'key-to-the-forgotten',seal:'broken-seal',
+ tfaith:'testament-of-faith',legacy:'saints-legacy',inherit:'divine-inheritance',
+ faithless:'crown-of-the-faithless',covenant:'eternal-covenant',
+ twin:'twin-covenant',halo:'broken-halo'
 };
 function relicIcon(key){
  const art=relicArtwork[key];
