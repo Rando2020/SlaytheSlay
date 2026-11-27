@@ -42,6 +42,39 @@ let chrome,sock;
  await saved('reconsider');await wait('document.querySelectorAll(".hand .card").length===5');await click('.hand .card');await click('.modal [data-a=mclose]');assert.equal(await count('.hand .card'),5);assert.equal(await evalJS('document.querySelector(".orb b").textContent'),'3');
  await saved('second_opinion',1);await wait('document.querySelectorAll(".hand .card").length===5');await click('.hand .card');await click('.modal [data-a=mpick]');await click('.modal [data-a=mpick]');await wait('!document.querySelector(".modal")');assert.equal(await count('.hand .card'),6);
  await saved('brace',0,'shop');await wait('document.querySelectorAll(".ware .card").length===7');assert.equal(await evalJS('[...document.querySelectorAll(".ware .ty")].filter(e=>e.textContent.includes("Colorless")).length'),2);await click('[data-a=inspectware][data-v="5"]');await click('.modal [data-a=buy]');await wait(`!document.querySelector(${JSON.stringify('[data-a=inspectware][data-v="5"]')})`);
+ // Press a keyword, then release over the same card's artwork. Browsers dispatch
+ // the resulting click to their common ancestor (the playable card).
+ await saved('brace');await wait('document.querySelectorAll(".hand .card").length===5');
+ const point=async selector=>evalJS(`(()=>{const el=document.querySelector(${JSON.stringify(selector)});const r=el.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2}})()`);
+ const card='.hand .card:last-child',word=card+' [data-keyword]',art=card+' .art';
+ await cmd('Input.dispatchMouseEvent',{type:'mouseMoved',...await point(word)});
+ await pause(300);
+ const from=await point(word),to=await point(art);
+ assert.equal(await evalJS(`document.elementFromPoint(${from.x},${from.y})?.closest('[data-keyword]')?.textContent`),'Block');
+ await cmd('Input.dispatchMouseEvent',{type:'mousePressed',...from,button:'left',clickCount:1});
+ await cmd('Input.dispatchMouseEvent',{type:'mouseMoved',...to,buttons:1});
+ await cmd('Input.dispatchMouseEvent',{type:'mouseReleased',...to,button:'left',clickCount:1});
+ await pause(400);
+ assert.equal(await evalJS('document.querySelector(".orb b").textContent'),'3','reading a keyword must not spend Energy');
+ // Inspect on a narrow touch viewport, then dismiss and play intentionally.
+ await cmd('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+ await cmd('Emulation.setTouchEmulationEnabled',{enabled:true});
+ await pause(300);
+ const tapAt=async selector=>{
+  const position=await point(selector);
+  await cmd('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[position]});
+  await cmd('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+ };
+ await tapAt(word);await wait('!!document.querySelector("#card-keyword-tip")');
+ assert.ok(await evalJS(`(()=>{const r=document.querySelector('#card-keyword-tip').getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight})()`));
+ await cmd('Input.dispatchKeyEvent',{type:'keyDown',key:'e'});
+ await cmd('Input.dispatchKeyEvent',{type:'keyUp',key:'e'});
+ assert.ok(await evalJS('!!document.querySelector("#card-keyword-tip")'),'pinned inspection stays open');
+ await tapAt(art);assert.equal(await evalJS('document.querySelector(".orb b").textContent'),'3');
+ await tapAt(art);await wait('document.querySelector(".orb b").textContent==="2"');
+ await saved('hesitation');
+ await wait('document.querySelectorAll(".hand .card").length===5');
+ assert.ok(await evalJS(`[...document.querySelectorAll('.hand [data-keyword]')].some(w=>w.textContent==='Retain')`));
  assert.deepEqual(errors,[]);
- console.log('Browser smoke passed: saved-run load, Choose One, atomic cancel, two-card ordered choice, dedicated merchant inventory and purchase; no runtime exceptions.');
+ console.log('Browser smoke passed: saved-run load, Choose One, atomic cancel, two-card ordered choice, dedicated merchant inventory and purchase, mouse and touch keyword inspection, and deliberate card play; no runtime exceptions.');
 })().catch(e=>{console.error(e);process.exitCode=1}).finally(()=>{if(sock)sock.close();if(chrome)chrome.kill();server.closeAllConnections();server.close()});

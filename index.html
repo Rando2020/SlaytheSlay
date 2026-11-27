@@ -456,6 +456,8 @@ body:has(#app>.stage){overflow:hidden}
  #app>.stage .hero .info{order:-1}
  #app>.stage .foes{flex-shrink:0}
 }
+.pile-icon{display:inline-block;vertical-align:-.16em;object-fit:contain;pointer-events:none}
+.pile-btn{display:inline-flex;align-items:center;gap:4px}.card-keyword .pile-icon{width:1em;height:1em;margin-right:.12em}
 #app:has(.bindery){max-width:min(100%,1700px)}
 .bindery{position:relative;width:100%;aspect-ratio:16/9;container-type:inline-size;background:#24202b url(assets/scenes/wayside-bindery.webp) center/100% 100% no-repeat}
 .bench-card{position:absolute;left:var(--x);top:var(--y);width:10.2%;height:31.4%;padding:0;border:0;color:#ffe9b7;background:transparent;transform:rotate(-5deg) skewX(3deg);cursor:pointer;display:flex;align-items:center;flex-direction:column;justify-content:space-between}
@@ -498,7 +500,20 @@ const shuf=a=>{if(SIM)return a;for(let i=a.length-1;i>0;i--){const j=R(i+1);[a[i
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const combatLab = new URLSearchParams(location.search).get('dev') === 'combat';
 const SAVE='hollow-ascent-v1';
-const save=()=>{if(combatLab)return;try{localStorage.setItem(G.party?SAVE+'-party':SAVE,JSON.stringify(G))}catch(e){}};
+const encounterScreens=['combat','shop','rest','event','shrine','reward'];
+function save(){
+ if(combatLab)return true;
+ try{
+  const snapshot={...G};
+  if(G.travel?.status==='active'&&encounterScreens.includes(screen)){
+   if(MD||screen==='combat'&&(!C||combatEnemyPhase||C.lock||C.busy&&!C.won))return true;
+   snapshot.encounter={screen,uid,RW,SH,RS,SR,event:EV?{index:EVENTS.indexOf(EV.e),done:EV.done,msg:EV.msg}:null,
+    visits:roomVisits?{seats:roomVisits.seats,room:roomVisits.room,event:roomVisits.event,reward:roomVisits.reward}:null};
+   if(screen==='combat'){snapshot.encounter.party=combatParty.map(({foes,...hero})=>hero);snapshot.encounter.foes=C.foes}
+  }
+  localStorage.setItem(G.party?SAVE+'-party':SAVE,JSON.stringify(snapshot));return true
+ }catch(e){return false}
+}
 const load=(party=false)=>{if(combatLab)return null;try{return JSON.parse(localStorage.getItem(party?SAVE+'-party':SAVE))}catch(e){return null}};
 const wipe=()=>{if(combatLab)return;try{localStorage.removeItem(G?.party?SAVE+'-party':SAVE)}catch(e){}};
 let G=null,C=null,RW=null,SH=null,RS=null,SR=null,EV=null,MD=null,screen='title',uid=1,Q=[];
@@ -1285,9 +1300,26 @@ function resumeRun(party){
   member.relics=member.relics.filter(k=>RELICS[k])
  }
  uid=1+Math.max(0,...members.flatMap(member=>member.deck.map(c=>c.u||0)));
+ const encounter=G.encounter;delete G.encounter;
+ if(encounter&&encounterScreens.includes(encounter.screen)){
+  screen=encounter.screen;uid=Math.max(uid,encounter.uid||0);
+  ({RW,SH,RS,SR}=encounter);
+  const ev=encounter.event||encounter.EV;EV=ev?{e:EVENTS[ev.index],done:ev.done,msg:ev.msg}:null;
+  roomVisits=encounter.visits||null;C=null;
+  if(screen==='combat'){
+   combatParty=encounter.party?encounter.party.map(hero=>({...hero,foes:encounter.foes})):[encounter.C];
+   combatEnemyPhase=false;focusCombatSeat(activeSeat());C.busy=false;C.lock=false;C.sel=-1;
+   if(!alive().length)return winCombat()
+  }
+  return render()
+ }
+ if(G.travel?.status==='pending'){
+  const {f,l}=G.travel;screen='map';
+  if(avail().some(([row,col])=>row===f&&col===l))return enter(f,l)
+ }
  goMap()
 }
-function goMap(){selectedNode=null;const pending=G.party?G.party.findIndex(p=>p.threshold&&!p.threshold.applied):-1;if(pending>=0)selectSeat(pending);if(G.threshold&&!G.threshold.applied){screen='threshold';save();return render()}if(screen==='shop'&&G.threshold&&G.threshold.merchantRemaining>0)G.threshold.merchantRemaining--;closeModal();roomVisits=null;C=null;selectSeat(livingSeats()[0]);screen='map';save();render()}
+function goMap(){delete G.travel;selectedNode=null;const pending=G.party?G.party.findIndex(p=>p.threshold&&!p.threshold.applied):-1;if(pending>=0)selectSeat(pending);if(G.threshold&&!G.threshold.applied){screen='threshold';save();return render()}if(screen==='shop'&&G.threshold&&G.threshold.merchantRemaining>0)G.threshold.merchantRemaining--;closeModal();roomVisits=null;C=null;selectSeat(livingSeats()[0]);screen='map';save();render()}
 function mkShop(){const ids=[];[1,1,2,2,3].forEach(t=>{let id,g=0;do{id=pick(POOL[t])}while(ids.includes(id)&&g++<20);ids.push(id)});
  const neutralOne=pick([...COLORLESS_POOL[1],...COLORLESS_POOL[2]]);ids.push(neutralOne,pick([...COLORLESS_POOL[2],...COLORLESS_POOL[3]].filter(id=>id!==neutralOne)));
  const relics=[];
@@ -1298,29 +1330,30 @@ function mkShop(){const ids=[];[1,1,2,2,3].forEach(t=>{let id,g=0;do{id=pick(POO
  }
  return{cards:ids.map(id=>({id,p:merchantPrice({1:50,2:75,3:145}[K[id].r]+R(11)-5),sold:0})),relics,removed:0}
 }
-function enter(f,l){if(screen!=='map'||(G.threshold&&!G.threshold.applied))return;if(!avail().some(([a,b])=>a==f&&b==l))return;G.pos={f,l};G.path.push([f,l]);G.floor=f+1;const t=G.map[f][l].t;
+function enter(f,l){if(screen!=='map'||(G.threshold&&!G.threshold.applied))return;if(!avail().some(([a,b])=>a==f&&b==l))return;G.travel={status:"active",f,l};G.pos={f,l};G.path.push([f,l]);G.floor=f+1;const t=G.map[f][l].t;
  if(t=='fight')startCombat(pick(f<4?EASY:HARD),'fight');
  else if(t=='elite')startCombat(pick(ELITE),'elite');
  else if(t=='boss')startCombat(['king'],'boss');
  else{
   const seats=livingSeats().filter(i=>t!=='shrine'||partyMember(i).hero==='oath');
   const sharedEvent=t==='event'?pick(EVENTS):null;
-  beginRoomVisits(seats,()=>openRoom(t,sharedEvent))
+  beginRoomVisits(seats,{room:t,event:EVENTS.indexOf(sharedEvent)})
  }}
-function beginRoomVisits(seats,open){
- roomVisits={seats:[...seats],open};advanceRoom()
+function beginRoomVisits(seats,visit){
+ roomVisits={seats:[...seats],...visit};advanceRoom()
 }
 function advanceRoom(){
  if(roomVisits?.seats.length&&screen==='shop'&&G.threshold&&G.threshold.merchantRemaining>0)G.threshold.merchantRemaining--;
  if(!roomVisits||!roomVisits.seats.length)return goMap();
- selectSeat(roomVisits.seats.shift());roomVisits.open();render()
+ selectSeat(roomVisits.seats.shift());if(roomVisits.reward)openCombatReward(roomVisits.reward);else openRoom(roomVisits.room,EVENTS[roomVisits.event]);render()
 }
 function beginPartyRewards(kind){
- beginRoomVisits(livingSeats(),()=>{
+ beginRoomVisits(livingSeats(),{reward:kind})
+}
+function openCombatReward(kind){
   if(has('heart'))heal(6);if(has('pseal'))heal(1);
   const elite=kind==='elite',gold=elite?25+R(11):10+R(11);G.gold+=gold;
   RW={gold,cards:cardChoices(elite?1:0),relic:elite?randRelic():null,taken:false,asc:G.hero==='oath'&&(elite||Math.random()<.1)&&ascList(1).length?{from:1}:null};screen='reward'
- })
 }
 function openRoom(t,sharedEvent){
  if(t==='rest'){RS={done:0,msg:''};screen='rest'}
@@ -1353,7 +1386,7 @@ const statusArt={str:'strength',vuln:'vulnerable',weak:'weak',poison:'poison'};
 const oathArt={aurel:'radiance',varran:'conquest',orun:'protection',mora:'twilight'};
 const stV=st=>Object.keys(st).filter(k=>st[k]&&STN[k]).map(k=>`<span class="chip ${STN[k][1]}" title="${STN[k][2]}">${statusArt[k]?hudIcon("status-"+statusArt[k],16):""}${STN[k][0]} ${st[k]}</span>`).join('');
 const cardArt=(c,hero)=>c.id==="strike"?`<img alt="" src="assets/ui/cards/${hero==="oath"?"dawn":"aetherwright"}-strike.png">`:ART[KD(c).t];
-function cardV(c,attrs='',cls=''){const k=KD(c),description=k.d(c.up,c),co=cost(c),g=godOf(c),dorm=g&&G&&G.hero=='oath'&&!ACT(g)&&!c.seal&&!c.tmpS;return `<button class="card t-${k.t} r${k.r}${description.length>32?' wordy':''}${c.up?' up':''}${g?' g-'+g:''}${c.tier?' tr'+c.tier:''}${dorm?' dorm':''}${K[c.id].m&&!c.tier?' mal':''} ${cls}" ${attrs}>${co>=0?`<span class="cost">${co}</span>`:''}${c.tier?`<span class="tier" title="${TIERN[c.tier]}">T${c.tier}</span>`:''}<span class="nm">${name(c)}</span><span class="art">${cardArt(c,G?.hero)}</span><span class="ds"><span>${keywordText(description)}</span></span><span class="ty">${TN[k.t]}${k.colorless?' · Colorless':''}${g?' · '+GODS[g].n:K[c.id].m?' · Malleable':''}${dorm?' · Dormant':''}</span></button>`}
+function cardV(c,attrs='',cls=''){const k=KD(c),description=k.d(c.up,c),co=cost(c),g=godOf(c),dorm=g&&G&&G.hero=='oath'&&!ACT(g)&&!c.seal&&!c.tmpS;return `<button class="card t-${k.t} r${k.r}${description.length>32?' wordy':''}${c.up?' up':''}${g?' g-'+g:''}${c.tier?' tr'+c.tier:''}${dorm?' dorm':''}${K[c.id].m&&!c.tier?' mal':''} ${cls}" ${attrs}>${co>=0?`<span class="cost">${co}</span>`:''}${c.tier?`<span class="tier" title="${TIERN[c.tier]}">T${c.tier}</span>`:''}<span class="nm">${name(c)}</span><span class="art">${cardArt(c,G?.hero)}</span><span class="ds"><span>${keywordText(description)}</span></span><span class="ty">${TN[k.t]}${k.colorless?' · '+keywordText('Colorless'):''}${g?' · '+GODS[g].n:K[c.id].m?' · '+keywordText('Malleable'):''}${dorm?' · '+keywordText('Dormant'):''}</span></button>`}
 function intV(e){const n=e.int,o=[],d0=EN[e.k];if(n.a){const bl=n.slam&&d0.keep?Math.floor(e.block/2):0;let d=n.a+bl+(e.st.str||0);if(e.st.weak)d*=.75;if(C.p.st.vuln)d*=1.5;o.push(`<span class="it a" title="${G.party?'Attacks all living climbers. Damage shown for the active climber.':'Attack'}">${G.party?'All · ':''}${hudIcon("intent-attack",14)}${Math.floor(d)}${n.x>1?'×'+n.x:''}</span>`)}
  if(n.b)o.push(`<span class="it b" title="Block">${hudIcon("intent-block",14)}${n.b}</span>`);if(n.str)o.push(`<span class="it u" title="Buff">${hudIcon("intent-buff",14)}</span>`);if(n.weak||n.vuln||n.poison)o.push(`<span class="it d" title="Debuff">${hudIcon("intent-debuff",14)}${n.poison||''}</span>`);return (n.n?`<span class="iname">${n.n}</span>`:'')+`<span class="irow">${o.join('')}</span>`}
 const relicArtwork={
@@ -1421,6 +1454,7 @@ async function travel(){
  const lab=screen==='maplab',run=lab?labRun:G;
  const dest=ActMap.available(run).find(p=>p.join()===selectedNode);
  if(!dest)return;
+ if(!lab){const [f,l]=dest;run.travel={status:'pending',f,l};if(!save()){delete run.travel;toast('Travel could not be saved. Check browser storage and try again.');return}}
  travelling=true;
  try{
   $('.node.selected')?.classList.add('travel');
@@ -1495,12 +1529,17 @@ function render(){hideKeyword();setZoom();PT=null;PV.key='';$('#app').innerHTML=
   const svg=document.querySelector('#f'+e.i+' [data-rig]');
   if(svg)EnemyRigs.mount(svg,svg.dataset.rig,e);
  }const st=$('.stage');if(st){bgMount(st);ptMount(st)}const hs=$('#hero .spr');if(hs)rigMount(hs)}
+ if(G?.travel?.status==='active'&&encounterScreens.includes(screen))save();
  flush();if(screen=='combat'&&C&&C.sel>=0&&!aimOn){aimOn=true;requestAnimationFrame(aimTick)}}
 function openPick(title,cards,cb,cancel){const list=cb?cards:[...cards].sort((a,b)=>KD(a).t.localeCompare(KD(b).t)||KD(a).n.localeCompare(KD(b).n));MD={cards:list,cb};
  $('#modal').innerHTML=`<div class="modal" role="dialog" aria-label="${title}"><div class="mhead"><h2>${title}</h2><button class="btn" data-a="mclose">${cb?(cancel||'Cancel'):'Close'}</button></div><div class="grid">${list.map((c,i)=>cardV(c,cb?`data-a="mpick" data-v="${i}"`:'')).join('')||'<p class="sub">No cards to choose.</p>'}</div></div>`}
 const PILE_NAMES={draw:'Draw',disc:'Discard',exh:'Exhaust'};
+const pileArt={draw:'assets/ui/hud/pile-draw.png',disc:'assets/ui/hud/pile-discard.png',exh:'assets/ui/hud/pile-exhaust.png',sanctums:'assets/maps/act01/icons/shrine.webp'};
+function pileIcon(id,size){
+ return `<img class="pile-icon" alt="" src="${pileArt[id]}" width="${size}" height="${size}" draggable="false">`;
+}
 function pileControls(){
- const button=(id,label)=>`<button class="pile-btn" data-a="pile" data-v="${id}" ${C.busy||C.lock?'disabled':''}>${label}</button>`;
+ const button=(id,label)=>`<button class="pile-btn" data-a="pile" data-v="${id}" ${C.busy||C.lock?'disabled':''}>${pileIcon(id,22)}${label}</button>`;
  const controls=Object.entries(PILE_NAMES).map(([id,label])=>button(id,label+' '+C[id].length));
  if(G.hero==='oath')controls.push(button('sanctums','Sanctums '+Object.values(C.sanc).reduce((n,p)=>n+p.length,0)));
  return controls.join('');
@@ -1523,9 +1562,9 @@ function inspectPile(id){
  const sanctums=id==='sanctums'&&G.hero==='oath';
  if(!sanctums&&!Object.hasOwn(PILE_NAMES,id))return;
  const title=sanctums?'Sanctums':PILE_NAMES[id]+' pile';
- const content=sanctums?Object.entries(C.sanc).map(([g,cards])=>`<section><h3>${GODS[g].sanc} · ${ACT(g)?'Active':'Dormant'} · ${cards.length}</h3><div class="grid">${pileCards(cards)}</div></section>`).join(''):`<div class="grid">${pileCards(C[id])}</div>`;
+ const content=sanctums?Object.entries(C.sanc).map(([g,cards])=>`<section><h3><img class="pile-icon" alt="" width="32" height="32" src="assets/ui/sanctums/${g}.png"> ${GODS[g].sanc} · ${ACT(g)?'Active':'Dormant'} · ${cards.length}</h3><div class="grid">${pileCards(cards)}</div></section>`).join(''):`<div class="grid">${pileCards(C[id])}</div>`;
  MD={pile:id,onClose:()=>$('[data-a="pile"][data-v="'+id+'"]')?.focus()};
- $('#modal').innerHTML=`<div class="modal pile-view" role="dialog" aria-modal="true" aria-label="${title}"><div class="mhead"><h2>${title}</h2><button class="btn" data-a="mclose">Close</button></div>${id==='draw'?'<p class="sub">Shown alphabetically</p>':''}${content}</div>`;
+ $('#modal').innerHTML=`<div class="modal pile-view" role="dialog" aria-modal="true" aria-label="${title}"><div class="mhead"><h2>${pileIcon(id,28)} ${title}</h2><button class="btn" data-a="mclose">Close</button></div>${id==='draw'?'<p class="sub">Shown alphabetically</p>':''}${content}</div>`;
  $('#modal [data-a="mclose"]').focus();
 }
 function openSmith(){
@@ -1586,6 +1625,11 @@ const rewardTerms=[
  ['Strength','str'],['Dexterity','dex'],['Anointed','anoint'],['Bloodlust','blust'],
  ['Resolve','resolve'],['Soulbound','soul'],['Vulnerable','vuln'],['Weak','weak'],['Poison','poison']
 ].map(([term,key])=>[term,STN[key][2].split(': ').pop()]).concat([
+ ['Retain','Keep the chosen card in your hand when this turn ends.'],
+ ['Discard','Move a card out of your hand. Ordinary cards go to the discard pile and can return on a reshuffle. Divine cards follow their Sanctum rules.'],
+ ['Colorless','This card can appear for any class.'],
+ ['Malleable','This card can Sanctify into a permanent form tied to your oath.'],
+ ['Dormant','Its god’s oath is inactive. The card normally waits in that god’s Sanctum.'],
  ['Block','Absorbs incoming attack damage. Normally clears at the start of your next turn.'],
  ['Exhaust','Moves a card to the Exhaust pile for this combat. It stays in your deck for later fights.','Exhaust(?:ed)?'],
  ['Draw','Move cards into your hand. An empty draw pile reshuffles from Discard. Your hand holds up to 10.'],
@@ -1594,6 +1638,7 @@ const rewardTerms=[
  ['Sanctify','While sworn, playing this card permanently transforms it into a card of your god and places it in their Sanctum. Your ordinary deck must keep at least 8 cards.'],
  ['Unsworn','You have no active oath.'],
  ['Sworn','This card normally returns to its god’s Sanctum after play or discard.'],
+ ['Sanctum','A god’s separate card pile. Divine Draw and Recall can move eligible cards from it into your hand.'],
  ['Dormant Sanctum','A god’s card pile while their oath is inactive.'],
  ['Reliquary','Orun’s Sanctum, a separate pile for his cards.'],
  ['Offer','Exhaust a chosen card from an active Sanctum.'],
@@ -1621,10 +1666,12 @@ function scanKeywords(html,format){
   return format(word,index);
  })).join('');
 }
+const keywordPile={Draw:'draw',Discard:'disc',Exhaust:'exh',Sanctum:'sanctums','Dormant Sanctum':'sanctums',Reliquary:'sanctums','Divine Draw':'sanctums'};
 function keywordText(html){
  return scanKeywords(html,(word,index)=>{
   const group=Object.keys(keywordGroups).find(key=>keywordGroups[key].includes(cardKeywords[index][0]))||'action';
-  return `<span class="card-keyword kw-${group}" data-keyword="${index}">${word}</span>`;
+  const pile=keywordPile[cardKeywords[index][0]];
+  return `<span class="card-keyword kw-${group}" data-keyword="${index}">${pile?pileIcon(pile,14):''}${word}</span>`;
  });
 }
 function rewardDefinitions(rules){
@@ -1662,18 +1709,29 @@ document.addEventListener('focusin',e=>{
  if(card?.matches(':focus-visible'))explainKeyword(card,[...card.querySelectorAll('[data-keyword]')].map(w=>+w.dataset.keyword));
 });
 document.addEventListener('focusout',e=>{if(keywordAnchor===e.target)hideKeyword()});
+// Keep inspection gestures isolated even when a release lands on the parent card.
+let inspectPress=null;
 document.addEventListener('pointerdown',e=>{
- if(e.target.closest('[data-keyword]')||keywordPinned)e.stopImmediatePropagation();
+ const word=e.target.closest('[data-keyword]');
+ inspectPress=(word||keywordPinned)?{id:e.pointerId,word}:null;
+ if(inspectPress)e.stopImmediatePropagation();
+},true);
+document.addEventListener('pointercancel',e=>{
+ if(inspectPress?.id===e.pointerId)inspectPress=null;
 },true);
 document.addEventListener('click',e=>{
+ const press=inspectPress;
+ inspectPress=null;
  const word=e.target.closest('[data-keyword]');
- if(!word&&!keywordPinned)return;
+ if(!word&&!keywordPinned&&!(press&&e.detail>0))return;
  e.preventDefault();e.stopImmediatePropagation();
+ if(press&&e.detail>0&&press.word!==word){hideKeyword();return}
  if(word&&!(keywordPinned&&keywordAnchor===word))explainKeyword(word,[+word.dataset.keyword],true);
  else hideKeyword();
 },true);
 document.addEventListener('keydown',e=>{
- if(e.key==='Escape'&&keywordAnchor){hideKeyword();e.preventDefault();e.stopImmediatePropagation()}
+ if(e.key==='Escape'&&keywordAnchor){hideKeyword();e.preventDefault();e.stopImmediatePropagation();return}
+ if(keywordPinned&&screen==='combat'&&!MD&&/^[1-9e]$/i.test(e.key)){e.preventDefault();e.stopImmediatePropagation()}
 },true);
 addEventListener('resize',hideKeyword);
 document.addEventListener('scroll',hideKeyword,true);
@@ -1932,6 +1990,7 @@ document.addEventListener('pointerup',e=>{const d=drag;drag=null;if(!d||!d.activ
  if(C.busy||C.lock)return;const el=document.elementFromPoint(e.clientX,e.clientY),u=el&&el.closest(liveFoe);if(u&&C.sel>=0){const f=C.foes[+u.dataset.v];if(f&&f.hp>0)return play(C.sel,f)}C.sel=-1;AP.moved=false;render()});
 document.addEventListener('pointercancel',()=>{if(drag&&drag.g){drag.g.remove();drag.el.classList.remove('lifted');endFree()}drag=null});
 setZoom();let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{setZoom();if(screen=='combat'&&C&&!C.busy&&!C.lock)render()},150)});
+if(new URLSearchParams(location.search).get('lab')==='map')setupLab(1,'aether');
 if (new URLSearchParams(location.search).get('gallery') === '1') {
   screen = 'gallery';
   import('./tools/reference-gallery.mjs').then(({mountGallery}) => mountGallery($('#app'), {
