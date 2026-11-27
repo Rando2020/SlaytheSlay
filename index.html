@@ -456,6 +456,8 @@ body:has(#app>.stage){overflow:hidden}
  #app>.stage .hero .info{order:-1}
  #app>.stage .foes{flex-shrink:0}
 }
+.pile-icon{display:inline-block;vertical-align:-.16em;object-fit:contain;pointer-events:none}
+.pile-btn{display:inline-flex;align-items:center;gap:4px}.card-keyword .pile-icon{width:1em;height:1em;margin-right:.12em}
 </style><link rel="stylesheet" href="src/act-map.css">
 </head><body>
 <div id="app"></div><div id="modal"></div><svg id="aim" aria-hidden="true"><path id="aimP" fill="none" stroke="none"/><g id="aimG"></g></svg>
@@ -1449,8 +1451,12 @@ function render(){hideKeyword();setZoom();PT=null;PV.key='';$('#app').innerHTML=
 function openPick(title,cards,cb,cancel){const list=cb?cards:[...cards].sort((a,b)=>KD(a).t.localeCompare(KD(b).t)||KD(a).n.localeCompare(KD(b).n));MD={cards:list,cb};
  $('#modal').innerHTML=`<div class="modal" role="dialog" aria-label="${title}"><div class="mhead"><h2>${title}</h2><button class="btn" data-a="mclose">${cb?(cancel||'Cancel'):'Close'}</button></div><div class="grid">${list.map((c,i)=>cardV(c,cb?`data-a="mpick" data-v="${i}"`:'')).join('')||'<p class="sub">No cards to choose.</p>'}</div></div>`}
 const PILE_NAMES={draw:'Draw',disc:'Discard',exh:'Exhaust'};
+const pileArt={draw:'assets/ui/hud/pile-draw.png',disc:'assets/ui/hud/pile-discard.png',exh:'assets/ui/hud/pile-exhaust.png',sanctums:'assets/maps/act01/icons/shrine.webp'};
+function pileIcon(id,size){
+ return `<img class="pile-icon" alt="" src="${pileArt[id]}" width="${size}" height="${size}" draggable="false">`;
+}
 function pileControls(){
- const button=(id,label)=>`<button class="pile-btn" data-a="pile" data-v="${id}" ${C.busy||C.lock?'disabled':''}>${label}</button>`;
+ const button=(id,label)=>`<button class="pile-btn" data-a="pile" data-v="${id}" ${C.busy||C.lock?'disabled':''}>${pileIcon(id,22)}${label}</button>`;
  const controls=Object.entries(PILE_NAMES).map(([id,label])=>button(id,label+' '+C[id].length));
  if(G.hero==='oath')controls.push(button('sanctums','Sanctums '+Object.values(C.sanc).reduce((n,p)=>n+p.length,0)));
  return controls.join('');
@@ -1473,9 +1479,9 @@ function inspectPile(id){
  const sanctums=id==='sanctums'&&G.hero==='oath';
  if(!sanctums&&!Object.hasOwn(PILE_NAMES,id))return;
  const title=sanctums?'Sanctums':PILE_NAMES[id]+' pile';
- const content=sanctums?Object.entries(C.sanc).map(([g,cards])=>`<section><h3>${GODS[g].sanc} · ${ACT(g)?'Active':'Dormant'} · ${cards.length}</h3><div class="grid">${pileCards(cards)}</div></section>`).join(''):`<div class="grid">${pileCards(C[id])}</div>`;
+ const content=sanctums?Object.entries(C.sanc).map(([g,cards])=>`<section><h3><img class="pile-icon" alt="" width="32" height="32" src="assets/ui/sanctums/${g}.png"> ${GODS[g].sanc} · ${ACT(g)?'Active':'Dormant'} · ${cards.length}</h3><div class="grid">${pileCards(cards)}</div></section>`).join(''):`<div class="grid">${pileCards(C[id])}</div>`;
  MD={pile:id,onClose:()=>$('[data-a="pile"][data-v="'+id+'"]')?.focus()};
- $('#modal').innerHTML=`<div class="modal pile-view" role="dialog" aria-modal="true" aria-label="${title}"><div class="mhead"><h2>${title}</h2><button class="btn" data-a="mclose">Close</button></div>${id==='draw'?'<p class="sub">Shown alphabetically</p>':''}${content}</div>`;
+ $('#modal').innerHTML=`<div class="modal pile-view" role="dialog" aria-modal="true" aria-label="${title}"><div class="mhead"><h2>${pileIcon(id,28)} ${title}</h2><button class="btn" data-a="mclose">Close</button></div>${id==='draw'?'<p class="sub">Shown alphabetically</p>':''}${content}</div>`;
  $('#modal [data-a="mclose"]').focus();
 }
 function openSmith(){
@@ -1549,6 +1555,7 @@ const rewardTerms=[
  ['Sanctify','While sworn, playing this card permanently transforms it into a card of your god and places it in their Sanctum. Your ordinary deck must keep at least 8 cards.'],
  ['Unsworn','You have no active oath.'],
  ['Sworn','This card normally returns to its god’s Sanctum after play or discard.'],
+ ['Sanctum','A god’s separate card pile. Divine Draw and Recall can move eligible cards from it into your hand.'],
  ['Dormant Sanctum','A god’s card pile while their oath is inactive.'],
  ['Reliquary','Orun’s Sanctum, a separate pile for his cards.'],
  ['Offer','Exhaust a chosen card from an active Sanctum.'],
@@ -1576,10 +1583,12 @@ function scanKeywords(html,format){
   return format(word,index);
  })).join('');
 }
+const keywordPile={Draw:'draw',Discard:'disc',Exhaust:'exh',Sanctum:'sanctums','Dormant Sanctum':'sanctums',Reliquary:'sanctums','Divine Draw':'sanctums'};
 function keywordText(html){
  return scanKeywords(html,(word,index)=>{
   const group=Object.keys(keywordGroups).find(key=>keywordGroups[key].includes(cardKeywords[index][0]))||'action';
-  return `<span class="card-keyword kw-${group}" data-keyword="${index}">${word}</span>`;
+  const pile=keywordPile[cardKeywords[index][0]];
+  return `<span class="card-keyword kw-${group}" data-keyword="${index}">${pile?pileIcon(pile,14):''}${word}</span>`;
  });
 }
 function rewardDefinitions(rules){
