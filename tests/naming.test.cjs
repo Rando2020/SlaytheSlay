@@ -106,11 +106,13 @@ test('assets/manifest.js and docs/ID-REGISTRY.md are up to date', async () => {
   assert.equal(fs.readFileSync(rel('docs/ID-REGISTRY.md'), 'utf8'), renderRegistry(), `docs/ID-REGISTRY.md is stale. ${REBUILD}`);
 });
 
-test('every local script index.html loads exists and is served by the co-op server', () => {
+test('every local script and stylesheet index.html loads exists and is served by the co-op server', () => {
   const html = fs.readFileSync(rel('index.html'), 'utf8');
   const server = fs.readFileSync(rel('tools/coop-server.cjs'), 'utf8');
-  for (const [, src] of html.matchAll(/<script src="([^"]+)"/g)) {
+  const loaded = [...html.matchAll(/<script src="([^"]+)"/g), ...html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)]
+    .map(m => m[1]).filter(src => !/^https?:/.test(src));
+  for (const src of loaded) {
     assert.ok(fs.existsSync(rel(src)), `index.html loads ${src}, which does not exist.`);
-    assert.ok(server.includes(`'${src}'`), `${src} is missing from the pages list in tools/coop-server.cjs, so online co-op cannot load it.`);
+    assert.ok(server.includes(`'${src}'`), `${src} is missing from the pages list in tools/coop-server.cjs, so online co-op cannot load it. Scripts and stylesheets belong in src/.`);
   }
 });

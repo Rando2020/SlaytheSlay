@@ -14,7 +14,7 @@ const mime = {'.html':'text/html; charset=utf-8', '.js':'text/javascript; charse
 
 const pages = new Set([
   'index.html', 'src/coop-online.js', 'enemy-lab.html', 'assets/manifest.js', 'tests/combat-interactions.html',
-  'assets/maps/act01/registry.js', 'src/act-map.js', 'src/act-map.css',
+  'assets/maps/act01/registry.js', 'src/act-map.js', 'src/act-map.css', 'src/ember-landing.css',
   'assets/rigs/registry.js', 'assets/rigs/player.js', 'assets/rigs/lab.js',
   'tools/combat-lab.mjs', 'tools/combat-playtester.mjs',
   'tools/reference-gallery.mjs', 'tools/reference-gallery.css'
