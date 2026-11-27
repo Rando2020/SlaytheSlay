@@ -1370,7 +1370,7 @@ function enter(f,l){if(screen!=='map'||(G.threshold&&!G.threshold.applied))retur
  else if(t=='boss')startCombat(['king'],'boss');
  else{
   const seats=livingSeats().filter(i=>t!=='shrine'||partyMember(i).hero==='oath');
-  const sharedEvent=t==='event'?pick(EVENTS):null;
+  const sharedEvent=t==='event'?drawMysteryRoom(f,l):null;
   beginRoomVisits(seats,{room:t,event:EVENTS.indexOf(sharedEvent)})
  }}
 function beginRoomVisits(seats,visit){
@@ -1396,6 +1396,17 @@ function openRoom(t,sharedEvent){
  else if(t==='event'){EV={e:sharedEvent,done:0,msg:''};screen='event'}
  else{const r=randRelic(),gold=r?20:90;G.gold+=gold;RW={gold,cards:[],relic:r,taken:true,title:'Treasure',asc:G.hero==='oath'&&ascList(2).length?{from:2,free:1}:null};screen='reward'}
 }
+function drawMysteryRoom(floor,lane){
+ const history=G.mysteryHistory||[];
+ const last=history[history.length-1];
+ let pool=EVENTS.filter(room=>!history.includes(room.n));
+ const newCycle=pool.length===0;
+ if(newCycle)pool=EVENTS.filter(room=>room.n!==last);
+ const rng=seedRng(G.seed^0x45564e54^Math.imul(floor+1,65537)^lane);
+ const room=pool[Math.floor(rng()*pool.length)];
+ G.mysteryHistory=newCycle?[room.n]:[...history,room.n];
+ return room;
+}
 const EVENTS=[
 {n:'Whispering Shrine',t:'A cracked altar hums in the dark. It asks for blood and offers something old in return.',o:[
  {l:'Pray: lose 8 HP, gain a relic',f:()=>{G.hp=Math.max(1,G.hp-8);const r=randRelic();if(r){gainRelic(r);return 'The altar gives you '+RELICS[r].n+'. '+RELICS[r].d}G.gold+=60;return 'The altar is empty. You find 60 gold in the cracks.'}},
@@ -1412,7 +1423,17 @@ const EVENTS=[
 {n:'Burned Library',t:'Half the shelves are ash. A few pages still glow with stubborn ink.',o:[
  {l:'Study universal techniques: choose 1 of 3 colorless cards',f:()=>{openPick('Learn a colorless technique',colorlessChoices().map(id=>mk(id)),c=>{G.deck.push(c);EV.msg='You learn '+name(c)+'.';EV.done=1;render()});return null}},
  {l:'Study: choose 1 of 3 cards',f:()=>{openPick('Choose a card to add',cardChoices(0).map(id=>mk(id)),c=>{G.deck.push(c);EV.msg='You learn '+name(c)+'.';EV.done=1;render()});return null}},
- {l:'Burn a page: remove a card',ok:()=>G.deck.length>1,f:()=>{openPick('Remove a card',G.deck,c=>{G.deck.splice(G.deck.indexOf(c),1);EV.msg=name(c)+' goes up in smoke.';EV.done=1;render()});return null}}]}];
+ {l:'Burn a page: remove a card',ok:()=>G.deck.length>1,f:()=>{openPick('Remove a card',G.deck,c=>{G.deck.splice(G.deck.indexOf(c),1);EV.msg=name(c)+' goes up in smoke.';EV.done=1;render()});return null}}]},
+{n:'The Bellfounder’s Lung',t:'A bronze lung hangs beside the cracked bell. The founder fits a mouthpiece to its ribs. “A short breath for you,” she says, “or a long one from you.”',o:[
+ {l:'Breathe in · Recover up to 12 HP',ok:()=>G.hp<G.maxHp,f:()=>{const before=G.hp;heal(12);return 'The bellows fold. You recover '+(G.hp-before)+' HP.'}},
+ {l:'Breathe out · Lose 7 HP and gain 5 maximum HP',ok:()=>G.hp>7,f:()=>{G.hp-=7;G.maxHp+=5;return 'The bell rings on your breath. You lose 7 HP. Your maximum HP rises to '+G.maxHp+'.'}},
+ {l:'Pass the mouthpiece back',f:()=>'She wipes the brass clean for the next climber.'}]},
+{n:'The Carbon Choir',t:'A row of choristers holds black paper against the wall. Each time you move, their hands trace the gesture. The last chorister holds out an ink-stained palm.',o:[
+ {l:'Commission an echo · Pay 45 gold to copy a card',ok:()=>G.gold>=45&&G.deck.length>0,f:()=>{openPick('Copy a card for 45 gold',G.deck,c=>{G.gold-=45;G.deck.push({...c,u:uid++});EV.msg='The choir returns two identical impressions of '+name(c)+'.';EV.done=1;render()});return null}},
+ {l:'Sit for a portrait · Gain 12 gold',f:()=>{G.gold+=12;return 'They pin your silhouette among the missing and press 12 gold into your hand.'}}]},
+{n:'The Last Tollkeeper',t:'A woman keeps the fare box of a lift whose cables have snapped. She still buys proof of passage. A practiced technique fetches a better price.',o:[
+ {l:'Sell a card · Gain 18 gold, or 40 for an upgraded card',ok:()=>G.deck.length>1,f:()=>{openPick('Sell a card · 18 gold (40 if upgraded)',G.deck,c=>{const price=c.up?40:18;G.deck.splice(G.deck.indexOf(c),1);G.gold+=price;EV.msg='The keeper files '+name(c)+' under your floor and counts out '+price+' gold.';EV.done=1;render()});return null}},
+ {l:'Keep your deck and take the stairs',f:()=>'She punches a hole in an empty ticket as you pass.'}]}];
 
 /* ---------- views ---------- */
 const hudIcon=(name,size)=>`<img class="hud-icon" alt="" src="assets/ui/hud/${name}.png" width="${size}" height="${size}">`;
