@@ -1,0 +1,51 @@
+{
+  "status": "source_art_only",
+  "proposed_repository_path": "assets/maps/act01/source/",
+  "assets": [
+    {
+      "file": "act01_verdant_remnants_map_background.png",
+      "source": "misty_sanctuary_among_ruins.png",
+      "width": 941,
+      "height": 1672,
+      "mode": "RGB",
+      "sha256": "40406600a30a2d17ac0f8c4a661260c4ebd2c12fd97b0923b6d4615af82f853d",
+      "description": "Act I backdrop"
+    },
+    {
+      "file": "encounter_icons_atlas.png",
+      "source": "dark_fantasy_encounter_icon_set.png",
+      "width": 1448,
+      "height": 1086,
+      "mode": "RGBA",
+      "sha256": "e6c00cffd954a1649bc297aec6f6965a34e0cf3de688e64fcfd4499bc3ebb571",
+      "description": "4 columns \u00d7 3 rows; 362 \u00d7 362 source cells"
+    },
+    {
+      "file": "encounter_node_frames_atlas.png",
+      "source": "a_clean_graphic_design_sprite_sheet_on_a_transpare.png",
+      "width": 1536,
+      "height": 1024,
+      "mode": "RGBA",
+      "sha256": "a7ec5f0e2b046d9453f0bc7987fae7a9738b085b92e8e4abd665b1ae2ea79a04",
+      "description": "3 columns \u00d7 2 rows; 512 \u00d7 512 source cells"
+    },
+    {
+      "file": "map_vfx_atlas.png",
+      "source": "a_high_resolution_png_style_spritesheet_asset_shee.png",
+      "width": 1536,
+      "height": 1024,
+      "mode": "RGBA",
+      "sha256": "45e636445bfbf347cbbc9d2fabe0d4d0d22efec9b94986afcd14edb262b2dc77",
+      "description": "irregular atlas; manually crop and isolate"
+    },
+    {
+      "file": "map_hud_atlas.png",
+      "source": "a_clean_png_asset_sheet_on_a_transparent_checkerbo.png",
+      "width": 1536,
+      "height": 1024,
+      "mode": "RGBA",
+      "sha256": "176031b824c20dba5c42500d3c3860bc8960abcb9af8df4ba62d13f2f6b84ed6",
+      "description": "irregular atlas; manually crop and isolate"
+    }
+  ]
+}

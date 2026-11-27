@@ -72,3 +72,13 @@ Enemies stand on the right, so they must face **left**. Generated art usually fa
 Enemies with a parts sheet are cut-out rigs: each part is its own WebP, and `RIGS` in `index.html` lists every part's position, width, idle animation (sway, nod, claw, leg, chew, glow, pulse, hover, flick, drift) and pivot. Give the enemy `rig:'<folder>'` instead of `img`. The claws strike on attacks, and the canister, crystal or flames flare on Overclock, Charge and Phase.
 
 Next up: painted art for the Hex Mother and the Hollow King, then layered backgrounds and card illustrations.
+
+### Act I navigation and Map Lab
+
+Choose a gold-ringed room to preview it, then select **Enter room**. Keyboard players can Tab to an available room and press Enter or Space to preview it. Confirming follows the existing encounter transition. The map save stores the graph and the route taken. Older saves use their stored graphs directly.
+
+Open **Map Lab** on the title screen to generate a route for a hero and a 32-bit seed, inspect the art registry, or walk a full route without changing a saved run. Both screens call the renderer in `src/act-map.js`.
+
+The five PNGs from the Act I package live in `assets/maps/act01/source/`. Rebuild the runtime WebPs and their registry with `python tools/import_act01.py` (Pillow required). The importer checks each source against the SHA-256 manifest from the PR #10 handoff. Run `node --test tests/*.cjs` for graph, registry, save compatibility and character-selection checks.
+
+[Phone capture](docs/qa/act01/map-390.png) · [Desktop capture](docs/qa/act01/map-1440.png)
