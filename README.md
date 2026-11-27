@@ -86,7 +86,9 @@ skip player save reads, writes and deletion. **Exit to game** returns to the tit
 
 Open [the browser interaction suite](./tests/combat-interactions.html) on the static
 server to exercise a real two-enemy fight, card targeting, block, enemy turns,
-modal dialogs and reward collection. The page displays each assertion and sets
+modal dialogs and reward collection. Five Oathbound fights cover the Unsworn
+starter and each god. They check Unbroken Vow, Judgment's tier and ownership,
+Divine Draw, and the evolved card's return to its Sanctum. The page displays each assertion and sets
 `#results[data-result]` to `pass` or `fail` when finished.
 
 A browser agent in a launched Combat Lab encounter can use the following API.

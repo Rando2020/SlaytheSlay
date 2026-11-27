@@ -9,7 +9,9 @@ export function createPlaytester(snapshot, mechanics) {
     const {screen, run, combat} = snapshot();
     const dialog = document.querySelector('#modal [role=dialog]');
     const actions = [];
-    const hand = combat?.hand.map(mechanics.cardInfo) ?? [];
+    const hand = combat?.hand.map(card => ({
+      ...mechanics.cardInfo(card), tier:card.tier ?? 0, god:card.g ?? null
+    })) ?? [];
     const enemies = combat?.foes.map(e => ({
       index:e.i, id:e.k, hp:e.hp, maxHp:e.max, block:e.block, intent:e.int, statuses:e.st
     })) ?? [];
@@ -28,7 +30,7 @@ export function createPlaytester(snapshot, mechanics) {
       actions.push({type:'endTurn'}, {type:'choose', action:'deck', label:'Inspect deck'});
     }
     const state = structuredClone({
-      screen, turn:combat?.turn ?? null, hp:run?.hp, block:combat?.p.block,
+      screen, hero:run?.hero, oaths:run?.oaths, turn:combat?.turn ?? null, hp:run?.hp, block:combat?.p.block,
       energy:combat?.energy, statuses:combat?.p.st, hand, enemies, actions,
       dialog:dialog?.getAttribute('aria-label') ?? null,
       busy:Boolean(combat?.busy || combat?.lock), deck:run?.deck, relics:run?.relics,

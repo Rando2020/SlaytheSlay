@@ -3,7 +3,7 @@
 <title>Hollow Ascent interaction tests</title>
 <h1>Combat interaction tests</h1>
 <pre id="results" role="status">Starting combat lab...</pre>
-<iframe title="Game under test" width="960" height="600" src="../index.html?dev=combat&amp;hero=aether&amp;encounter=tick,tick&amp;floor=1"></iframe>
+<iframe title="Game under test" width="960" height="600"></iframe>
 <script type="module">
 const frame = document.querySelector('iframe');
 const output = document.querySelector('#results');
@@ -13,13 +13,19 @@ function check(condition, label) {
   lines.push('PASS ' + label);
   output.textContent = lines.join('\n');
 }
-async function run() {
+async function launch(hero, encounter, oath = '') {
+  const params = new URLSearchParams({dev:'combat', hero, encounter, oath, floor:'1'});
+  const url = new URL('../index.html?' + params, location.href).href;
+  frame.src = url;
   const deadline = Date.now() + 15000;
-  while (!frame.contentWindow.hollowLab) {
+  while (frame.contentWindow.location.href !== url || !frame.contentWindow.hollowLab) {
     if (Date.now() > deadline) throw Error('Lab initialization timed out');
     await new Promise(resolve => setTimeout(resolve, 50));
   }
-  const lab = frame.contentWindow.hollowLab;
+  return frame.contentWindow.hollowLab;
+}
+async function runAether() {
+  const lab = await launch('aether', 'tick,tick');
   let state = lab.inspect();
   const act = async predicate => {
     const index = state.actions.findIndex(predicate);
@@ -62,6 +68,49 @@ async function run() {
   check(state.deck.length === size + 1 && !state.actions.some(a => a.action === 'rcard'), 'Reward adds one card and cannot be taken twice');
   await act(a => a.action === 'map');
   check(state.screen === 'map', 'Reward returns to the map');
+}
+async function runOath(oath, form) {
+  const lab = await launch('oath', 'warden', oath);
+  const label = oath || 'Unsworn';
+  let state = lab.inspect();
+  check(state.hero === 'oath' && state.oaths.join(',') === oath, label + ': correct hero and oath loaded');
+  const card = state.deck.find(c => c.id === 'judgment');
+  const playJudgment = action => action.type === 'play' && action.uid === card.u;
+  const endTurn = action => action.type === 'endTurn';
+  async function act(predicate) {
+    const index = state.actions.findIndex(predicate);
+    if (index === -1) throw Error(label + ': expected action missing on turn ' + state.turn);
+    state = await lab.act(state.revision, index);
+  }
+  check(state.relics.includes('unbroken') && state.block === 5, label + ': Unbroken Vow grants 5 opening Block');
+  // Mora adds two Burdens, so Judgment may be in the third five-card draw.
+  while (!state.actions.some(playJudgment) && state.turn < 3) await act(endTurn);
+  await act(playJudgment);
+  const deckCard = state.deck.find(c => c.u === card.u);
+  if (!oath) {
+    check(!deckCard.tier && state.discard.some(c => c.u === card.u), 'Unsworn Judgment stays Mortal and enters discard');
+    return;
+  }
+  const copiesInSanctum = () => state.sanctums[oath].filter(c => c.u === card.u).length;
+  check(deckCard.tier === 1 && deckCard.g === oath && copiesInSanctum() === 1 &&
+    !state.discard.some(c => c.u === card.u), label + ': Judgment sanctifies in the deck and enters its Sanctum');
+  await act(endTurn);
+  const drawn = state.hand.filter(c => c.uid === card.u);
+  check(state.block === 0, label + ': opening relic Block does not refresh');
+  check(state.hand.length === 5 && drawn.length === 1 && drawn[0].name === form && drawn[0].god === oath && drawn[0].tier === 1 &&
+    state.hand.filter(c => c.tier === 0).length === 4 && copiesInSanctum() === 0,
+    label + ': Divine Draw deals four ordinary cards and ' + form);
+  const before = state.enemies[0].hp + state.enemies[0].block;
+  await act(playJudgment);
+  check(state.enemies[0].hp + state.enemies[0].block < before && copiesInSanctum() === 1 &&
+    !state.hand.some(c => c.uid === card.u) && !state.discard.some(c => c.u === card.u),
+    label + ': ' + form + ' hits the target and returns to its Sanctum');
+}
+async function run() {
+  await runAether();
+  for (const [oath, form] of Object.entries({
+    '':'Judgment', aurel:'Divine Verdict', varran:'Execution', orun:'Weight of Stone', mora:'Final Sentence'
+  })) await runOath(oath, form);
 }
 run().then(() => output.dataset.result = 'pass').catch(error => {
   output.textContent += '\nFAIL ' + error.message;
