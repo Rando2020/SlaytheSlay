@@ -1,4 +1,3 @@
-# One-off cutout script used during development. Paths point at the original upload and temp locations; edit them before reuse.
 from rembg import remove, new_session
 from PIL import Image
 import numpy as np,sys

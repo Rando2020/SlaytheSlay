@@ -52,6 +52,7 @@ then visit `http://localhost:8000`.
 | `assets/oath/` | Oathbound poses: idle, attack, hurt, cast (oath invocation), power (oath sworn) |
 | `art/source/oathbound/` | Oathbound concept sheets, generated poses and parts sheets |
 | `assets/bg_*_4k.webp` | 3840 px backgrounds (AI upscale blended 75/25 with a plain resize to keep brush texture), loaded only on large screens |
+| `docs/DEVLOG.md` | How the game was built, the decisions behind it and the art pipeline |
 | `tools/` | Python scripts used to cut the hero poses out of their backgrounds (`cut_oathbound.py` for the knight) |
 
 ## Art pipeline
