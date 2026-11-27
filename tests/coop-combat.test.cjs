@@ -9,7 +9,7 @@ const game = html.match(/<script>\s*\(\(\)=>\{([\s\S]*?)\}\)\(\);\s*<\/script>/)
 
 // Run the shipped game with real action handlers and views. Only the browser
 // surfaces, animation timers and local storage are substituted.
-function launch(heroes, storage = new Map()) {
+function launch(heroes, storage = new Map(), leaveThreshold = false) {
   const app = {style: {}, clientWidth: 1000};
   const modal = {style: {}};
   const noop = () => {};
@@ -33,12 +33,17 @@ function launch(heroes, storage = new Map()) {
   const run = source => vm.runInContext(source, ctx);
   run(game);
   if (heroes) {
+    run("Math.random=()=>0");
     if (heroes.length > 1) run(`A.party('${heroes.length}')`);
     else run('A.new()');
     for (const hero of heroes) {
       run(`A.hero('${hero}')`);
       if (hero === 'oath') run('A.oathstart()');
     }
+    if (!leaveThreshold) {
+      while (run('screen') === 'threshold') run("A.bless('merchant')");
+    }
+    if (leaveThreshold) return {run, storage};
     assert.equal(run('screen'), 'map');
   }
   return {run, storage};
@@ -130,3 +135,45 @@ test('each player drafts their own reward and the shared map resumes from storag
   assert.equal(resumed('partySize()'), 1);
   assert.equal(resumed('G.floor'), 0, 'the separate solo run survives a party save');
 });
+
+
+test('each party member resolves a persisted Threshold before the shared map', () => {
+  const {run,storage}=launch(['aether','oath'],new Map(),true);
+  assert.equal(run('screen'),'threshold');
+  assert.equal(run('JSON.stringify(G.party.map(p=>p.threshold.offers.length))'),'[3,3]');
+  run("A.bless('tempered')");
+  const pending=run('JSON.stringify(G.threshold.pending)');
+  const resumed=launch(null,storage).run;
+  resumed('A.contparty()');
+  assert.equal(resumed('screen'),'threshold');
+  assert.equal(resumed('JSON.stringify(G.threshold.pending)'),pending);
+  resumed('resolveBlessing(G.threshold.pending.choices[0])');
+  assert.equal(resumed('activeSeat()'),1);
+  assert.equal(resumed('screen'),'threshold');
+  resumed("A.bless('merchant')");
+  assert.equal(resumed('screen'),'map');
+  assert.equal(resumed('G.party.every(p=>p.threshold.applied)'),true);
+  resumed("A.go('0,0');winCombat()");
+  resumed('A.map();A.map();G.map[1][0].t="shop";A.go("1,0")');
+  assert.equal(resumed('merchantPrice(100)'),100);
+  resumed('A.map()');
+  assert.equal(resumed('merchantPrice(100)'),70);
+  resumed('A.map()');
+  assert.equal(resumed('partyMember(1).threshold.merchantRemaining'),0);
+});
+
+test('solo Threshold resumes and combat blessings expire after three wins', () => {
+  const {run, storage} = launch(null);
+  run("A.new(); A.hero('aether')");
+  assert.equal(run('screen'), 'threshold');
+  const resumed = launch(null, storage).run;
+  resumed('A.cont()');
+  assert.equal(resumed('screen'), 'threshold');
+  resumed("for(let seed=0;!G.threshold.offers.includes('first-light');seed++)newRunSeed('aether',seed); A.bless('first-light')");
+  for (let i = 0; i < 4; i++) {
+    resumed("startCombat(['scrap'], 'fight')");
+    assert.equal(resumed('C.energy'), i < 3 ? 4 : 3);
+    resumed('winCombat(); A.map()');
+  }
+});
+
