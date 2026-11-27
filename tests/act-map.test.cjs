@@ -55,3 +55,48 @@ test('legacy run round trip preserves graph, selection eligibility and rendering
   assert.doesNotMatch(map.render(run,'12,0'),/data-a="travel"/);
   assert.equal((html.match(/data-a="previewNode"/g)||[]).length,run.map[0][1].next.length);
 });
+
+test('reachable camp spacing and elite proximity stay within the Act I balance targets', () => {
+  let adjacentMaps = 0, spacedMaps = 0, optionalCamps = 0, campsNearElite = 0;
+  for (const hero of ['aether','oath']) for (let seed=0; seed<5000; seed++) {
+    const rows = map.generate(hero,seed);
+    let adjacent = false, spaced = false;
+    rows.forEach((row,f) => row.forEach((node,lane) => {
+      if (node.t !== 'rest') return;
+      const children = node.next.map(dest => rows[f+1][dest]);
+      adjacent ||= children.some(child => child.t === 'rest');
+      spaced ||= children.some(child => child.t !== 'rest' &&
+        child.next.some(dest => rows[f+2][dest].t === 'rest'));
+      if (f+1 === map.act.restFloor) return;
+      optionalCamps++;
+      const afterElite = rows[f-1].some(parent => parent.t === 'elite' && parent.next.includes(lane));
+      if (afterElite || children.some(child => child.t === 'elite')) campsNearElite++;
+    }));
+    if (adjacent) adjacentMaps++;
+    if (spaced) spacedMaps++;
+  }
+  assert.ok(adjacentMaps >= 400 && adjacentMaps <= 600, `Adjacent camps on ${adjacentMaps}/10000 maps`);
+  assert.ok(spacedMaps >= 1300 && spacedMaps <= 1700, `Spaced camps on ${spacedMaps}/10000 maps`);
+  const eliteShare = campsNearElite / optionalCamps;
+  assert.ok(eliteShare >= .33 && eliteShare <= .47, `Share of optional camps near elites: ${eliteShare}`);
+});
+
+test('four unknown rooms remain possible but rare on connected routes', () => {
+  const mapsWithFour = {event: 0};
+  for (const hero of ['aether','oath']) for (let seed=0; seed<5000; seed++) {
+    let parents = [];
+    const seen = new Set();
+    for (const row of map.generate(hero,seed)) {
+      parents = row.map((node,lane) => {
+        const matching = parents.filter(p => p.t === node.t && p.next.includes(lane));
+        const length = 1 + Math.max(0,...matching.map(p => p.length));
+        if (length >= 4) seen.add(node.t);
+        return {...node,length};
+      });
+    }
+    for (const type of Object.keys(mapsWithFour)) if (seen.has(type)) mapsWithFour[type]++;
+  }
+  for (const [type,count] of Object.entries(mapsWithFour)) {
+    assert.ok(count > 0 && count < 50, `${type}: ${count} of 10,000 maps`);
+  }
+});

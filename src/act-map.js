@@ -22,21 +22,43 @@ const ActMap = (() => {
       return state / 4294967296;
     };
   }
-  function encounter(floor, hero, random) {
+  // Each consecutive room multiplies its base weight again. Combat is the backbone
+  // of a run, so it tolerates repeats more readily than service rooms.
+  const repeatFactor = {fight: .82, event: .52, elite: .48, rest: .076, shop: .45, shrine: .5};
+  const spacedCampFactor = .215;
+  const eliteCampFactor = 2;
+  const early = {fight: 68, event: 20, shop: 12};
+  const late = {fight: 44, event: 16, elite: 13, rest: 12, shop: 15};
+  const swornPool = {...late, fight: 34, shrine: 10};
+  function encounter(floor, hero, incoming, random) {
     if (floor === 1) return 'fight';
     if (floor === act.restFloor) return 'rest';
     if (floor === act.treasureFloor) return 'chest';
     if (hero === 'oath' && floor === act.oathShrineFloor) return 'shrine';
-    const r = random();
-    if (hero === 'oath' && floor >= 5 && r < 0.1) return 'shrine';
-    if (floor < 5) return r < .68 ? 'fight' : r < .88 ? 'event' : 'shop';
-    return r < .44 ? 'fight' : r < .6 ? 'event' : r < .73 ? 'elite' : r < .85 ? 'rest' : 'shop';
+    const pool = floor < 5 ? early : hero === 'oath' ? swornPool : late;
+    const choices = Object.entries(pool).map(([type, base]) => {
+      const adjacentCamp = type === 'rest' && floor + 1 === act.restFloor ? 1 : 0;
+      const streak = (incoming[type] || 0) + adjacentCamp;
+      let weight = base * repeatFactor[type] ** streak;
+      if (type === 'rest') {
+        if (incoming.campAcrossRoom || floor + 2 === act.restFloor) weight *= spacedCampFactor;
+        if (incoming.elite) weight *= eliteCampFactor;
+      }
+      if (type === 'elite' && (incoming.rest || floor + 1 === act.restFloor)) weight *= eliteCampFactor;
+      return [type, weight];
+    });
+    let roll = random() * choices.reduce((sum, [,weight]) => sum + weight, 0);
+    for (const [type, weight] of choices) {
+      roll -= weight;
+      if (roll < 0) return type;
+    }
+    return choices[choices.length - 1][0];
   }
   function generate(hero, seed) {
     const random = seeded(seed);
     const map = Array.from({length: act.floors - 1}, (_, f) =>
       Array.from({length: act.lanes}, () => ({
-        t: encounter(f + 1, hero, random), next: [],
+        next: [],
         jx: Math.floor(random() * 17) - 8, jy: Math.floor(random() * 13) - 6
       })));
     map.forEach((row, f) => row.forEach((node, lane) => {
@@ -46,6 +68,22 @@ const ActMap = (() => {
       const other = lane + (random() < .5 ? -1 : 1);
       if (row[other] && !row[other].next.includes(lane)) node.next.push(other);
     }));
+    let histories = map[0].map(() => ({}));
+    map.forEach((row, f) => {
+      const following = (map[f + 1] || []).map(() => ({}));
+      row.forEach((node, lane) => {
+        const incoming = histories[lane];
+        node.t = encounter(f + 1, hero, incoming, random);
+        const length = (incoming[node.t] || 0) + 1;
+        // At a merge, protect even the route with the longest matching streak.
+        if (following.length) for (const dest of node.next) {
+          const history = following[dest];
+          if (node.t !== 'rest' && incoming.rest) history.campAcrossRoom = true;
+          history[node.t] = Math.max(history[node.t] || 0, length);
+        }
+      });
+      histories = following;
+    });
     map.push([{t: 'boss', next: [], jx: 0, jy: 0}]);
     return map;
   }
