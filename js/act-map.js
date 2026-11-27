@@ -53,7 +53,7 @@ function prepareTravel(g,f,l){if(g.travel||!available(g).some(p=>p[0]===f&&p[1]=
 function commitTravel(g){const t=g.travel;if(!t||t.status!=='pending')return false;if(!available(g).some(p=>p[0]===t.f&&p[1]===t.l))return false;g.pos={f:t.f,l:t.l};g.path.push([t.f,t.l]);g.floor=t.f+1;t.status='active';return true;}
 function geometry(m){const width=420,height=(m.length-1)*106+140;return {width,height,xy:(f,l)=>[Math.round(width*(l+1)/(m[f].length+1))+(m[f][l].jx||0),height-65-f*106+(m[f][l].jy||0)]};}
 function render(g,o={}){
- const region=registry.regions[o.region||g.region]||registry.regions.verdant,geo=geometry(g.map),av=new Set(available(g).map(p=>p.join(','))),visited=new Set((g.path||[]).map(p=>p.join(','))),selected=o.selected||'',icons=o.icons||{};
+ const region=registry.regions[o.region||g.region]||registry.regions.verdant,geo=geometry(g.map),av=new Set(available(g).map(p=>p.join(','))),visited=new Set((g.path||[]).map(p=>p.join(','))),selected=o.selected||'',icons=o.icons||registry.vectors;
  const traveled=new Set((g.path||[]).slice(1).map((p,i)=>g.path[i].join(',')+'>'+p.join(',')));let paths='',nodes='';
  g.map.forEach((row,f)=>row.forEach((n,l)=>{const k=f+','+l,[x,y]=geo.xy(f,l),d=describe(n.t),can=av.has(k)&&!g.travel,completed=visited.has(k),state=o.state&&o.state!=='auto'?o.state:completed?'completed':selected===k?'selected':can?'available':'locked';
   n.next.forEach(nl=>{const [xx,yy]=geo.xy(f+1,nl),on=traveled.has(k+'>'+(f+1)+','+nl),future=g.pos?.f===f&&g.pos?.l===l;
