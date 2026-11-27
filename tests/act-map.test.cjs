@@ -55,3 +55,23 @@ test('legacy run round trip preserves graph, selection eligibility and rendering
   assert.doesNotMatch(map.render(run,'12,0'),/data-a="travel"/);
   assert.equal((html.match(/data-a="previewNode"/g)||[]).length,run.map[0][1].next.length);
 });
+
+test('four-room streaks remain possible but rare on connected routes', () => {
+  const mapsWithFour = {rest: 0, event: 0};
+  for (const hero of ['aether','oath']) for (let seed=0; seed<5000; seed++) {
+    let parents = [];
+    const seen = new Set();
+    for (const row of map.generate(hero,seed)) {
+      parents = row.map((node,lane) => {
+        const matching = parents.filter(p => p.t === node.t && p.next.includes(lane));
+        const length = 1 + Math.max(0,...matching.map(p => p.length));
+        if (length >= 4) seen.add(node.t);
+        return {...node,length};
+      });
+    }
+    for (const type of Object.keys(mapsWithFour)) if (seen.has(type)) mapsWithFour[type]++;
+  }
+  for (const [type,count] of Object.entries(mapsWithFour)) {
+    assert.ok(count > 0 && count < 50, `${type}: ${count} of 10,000 maps`);
+  }
+});
