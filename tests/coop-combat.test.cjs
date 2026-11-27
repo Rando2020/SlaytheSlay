@@ -242,3 +242,48 @@ test('party reward audit survives reload and tracks each personal claim once', (
   assert.equal(run('G.rewardAudit.map(a=>a.seat).join()'),'0,1');
   assert.equal(run('G.rewardAudit.every(a=>a.killGold===5)'),true);
 });
+
+test('seeded card reward audit covers both classes and every single and paired oath', t => {
+  const {run}=launch(['aether']);
+  const rows=run(`(()=>{
+    Math.random=seedRng(32735);
+    const gods=Object.keys(GODS);
+    const profiles=[[],...gods.map(g=>[g]),...gods.flatMap((g,i)=>gods.slice(i+1).map(h=>[g,h]))];
+    const rows=[];
+    for(const hero of ['aether','oath'])for(const oaths of hero==='oath'?profiles:[[]]){
+      G.hero=hero;G.oaths=oaths;
+      const eligible=new Set([...POOL[1],...POOL[2],...POOL[3]]);
+      for(const tier of ['common','uncommon','elite']){
+        let rareOffers=0,higherOffers=0;
+        const slots=[0,0,0],seen=new Set();
+        for(let i=0;i<5000;i++){
+          const ids=cardChoices(tier);
+          if(ids.length!==3||new Set(ids).size!==3||ids.some(id=>!eligible.has(id)))throw Error('Invalid draft '+hero+' '+oaths+' '+tier);
+          for(const id of ids){slots[K[id].r-1]++;seen.add(id)}
+          rareOffers+=Number(ids.some(id=>K[id].r===3));
+          higherOffers+=Number(ids.some(id=>K[id].r>=2));
+        }
+        rows.push({hero,oaths,tier,slots,rareOffers,higherOffers,seen:seen.size,pool:eligible.size,weights:CARD_REWARD_WEIGHTS[tier]});
+      }
+    }
+    return rows
+  })()`);
+  for(const row of rows){
+    assert.equal(row.seen,row.pool,'all eligible cards appeared');
+    for(const [i,count] of row.slots.entries())assert.ok(Math.abs(count/15000-row.weights[i]/100)<0.025,JSON.stringify(row));
+  }
+  for(const tier of ['common','uncommon','elite']){
+    const subset=rows.filter(row=>row.tier===tier);
+    const pct=key=>(subset.reduce((sum,row)=>sum+row[key],0)/subset.length/50).toFixed(1)+'%';
+    t.diagnostic(tier+' | offers: '+subset.length*5000+' | at least one rare: '+pct('rareOffers')+' | uncommon or rare: '+pct('higherOffers'));
+  }
+});
+
+test('reward audit distinguishes an open offer, a pick and a skipped offer by seat', () => {
+  const {run}=launch(['aether','oath']);
+  run("startCombat(['warden'],'elite');C.foes[0].hp=0;winCombat()");
+  assert.equal(run('G.rewardAudit[0].cardOutcome'),'pending');
+  run("A.inspectreward('0');A.rcard();A.rrelic();A.map();A.map()");
+  assert.equal(run("G.rewardAudit.map(a=>a.cardOutcome+'/'+a.relicOutcome).join(',')"),'picked/claimed,skipped/skipped');
+  assert.equal(run('G.rewardAudit.every(a=>a.eligibleByRarity.length===3)'),true);
+});
