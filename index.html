@@ -306,9 +306,6 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 .piles{display:flex;flex-wrap:wrap;gap:4px}.pile-btn{font:inherit;color:inherit;background:#201c20;border:1px solid #766653;border-radius:5px;padding:4px 7px;cursor:pointer}
 .pile-view figure{margin:0;text-align:center}.pile-view .card{pointer-events:none}.pile-view figcaption{max-width:106px}.pile-view h3{text-align:center}
 .draw-forecast{position:absolute;top:32px;left:50%;transform:translateX(-50%);z-index:5;max-width:95%;width:max-content;text-align:center;background:#191519eb;color:#ffe4a9;padding:3px 8px;border-radius:4px;pointer-events:none}.draw-forecast:empty{display:none}
-.end-info{display:grid;text-align:right;font-size:13px;line-height:1.2}.end-info small{color:var(--mute)}[data-a=end] kbd{font:inherit;opacity:.72;margin-left:5px}
-@media(pointer:coarse){[data-a=end] kbd{display:none}}
-@media(max-width:560px){.ctl{flex-wrap:wrap;gap:5px}.end-info{max-width:120px}}
 </style></head><body>
 <div id="app"></div><div id="modal"></div><svg id="aim" aria-hidden="true"><path id="aimP" fill="none" stroke="none"/><g id="aimG"></g></svg>
 <script>
@@ -806,45 +803,26 @@ function checkWin(){if(C&&!C.won&&!alive().length){C.won=true;C.busy=true;render
 function hitMe(e,a){let d=a+(e.st.str||0);if(e.st.weak)d*=.75;if(C.p.st.vuln)d*=1.5;d=Math.floor(d);const ab=Math.min(C.p.block,d);C.p.block-=ab;let n=d-ab;
  if(n>0&&C.p.st.resolve>0){const r=Math.min(n,3+(has('granite')?1:0));n-=r;C.p.st.resolve--;fx('#hero','Resolve -'+r,'o o-orun');if(C.p.st.fort&&C.lfT!=C.turn){C.lfT=C.turn;blk(C.p.st.fort,1)}}
  if(n)C.hurt=true;if(ab&&ACT('orun')&&e.hp>0){const t=Math.min(Math.floor(ab*.3),8-(e.th||0));if(t>0){e.th=(e.th||0)+t;ddmg(e,t)}}
- G.hp=Math.max(0,G.hp-n);fx('#hero',n?'-'+n:'Blocked',n?'':'b');fx('#hero .spr','','','hitL');fx('#hero .spr','','',n?'vfx:slashL':'vfx:ring');if(n&&!SIM){rigPose('hurt',430);RIG.flash=.85;RIG.whip=Math.max(RIG.whip,.7)}fx('#f'+e.i+' .spr','','','retL');if(n>=15)fx('.stage','','','quake');return n}
-function* enemyPhase(forecast=false){
+ G.hp=Math.max(0,G.hp-n);fx('#hero',n?'-'+n:'Blocked',n?'':'b');fx('#hero .spr','','','hitL');fx('#hero .spr','','',n?'vfx:slashL':'vfx:ring');if(n){rigPose('hurt',430);RIG.flash=.85;RIG.whip=Math.max(RIG.whip,.7)}fx('#f'+e.i+' .spr','','','retL');if(n>=15)fx('.stage','','','quake');return n}
+async function endTurn(){if(!C||C.busy||C.lock)return;C.busy=true;C.sel=-1;
  if(C.p.st.metal)blk(C.p.st.metal,1);
- C.hand.forEach(x=>{const g=retS(x);(g?C.sanc[g]:C.disc).push(x)});C.hand=[];delete C.p.st.tstr;delete C.p.st.tdex;dec(C.p.st);yield 400;
+ C.hand.forEach(x=>{const g=retS(x);(g?C.sanc[g]:C.disc).push(x)});C.hand=[];delete C.p.st.tstr;delete C.p.st.tdex;dec(C.p.st);render();await sleep(400);
  for(const e of C.foes){if(e.hp<=0)continue;
-  if(e.st.poison){e.hp=Math.max(0,e.hp-e.st.poison);fx('#f'+e.i,'-'+e.st.poison,'p');fx('#f'+e.i+' .spr','','','hitR');fx('#f'+e.i+' .spr','','','vfx:poison');e.st.poison--;fell(e);yield 380;if(e.hp<=0)continue}
+  if(e.st.poison){e.hp=Math.max(0,e.hp-e.st.poison);fx('#f'+e.i,'-'+e.st.poison,'p');fx('#f'+e.i+' .spr','','','hitR');fx('#f'+e.i+' .spr','','','vfx:poison');e.st.poison--;fell(e);render();await sleep(380);if(e.hp<=0)continue}
   const d=EN[e.k];e.block=d.keep?Math.floor(e.block/2):0;e.th=0;const n=e.int;if(n.n)fx('#f'+e.i,n.n,'i');if(n.str||n.poison||n.b>=12||n.n=='Charge'||n.n=='Phase')fx('#f'+e.i+' .spr','','','oc');
   if(n.str){e.st.str=(e.st.str||0)+n.str;fx('#f'+e.i,'+'+n.str+' Str','')}
   if(n.b){e.block+=n.b;fx('#f'+e.i,'+'+n.b+' Block','b')}
-  if(n.a)for(let h=0;h<(n.x||1);h++){if(!RM){fx('#f'+e.i+' .spr','','','outL');yield (110)}const dealt=hitMe(e,n.a+(n.slam?e.block:0));if(n.sip&&dealt&&e.hp>0){e.hp=Math.min(e.max,e.hp+dealt);fx('#f'+e.i,'+'+dealt,'h')}yield 300;if(G.hp<=0||e.hp<=0)break}
+  if(n.a)for(let h=0;h<(n.x||1);h++){if(!RM){fx('#f'+e.i+' .spr','','','outL');render();await sleep(110)}const dealt=hitMe(e,n.a+(n.slam?e.block:0));if(n.sip&&dealt&&e.hp>0){e.hp=Math.min(e.max,e.hp+dealt);fx('#f'+e.i,'+'+dealt,'h')}render();await sleep(300);if(G.hp<=0||e.hp<=0)break}
   if(e.hp<=0)continue;
   if(n.weak)meDebuff(e,'weak',n.weak);if(n.vuln)meDebuff(e,'vuln',n.vuln);if(n.poison)meDebuff(e,'poison',n.poison);
-  dec(e.st);e.t++;if(!forecast)e.int=EN[e.k].ai(e.t);yield 300;
-  if(G.hp<=0)return}
-}
-function endTurnForecast(){
- const live=C,run=G,queue=Q,simulating=SIM;
- try{
-  C=structuredClone(live);C.busy=true;G={...run};Q=[];SIM=true;
-  const phase=enemyPhase(true);
-  while(!phase.next().done){ /* Skip animation delays during inspection. */ }
-  const poison=G.hp>0&&alive().length?Math.min(G.hp,C.p.st.poison||0):0;
-  return {attacks:run.hp-G.hp,poison};
- }finally{C=live;G=run;Q=queue;SIM=simulating}
-}
-function endTurnInfo(){
- if(C.busy||C.lock||C.won)return '';
- const {attacks,poison}=endTurnForecast(),loss=attacks+poison;
- const count=C.hand.filter(playable).length;
- const cue=C.energy>0&&count?`<small>${C.energy} Energy · ${count} playable</small>`:'';
- return `<span class="end-info"><strong>${loss?'−'+loss+' HP':'0 HP loss'}${poison?' (includes '+poison+' Poison)':''}</strong>${cue}</span>`;
-}
-async function endTurn(){
- if(!C||C.busy||C.lock)return;C.busy=true;C.sel=-1;
- for(const delay of enemyPhase()){render();await sleep(delay)}
- if(G.hp<=0)return die();
+  dec(e.st);e.t++;e.int=EN[e.k].ai(e.t);render();await sleep(300);
+  if(G.hp<=0)return die()}
  if(!alive().length)return checkWin();
- startTurn();
-}
+ startTurn()}
+function winCombat(){if(!C)return;const kind=C.kind;C=null;if(has('heart'))heal(6);if(has('pseal'))heal(1);
+ if(kind=='boss'){wipe();screen='win';return render()}
+ const gold=kind=='elite'?25+R(11):10+R(11);G.gold+=gold;
+ RW={gold,cards:cardChoices(kind=='elite'?1:0),relic:kind=='elite'?randRelic():null,taken:false,asc:G.hero=='oath'&&(kind=='elite'||Math.random()<.1)&&ascList(1).length?{from:1}:null};screen='reward';render()}
 function die(){wipe();C=null;screen='dead';render()}
 
 /* ---------- run and map ---------- */
@@ -932,7 +910,7 @@ function handV(){const n=C.hand.length;if(!n)return '<p class="empty">No cards i
 function combatV(){const tg=C.sel>=0,now=performance.now();
  return `<div class="stage">${scene(G.floor)}<p class="hint">${C.won?'Victory':C.busy?'Enemy turn':tg?'Drag to an enemy, or tap one':'Your turn '+C.turn}</p><output class="draw-forecast" aria-live="polite">${C.sel>=0?drawForecast(C.hand[C.sel]):''}</output><div class="actors">${heroV(now)}<div class="foes">${C.foes.map(e=>foeV(e,tg,now)).join('')}</div></div>${fgV(G.floor)}</div>
  <div class="hand">${handV()}</div>
- <div class="ctl"><div class="orb" title="Energy"><b>${C.energy}</b><small>of 3</small></div><div class="piles">${pileControls()}</div>${has('key')&&!C.keyUsed&&!C.busy&&dormGods().some(g=>C.sanc[g].length)?`<button class="btn sm" data-a="key" title="${RELICS.key.d}">Key</button>`:''}${endTurnInfo()}<button class="btn pri" title="End turn (E)" data-a="end" ${C.busy?'disabled':''}>End turn<kbd>E</kbd></button></div>`}
+ <div class="ctl"><div class="orb" title="Energy"><b>${C.energy}</b><small>of 3</small></div><div class="piles">${pileControls()}</div>${has('key')&&!C.keyUsed&&!C.busy&&dormGods().some(g=>C.sanc[g].length)?`<button class="btn sm" data-a="key" title="${RELICS.key.d}">Key</button>`:''}<button class="btn pri" data-a="end" ${C.busy?'disabled':''}>End turn</button></div>`}
 const copiesOwned=id=>G.deck.filter(c=>c.id===id&&!c.tier).length;
 function rewardV(){const r=RW.relic&&RELICS[RW.relic];return `<div class="panel"><h2>${RW.title||'Victory'}</h2>${RW.gold?`<p class="sub">You found ${RW.gold} gold.</p>`:''}${r?`<button class="btn relbtn" data-a="rrelic"><span class="rel">${relicIcon(RW.relic)}</span><span>Take ${r.n}: ${r.d}</span></button>`:''}
  ${RW.cards.length?`<h3>${RW.ascDone&&!RW.asc.free?'You chose an Ascension':RW.taken?'Card added to your deck':'Choose a card to add'}</h3><div class="row">${RW.cards.map((id,i)=>`<div class="ware">${cardV({id,up:0},RW.taken?'disabled':`data-a="rcard" data-v="${i}"`,RW.taken?'no':'')}<span>${copiesOwned(id)} in deck</span></div>`).join('')}</div>`:''}
