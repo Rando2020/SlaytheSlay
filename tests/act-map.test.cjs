@@ -35,3 +35,11 @@ test('presentation keeps danger independent and unknown preview generic',()=>{
  assert.equal(M.describe('event').detail,'An unknown encounter. Discover what awaits when you arrive.');
  assert.doesNotMatch(M.render(g,{}),/undefined/);
 });
+
+test('both region configurations pass 1000 seeds and maintain 48px separation',()=>{
+ for(const region of Object.values(M.registry.regions))for(let seed=0;seed<1000;seed++){
+  const m=M.generate('oath',seed,region.generation);assert.deepEqual(M.validate(m,'oath',region.generation),[]);
+  const geo=M.geometry(m),width=Math.max(300,(Math.max(...m.map(r=>r.length))+1)*58);
+  m.forEach((row,f)=>row.slice(1).forEach((_,l)=>assert.ok((geo.xy(f,l+1)[0]-geo.xy(f,l)[0])*width/geo.width>=48)));
+ }
+});

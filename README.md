@@ -72,3 +72,7 @@ Enemies stand on the right, so they must face **left**. Generated art usually fa
 Enemies with a parts sheet are cut-out rigs: each part is its own WebP, and `RIGS` in `index.html` lists every part's position, width, idle animation (sway, nod, claw, leg, chew, glow, pulse, hover, flick, drift) and pivot. Give the enemy `rig:'<folder>'` instead of `img`. The claws strike on attacks, and the canister, crystal or flames flare on Overclock, Charge and Phase.
 
 Next up: painted art for the Hex Mother and the Hollow King, then layered backgrounds and card illustrations.
+
+## Act navigation and developer lab
+
+The procedural Act map now supports seeded routes, explicit travel confirmation, keyboard navigation and resumable encounters. Open `map-lab.html` through the same static server for seed/configuration/state previews. See [map architecture and validation](docs/map/README.md), including the outstanding five original-image dependencies and save behavior.
