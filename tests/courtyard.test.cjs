@@ -10,7 +10,7 @@ test('every combat area loads an extended courtyard at both resolutions',()=>{
  for(const width of [1280,3840]){
   const ctx=vm.createContext({window:{screen:{width,height:720}},devicePixelRatio:1});
   const paths=vm.runInContext(code+';BGS',ctx);
-  assert.deepEqual(Array.from(paths).map(p=>p.replace(/_4k/,'')),['assets/bg_ruins_courtyard.webp','assets/bg_tree_courtyard.webp','assets/bg_gate_courtyard.webp']);
+  assert.deepEqual(Array.from(paths).map(p=>p.replace(/_4k/,'')),['assets/bg_ruins_overhead.webp','assets/bg_tree_overhead.webp','assets/bg_gate_overhead.webp']);
   const biomeCode=html.match(/const biome=[^\n]+/)[0];
   vm.runInContext(biomeCode,ctx);
   for(const floor of [1,4,5,9,10,13])assert.equal(vm.runInContext(`biome(${floor})`,ctx),floor>=10?2:floor>=5?1:0);
