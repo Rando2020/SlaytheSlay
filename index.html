@@ -1609,7 +1609,37 @@ function restV(){
 
 function eventV(){const e=EV.e;return `<div class="panel"><svg class="pic" viewBox="0 0 200 120" aria-hidden="true"><ellipse cx="100" cy="114" rx="70" ry="6" fill="#000" opacity=".5"/><path d="M58 114V58C58 31 77 14 100 14S142 31 142 58V114Z" fill="#0d0807" stroke="#e8c86a" stroke-width="3"/><circle cx="100" cy="68" r="22" fill="#ff5a36" opacity=".25"/><circle cx="100" cy="68" r="9" fill="#ff5a36"/><text x="100" y="74" text-anchor="middle" font-family="Cinzel,serif" font-weight="800" font-size="16" fill="#1a0d09">?</text></svg><h2>${e.n}</h2><p class="sub">${EV.msg||e.t}</p>
  ${EV.done?`<button class="btn pri" data-a="map">Continue</button>`:`<div class="opts">${e.o.map((o,i)=>`<button class="btn opt" data-a="evo" data-v="${i}" ${o.ok&&!o.ok()?'disabled':''}>${o.l}</button>`).join('')}</div>`}</div>`}
-function endV(){const w=screen=='win';return `<div class="panel end"><svg class="pic" viewBox="0 0 200 120" aria-hidden="true">${w?`<g transform="translate(100 64) scale(4.2)">${NI.boss}</g>`:`<g transform="translate(100 62) scale(4.2)">${NI.elite}</g>`}</svg><h1>${w?'The King falls':'Your climb ends'}</h1><p class="sub">${G.party?(w?`Your ${partySize()} climbers defeated the Hollow King.`:`Your party fell on floor ${G.floor} of 13.`):w?`You toppled the Hollow King with a deck of ${G.deck.length} cards and ${G.relics.length} relics.`:`You fell on floor ${G.floor} of 13 with ${G.deck.length} cards in your deck.`}</p><button class="btn pri" data-a="${G.party?'title':'new'}">${G.party?'Return to title':'Start a new run'}</button></div>`}
+function summarizeRareOffers(records){
+ const counts=()=>({offers:0,resolved:0,rarePicked:0,lowerRarityPicked:0,skipped:0,ascended:0,pending:0,unknown:0});
+ const total=counts(),byEncounter={};
+ for(const row of records){
+  if(!row.cards?.some(card=>card.rarity===3))continue;
+  const picked=row.cards.find(card=>card.id===row.chosenCard);
+  let outcome='unknown';
+  if(picked)outcome=picked.rarity===3?'rarePicked':'lowerRarityPicked';
+  else if(row.ascendedCard)outcome='ascended';
+  else if(['pending','skipped'].includes(row.cardOutcome))outcome=row.cardOutcome;
+  const group=byEncounter[row.tier]??=counts();
+  for(const bucket of [total,group]){
+   bucket.offers++;
+   bucket[outcome]++;
+   if(outcome!=='pending'&&outcome!=='unknown')bucket.resolved++;
+  }
+ }
+ for(const bucket of [total,...Object.values(byEncounter)]){
+  bucket.rarePickRate=bucket.resolved?bucket.rarePicked/bucket.resolved:null;
+ }
+ return {total,byEncounter}
+}
+function downloadRewardReport(){
+ const records=G.rewardAudit||[];
+ const report={seed:G.seed,screen,rewards:records,rareOfferSummary:summarizeRareOffers(records)};
+ const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'}));
+ const link=document.createElement('a');
+ link.href=url;link.download='hollow-ascent-rewards-'+G.seed+'.json';link.click();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function endV(){const w=screen=='win';return `<div class="panel end"><svg class="pic" viewBox="0 0 200 120" aria-hidden="true">${w?`<g transform="translate(100 64) scale(4.2)">${NI.boss}</g>`:`<g transform="translate(100 62) scale(4.2)">${NI.elite}</g>`}</svg><h1>${w?'The King falls':'Your climb ends'}</h1><p class="sub">${G.party?(w?`Your ${partySize()} climbers defeated the Hollow King.`:`Your party fell on floor ${G.floor} of 13.`):w?`You toppled the Hollow King with a deck of ${G.deck.length} cards and ${G.relics.length} relics.`:`You fell on floor ${G.floor} of 13 with ${G.deck.length} cards in your deck.`}</p><button class="btn pri" data-a="${G.party?'title':'new'}">${G.party?'Return to title':'Start a new run'}</button> ${G.rewardAudit?.length?'<button class="btn" data-a="rewardreport">Download reward report</button>':''}</div>`}
 function thresholdV(){const t=G.threshold,p=t.pending,b=blessingById(t.selected);return `<section class="threshold" aria-label="The Threshold"><h1>The Threshold</h1><p class="sub">${G.party?`Player ${activeSeat()+1} of ${partySize()} · `:""}Choose what you carry into the ascent.</p>${p?`<h2>${b.n}</h2><p class="sub">${b.d}</p><div class="row">${p.choices.map(v=>{const c=p.type==='card'?{id:v,up:0}:G.deck.find(x=>x.u===v);return c?cardV(c,`data-a="blessresolve" data-v="${v}"`):''}).join('')}</div>`:`<div class="threshold-offers">${t.offers.map((id,i)=>{const a=blessingById(id);return `<button class="threshold-offer" style="--delay:${i*130}ms" data-a="bless" data-v="${id}"><span class="threshold-art">${ICO[a.icon]}</span><b>${a.n}</b><span>${a.d}</span><i>${a.flavor}</i><strong>Accept offering</strong></button>`}).join('')}</div>`}</section>`}
 const VIEWS={threshold:thresholdV,map:mapV,combat:combatV,reward:rewardV,shop:shopV,rest:restV,shrine:shrineV,event:eventV,dead:endV,win:endV};
 function render(){hideKeyword();setZoom();PT=null;PV.key='';$('#app').innerHTML=screen=='title'?titleV():screen=='maplab'?labV():screen=='partymenu'?partyMenuV():screen=='pick'?pickV():screen=='oathpreview'?oathPreviewV():topV()+VIEWS[screen]();
@@ -1872,6 +1902,7 @@ rcard:()=>{
 },
 rrelic:()=>{if(!RW.relic)return;gainRelic(RW.relic);const audit=currentRewardAudit();if(audit){audit.claimedRelic=RW.relic;audit.relicOutcome='claimed'}toast('Gained '+RELICS[RW.relic].n);RW.relic=null;render()},
 map:advanceRoom,
+rewardreport:downloadRewardReport,
 inspectware:inspectWare,
 buy:()=>{
  const item=MD?.ware;
@@ -2124,7 +2155,7 @@ if (combatLab && screen !== "gallery") {
         endTurn,
         choose:(action, value) => A[action](value)
       },
-      snapshot:() => ({url:location.href, screen, run:G, combat:C})
+      snapshot:() => ({url:location.href, screen, run:G, combat:C,rareOfferSummary:summarizeRareOffers(G?.rewardAudit||[])})
     });
   }).catch(error => {
     const message = document.createElement('p');
