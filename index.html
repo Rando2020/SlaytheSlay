@@ -23,7 +23,7 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 .stat{display:inline-flex;align-items:center;gap:5px;font-weight:800;white-space:nowrap}
 .party-hud{display:flex;gap:6px 14px;align-items:center;flex-wrap:wrap;padding:6px 14px;background:#241815;font-size:.85rem}.party-hud strong,.party-hud .acting{color:var(--gold)}
 .stat.hp{color:#ff8a6e}.stat.gd{color:var(--gold)}
-.relics{display:flex;gap:5px;flex:1;flex-wrap:wrap}
+.relics{display:flex;gap:5px;flex:1;flex-wrap:wrap}.relics:has(.rel){min-width:32px}
 .rel{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--gold);background:radial-gradient(circle at 35% 30%,#4a3218,#1d140c);color:var(--gold);font:800 14px Cinzel,serif;display:inline-grid;place-items:center;padding:0;flex:none}
 .btn{min-height:44px;padding:0 18px;border-radius:10px;border:1.5px solid #ffffff30;background:#2d1b17;font-weight:800}
 .btn:hover:not(:disabled){border-color:#ffffff66}
@@ -1397,7 +1397,7 @@ function partyHUD(){
   return `<span id="party-seat-${i}" class="${i===activeSeat()&&!finished&&!enemyTurn?'acting':''}">P${i+1} ${HEROES[m.hero].s} · ${m.hp>0?m.hp+'/'+m.maxHp+' HP':'KO'}${block?' · '+block+' Block':''}</span>`
  }).join('')}</section>`
 }
-function topV(){return `${partyHUD()}<div class="top"><span class="stat hp">${ICO.heart}${G.hp}/${G.maxHp}</span><span class="stat gd">${ICO.coin}${G.gold}</span><span class="stat">Floor ${G.floor}/13</span><span class="relics">${G.relics.map(k=>`<button class="rel" data-a="rel" data-v="${k}" aria-label="${RELICS[k].n}">${relicIcon(k)}</button>`).join('')}</span><button class="btn sm" data-a="deck"><img class="deck-back" alt="" src="assets/ui/cards/${({aether:"aetherwright",oath:"oathbound"})[G.hero]||"universal"}-back.png">Deck ${G.deck.length}</button></div>`}
+function topV(){return `${partyHUD()}<div class="top"><span class="stat hp">${ICO.heart}${G.hp}/${G.maxHp}</span><span class="stat gd">${ICO.coin}${G.gold}</span><span class="stat">Floor ${G.floor}/13</span><span class="relics">${G.relics.map(k=>`<button class="rel" data-relic="${k}" aria-label="${RELICS[k].n}">${relicIcon(k)}</button>`).join('')}</span><button class="btn sm" data-a="deck"><img class="deck-back" alt="" src="assets/ui/cards/${({aether:"aetherwright",oath:"oathbound"})[G.hero]||"universal"}-back.png">Deck ${G.deck.length}</button></div>`}
 function partyMenuV(){return `<div class="panel"><h2>Multiplayer</h2><h3>Share one device</h3><p class="sub">Choose your party size. Each climber takes a turn before enemies attack the party. Enemy health scales with the starting party size.</p><div class="row">${[2,3,4].map(n=>`<button class="btn pri" data-a="party" data-v="${n}">${n} players</button>`).join('')}</div><div class="row" data-online-menu></div><button class="btn sm" data-a="title">Back</button></div>`}
 let selectedHero='oath';
 function pickV(){if(partyDraft)return partyPickV();const k=HEROES[selectedHero]?selectedHero:'oath',h=HEROES[k],r=RELICS[h.relic],oath=k==='oath';return `<section class="ascent-select" aria-label="Choose your climber">
@@ -1667,12 +1667,17 @@ function hideKeyword(){
  if(keywordAnchor)keywordAnchor.removeAttribute('aria-describedby');
  keywordAnchor=null;keywordPinned=false;$('#card-keyword-tip')?.remove();
 }
-function explainKeyword(anchor,indices,pin=false){
- hideKeyword();if(!indices.length)return;
+const inspectable='[data-keyword],[data-relic]';
+function explainItem(anchor,pin=false){
+ const relic=RELICS[anchor.dataset.relic];
+ const words=anchor.matches('[data-keyword]')?[anchor]:[...anchor.querySelectorAll('[data-keyword]')];
+ const indices=new Set(words.map(word=>Number(word.dataset.keyword)));
+ const entries=relic?[[relic.n,relic.d]]:[...indices].map(i=>cardKeywords[i]);
+ hideKeyword();if(!entries.length)return;
  keywordAnchor=anchor;keywordPinned=pin;
  const tip=document.createElement('div');tip.id='card-keyword-tip';tip.setAttribute('role','tooltip');
- for(const index of new Set(indices)){
-  const [term,meaning]=cardKeywords[index],line=document.createElement('div'),label=document.createElement('strong');
+ for(const [term,meaning] of entries){
+  const line=document.createElement('div'),label=document.createElement('strong');
   label.textContent=term;line.append(label,' · '+meaning);tip.append(line);
  }
  document.body.append(tip);anchor.setAttribute('aria-describedby',tip.id);
@@ -1681,23 +1686,23 @@ function explainKeyword(anchor,indices,pin=false){
  tip.style.top=Math.max(8,Math.min(innerHeight-box.height-8,r.top>=box.height+12?r.top-box.height-6:r.bottom+6))+'px';
 }
 document.addEventListener('pointerover',e=>{
- const word=e.target.closest('[data-keyword]');
- if(e.pointerType==='mouse'&&word&&!keywordPinned&&!e.buttons)explainKeyword(word,[+word.dataset.keyword]);
+ const item=e.target.closest(inspectable);
+ if(e.pointerType==='mouse'&&item&&item!==keywordAnchor&&!keywordPinned&&!e.buttons)explainItem(item);
 });
 document.addEventListener('pointerout',e=>{
- if(!keywordPinned&&keywordAnchor===e.target&&!keywordAnchor.contains(e.relatedTarget))hideKeyword();
+ if(!keywordPinned&&keywordAnchor?.contains(e.target)&&!keywordAnchor.contains(e.relatedTarget))hideKeyword();
 });
 document.addEventListener('focusin',e=>{
- const card=e.target.closest('.card');
- if(card?.matches(':focus-visible'))explainKeyword(card,[...card.querySelectorAll('[data-keyword]')].map(w=>+w.dataset.keyword));
+ const item=e.target.closest('.card,[data-relic]');
+ if(item?.matches(':focus-visible'))explainItem(item);
 });
 document.addEventListener('focusout',e=>{if(keywordAnchor===e.target)hideKeyword()});
 // Keep inspection gestures isolated even when a release lands on the parent card.
 let inspectPress=null;
 document.addEventListener('pointerdown',e=>{
- const word=e.target.closest('[data-keyword]');
+ const item=e.target.closest(inspectable);
  if(keywordPinned&&e.target.closest('.hand .art'))hideKeyword();
- inspectPress=(word||keywordPinned)?{id:e.pointerId,word}:null;
+ inspectPress=(item||keywordPinned)?{id:e.pointerId,item}:null;
  if(inspectPress)e.stopImmediatePropagation();
 },true);
 document.addEventListener('pointercancel',e=>{
@@ -1706,11 +1711,11 @@ document.addEventListener('pointercancel',e=>{
 document.addEventListener('click',e=>{
  const press=inspectPress;
  inspectPress=null;
- const word=e.target.closest('[data-keyword]');
- if(!word&&!keywordPinned&&!(press&&e.detail>0))return;
+ const item=e.target.closest(inspectable);
+ if(!item&&!keywordPinned&&!(press&&e.detail>0))return;
  e.preventDefault();e.stopImmediatePropagation();
- if(press&&e.detail>0&&press.word!==word){hideKeyword();return}
- if(word&&!(keywordPinned&&keywordAnchor===word))explainKeyword(word,[+word.dataset.keyword],true);
+ if(press&&e.detail>0&&press.item!==item){hideKeyword();return}
+ if(item&&!(keywordPinned&&keywordAnchor===item))explainItem(item,true);
  else hideKeyword();
 },true);
 document.addEventListener('keydown',e=>{
@@ -1752,7 +1757,7 @@ pile:inspectPile,
 new:()=>{partyDraft=null;selectedHero='oath';newRun()},partymenu:()=>{screen='partymenu';render()},party:v=>openPartySetup(v),begin:()=>newRun(selectedHero),startdeck:inspectStartingDeck,hero:v=>{if(!HEROES[v])return;if(!partyDraft){selectedHero=v;return render()}if(v==='oath'){screen='oathpreview';render()}else chooseClimber(v)},pickback:()=>{screen='pick';render()},oathstart:()=>chooseClimber('oath'),title:()=>{partyDraft=null;screen='title';render()},oinfo:v=>toast(GODS[v].oath+' ('+GODS[v].full+'). Law: '+GODS[v].law+' Price: '+(halo(v)?'lifted.':GODS[v].price)),
 cont:()=>resumeRun(false),contparty:()=>resumeRun(true),
 deck:()=>openPick('Your deck ('+G.deck.length+' cards)',G.deck,null),
-rel:v=>toast(RELICS[v].n+': '+RELICS[v].d),
+
 maplab:()=>setupLab(1,'aether'),labApply:()=>{const seed=$('#lab-seed');if(!seed.value||!seed.reportValidity())return;setupLab(seed.valueAsNumber,$('#lab-hero').value)},
 previewNode,travel,
 card:v=>tapCard(+v),foe:v=>tapFoe(+v),end:()=>endTurn(),
