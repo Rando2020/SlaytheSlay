@@ -1,5 +1,5 @@
 async page=>{
- await page.goto('http://127.0.0.1:8878/map-lab.html');
+ await page.goto('http://127.0.0.1:8878/map-prototype.html');
  await page.setViewportSize({width:1440,height:1000});
  await page.locator('#seed').fill('verdant-27');await page.getByRole('button',{name:'Generate / regenerate paths'}).click();
  await page.screenshot({path:'output/map/lab-desktop.png',fullPage:true});

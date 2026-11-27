@@ -1,4 +1,12 @@
-# Act maps and navigation
+# Act I navigation
+
+The game and [Map Lab](../../map-lab.html) use the illustrated renderer in `src/act-map.js` and the Act I registry in `assets/maps/act01/registry.js`. The lab also opens at `index.html?lab=map`. The separate [prototype](../../map-prototype.html) preserves the original configurable region experiments, state previews and SVG export.
+
+Confirming travel writes the destination before the animation. Continue resumes the encounter from its last stable state. Single-player and party saves have separate keys. Party saves retain the active climber, the shared enemies, and the remaining room visits. Existing map-only saves retain their stored graph.
+
+The notes below describe the original prototype and its historical QA captures. Its asset inventory and performance measurements predate the illustrated production renderer.
+
+# Original prototype design and validation
 
 The production map and `map-lab.html` share `js/act-map.js`, `js/map-assets.js` and `map.css`. Serve the repository with a static HTTP server; no build or new runtime dependency is required.
 
