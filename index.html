@@ -473,6 +473,14 @@ body:has(#app>.stage){overflow:hidden}
 }
 .pile-icon{display:inline-block;vertical-align:-.16em;object-fit:contain;pointer-events:none}
 .pile-btn{display:inline-flex;align-items:center;gap:4px}.card-keyword .pile-icon{width:1em;height:1em;margin-right:.12em}
+.upgrade-picker .mhead,.upgrade-body{width:min(100%,1060px);margin:auto}
+.upgrade-body{display:grid;grid-template-columns:minmax(305px,.85fr) minmax(0,1.15fr);align-items:start;gap:16px;padding-top:14px}
+.upgrade-preview{text-align:center;position:sticky;top:0;background:#17110f;padding:10px 4px;border-radius:10px}.upgrade-preview>.btn{margin-top:12px}
+.upgrade-picker .smith-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(130px,100%),1fr));max-width:none;max-height:none;overflow:visible;align-content:start;padding:8px;justify-items:center}
+.upgrade-picker .card{width:min(100%,156px);height:auto;aspect-ratio:7/10}.upgrade-picker figure{width:min(46%,165px)}.upgrade-picker figure .card{width:100%}
+.smith-pair figure:last-child:not(:first-child) mark{color:#12502d;background:#caf2ca;font-weight:800}.smith-pair figure:last-child mark .card-keyword{color:inherit}
+.smith-pair figure:last-child mark.tradeoff{color:#7b321c;background:#ffdec7}
+@media(max-width:720px){.upgrade-body{display:flex;flex-direction:column;align-items:stretch}.upgrade-preview{position:static}.upgrade-picker .smith-list{grid-template-columns:repeat(auto-fill,minmax(112px,1fr))}.upgrade-picker .smith-pair{gap:8px}}
 #app:has(.bindery){max-width:min(100%,1700px)}
 .bindery{position:relative;width:100%;aspect-ratio:16/9;container-type:inline-size;background:#24202b url(assets/scenes/wayside-bindery.webp) center/100% 100% no-repeat}
 .bench-card{position:absolute;left:var(--x);top:var(--y);width:10.2%;height:31.4%;padding:0;border:0;color:#ffe9b7;background:transparent;transform:rotate(-5deg) skewX(3deg);cursor:pointer;display:flex;align-items:center;flex-direction:column;justify-content:space-between}
@@ -1022,7 +1030,7 @@ const canSmith=c=>!c.up&&K[c.id].r>=0&&!K[c.id].m&&!c.tier;
 const upgradable=()=>G.deck.filter(canSmith);
 const randRelic=(excluded=[])=>{const a=Object.keys(RELICS).filter(k=>!excluded.includes(k)&&!G.relics.includes(k)&&!RELICS[k].st&&(!RELICS[k].h||RELICS[k].h==G.hero));if(!a.length)return null;const W={c:6,u:4,r:2,l:.5},w=k=>W[RELICS[k].r||'c'];let x=Math.random()*a.reduce((t,k)=>t+w(k),0);for(const k of a){x-=w(k);if(x<=0)return k}return a[a.length-1]};
 const gainRelic=k=>{G.relics.push(k);if(k=='moss'){G.maxHp+=8;G.hp+=8}
- if(k=='legacy'){const el=ascList(2);if(el.length)openPick("Saint's Legacy: Exalt a card (T2 to T3)",el,c=>{ascend(c);render()},'Later');else toast('No T2 card to Exalt yet.')}
+ if(k=='legacy'){const el=ascList(2);if(el.length)openUpgradePicker("Saint's Legacy: Exalt a card (T2 to T3)",2,c=>{ascend(c);render()});else toast('No T2 card to Exalt yet.')}
  if(k=='seal'){const el=G.deck.filter(c=>godOf(c)&&!c.seal);if(el.length)openPick('Broken Seal: choose a divine card',el,c=>{c.seal=1;toast(name(c)+' stays accessible whatever your allegiance.');render()},'Later');else toast('You have no divine card to seal yet.')}
  if(k=='halo'){const gs=['aurel','orun','mora'];chooseP('Broken Halo','Remove one Divine Price for the rest of the run.',gs.map(g=>`<b>${GODS[g].n}</b>: ${GODS[g].price}`)).then(i=>{G.halo=gs[i||0];toast(GODS[G.halo].n+"'s price is lifted.");render()})}};
 function cardChoices(b){const out=[];let g=0;while(out.length<3&&g++<60){const r=Math.random(),t=r<.07+b*.13?3:r<.42+b*.13?2:1,id=pick(POOL[t]);if(!out.includes(id))out.push(id)}return out}
@@ -1401,7 +1409,7 @@ const EVENTS=[
  {l:'Pray: lose 8 HP, gain a relic',f:()=>{G.hp=Math.max(1,G.hp-8);const r=randRelic();if(r){gainRelic(r);return 'The altar gives you '+RELICS[r].n+'. '+RELICS[r].d}G.gold+=60;return 'The altar is empty. You find 60 gold in the cracks.'}},
  {l:'Leave it to its whispers',f:()=>'You keep walking. The humming fades behind you.'}]},
 {n:'Wandering Smith',t:'A soot-black smith sits by a portable anvil and offers to rework one of your cards.',o:[
- {l:'Pay 35 gold: upgrade a card',ok:()=>G.gold>=35&&upgradable().length>0,f:()=>{openPick('Upgrade a card (35 gold)',upgradable(),c=>{G.gold-=35;c.up=1;EV.msg='The smith hands back '+name(c)+', still warm.';EV.done=1;render()});return null}},
+ {l:'Pay 35 gold: upgrade a card',ok:()=>G.gold>=35&&upgradable().length>0,f:()=>{openUpgradePicker('Smith a card (35 gold)',0,c=>{G.gold-=35;c.up=1;EV.msg='The smith hands back '+name(c)+', still warm.';EV.done=1;render()},()=>!EV.done&&G.gold>=35);return null}},
  {l:'Decline',f:()=>'He shrugs and goes back to hammering.'}]},
 {n:'Golden Idol',t:'An idol of solid gold rests on a pedestal. Every instinct says this is a bad idea.',o:[
  {l:'Take it: gain 90 gold, add Doubt to your deck',f:()=>{G.gold+=90;G.deck.push(mk('doubt'));return 'Heavy in your pack, heavier in your head.'}},
@@ -1619,19 +1627,28 @@ function inspectPile(id){
  $('#modal [data-a="mclose"]').focus();
 }
 function openSmith(){
- if(screen!=='rest'||RS.done)return;
- const cards=upgradable();
- if(!cards.length)return toast('No cards can be upgraded here.');
- MD={smith:cards,index:-1,onClose:()=>$('[data-a="rsmith"]')?.focus()};
- $('#modal').innerHTML=`<div class="modal smith-dialog" role="dialog" aria-modal="true" aria-label="Upgrade a card">
- <div class="mhead"><h2>Upgrade a card</h2><button class="btn" data-a="mclose">Cancel</button></div>
- <div class="smith-pair" aria-live="polite"></div><div class="smith-list">${cards.map((c,i)=>`<button class="btn" aria-pressed="false" data-a="smithpreview" data-v="${i}">${name(c)}</button>`).join('')}</div>
- <button class="btn pri" data-a="smithconfirm"></button></div>`;
+ if(screen!=='rest'||RS.done||RS.pending)return;
+ const rest=RS;
+ openUpgradePicker('Smith a card',0,card=>{
+  card.up=1;RS.done=1;RS.msg='You hammer '+name(card)+' into shape.';render();$('.ember-press')?.classList.add('strike');
+ },()=>RS===rest&&!RS.done&&!RS.pending);
+}
+function openUpgradePicker(title,from,apply,valid=()=>true){
+ const eligible=()=>from?ascList(from).filter(c=>FK[c.id]?.[c.g]?.[from]):upgradable();
+ const cards=eligible();if(!cards.length)return toast('No eligible cards.');
+ const sender=document.activeElement,owner=screen,run=G;
+ const verb=from===2?'Exalt':from===1?'Ascend':'Upgrade';
+ MD={smith:cards,index:-1,pinned:false,from,verb,eligible,apply,owner,run,valid,onClose:()=>{$('#app').inert=false;sender?.focus()}};
+ $('#modal').innerHTML=`<div class="modal upgrade-picker" role="dialog" aria-modal="true" aria-label="${title}">
+ <div class="mhead"><h2>${title}</h2><button class="btn" data-a="mclose">Cancel</button></div>
+ <div class="upgrade-body"><section class="upgrade-preview"><div class="smith-pair" aria-live="polite"></div>
+ <button class="btn pri" data-a="smithconfirm" disabled>Select a card</button></section>
+ <div class="smith-list" aria-label="Eligible cards">${cards.map((c,i)=>cardV(c,`aria-pressed="false" data-a="smithpreview" data-v="${i}"`)).join('')}</div></div></div>`;
  const list=$('.smith-list');
- const inspect=e=>{const item=e.target.closest('[data-a="smithpreview"]');if(item)previewSmith(Number(item.dataset.v))};
+ const inspect=e=>{const item=e.target.closest('[data-a="smithpreview"]');if(item&&!MD?.pinned)previewSmith(Number(item.dataset.v))};
  list.addEventListener('pointerover',e=>{if(e.pointerType==='mouse')inspect(e)});
  list.addEventListener('focusin',inspect);
- previewSmith(0);list.firstElementChild.focus();
+ $('#app').inert=true;previewSmith(0);list.firstElementChild.focus({preventScroll:true});
 }
 // Match unchanged words in order so multiple independent edits stay legible.
 function markSmithChanges(before,after){
@@ -1651,21 +1668,30 @@ function markSmithChanges(before,after){
  }))}
  if(keptA.size!==a.length||keptB.size!==b.length){paint(before,a,keptA);paint(after,b,keptB)}
 }
-function previewSmith(i){
- const card=MD?.smith?.[i];if(!card||MD.index===i)return;
+function previewSmith(i,pin=false){
+ const card=MD?.smith?.[i];if(!card)return;
+ if(pin)MD.pinned=true;else if(MD.index===i)return;
  MD.index=i;
- showComparison(card,'Current');
- for(const btn of $('.smith-list').children)btn.setAttribute('aria-pressed',String(Number(btn.dataset.v)===i));
- $('[data-a="smithconfirm"]').textContent='Upgrade '+name(card);
+ const next=MD.from?{...card,tier:MD.from+1}:{...card,up:1};
+ const tierLabel=c=>'T'+c.tier+' · '+TIERN[c.tier];
+ showComparison(card,MD.from?tierLabel(card):'Current',next,MD.from?tierLabel(next):'Upgraded');
+ for(const btn of $('.smith-list').children)btn.setAttribute('aria-pressed',String(MD.pinned&&Number(btn.dataset.v)===i));
+ const confirm=$('[data-a="smithconfirm"]');confirm.disabled=!MD.pinned;confirm.textContent=MD.pinned?MD.verb+' '+name(card):'Select a card';
+ if(pin&&matchMedia('(max-width:720px)').matches){$('.upgrade-preview').scrollIntoView({block:'start'});confirm.focus({preventScroll:true})}
 }
-function showComparison(card,label){
+function showComparison(card,label,next=canSmith(card)?{...card,up:1}:null,nextLabel='Upgraded'){
  const pair=$('.smith-pair');
  const face=(label,c)=>`<figure><figcaption>${label}</figcaption>${cardV(c,'tabindex="-1" aria-disabled="true"')}</figure>`;
- pair.innerHTML=face(label,card)+(canSmith(card)?face('Upgraded',{...card,up:1}):'');
+ pair.innerHTML=face(label,card)+(next?face(nextLabel,next):'');
  for(const selector of ['.cost','.ds>span']){
   const [before,after]=pair.querySelectorAll(selector);
   if(before&&after){
    markSmithChanges(before,after);
+   const hpCost=text=>Number(text.match(/Lose (\d+) HP/i)?.[1]||0);
+   if(selector==='.cost'&&cost(next)>cost(card))after.querySelector('mark')?.classList.add('tradeoff');
+   if(selector==='.ds>span'&&hpCost(after.textContent)>hpCost(before.textContent)){
+    for(const m of after.querySelectorAll('mark'))if(m.nextSibling?.textContent.trimStart().startsWith('HP')||m.nextSibling?.nextSibling?.textContent==='HP')m.classList.add('tradeoff');
+   }
    if(selector==='.ds>span')for(const face of [before,after]){
     if(!face.querySelector('[data-keyword]'))face.innerHTML=keywordText(face.innerHTML);
    }
@@ -1861,25 +1887,24 @@ restpreview:v=>{if(screen!=='rest'||RS.done||!['heal','skip'].includes(v))return
 restback:()=>{const prior=RS.pending;delete RS.pending;render();$('[data-a="restpreview"][data-v="'+prior+'"]')?.focus()},
 rheal:()=>{if(screen!=='rest'||RS.done||RS.pending!=='heal'||!restHealing())return;const b=G.hp;heal(restHealing());RS.done=1;RS.msg='You rest by the fire and recover '+(G.hp-b)+' HP.';render()},
 rsmith:openSmith,
-smithpreview:v=>previewSmith(Number(v)),
+smithpreview:v=>previewSmith(Number(v),true),
 smithconfirm:()=>{
- const card=MD?.smith?.[MD.index];
- if(screen!=='rest'||RS.done||!card||!upgradable().includes(card))return;
- card.up=1;RS.done=1;RS.msg='You hammer '+name(card)+' into shape.';
- closeModal();render();$('.ember-press')?.classList.add('strike');$('[data-a="map"]')?.focus();
+ const picker=MD,card=picker?.smith?.[picker.index];
+ if(!card||!picker.pinned||screen!==picker.owner||G!==picker.run||!picker.valid()||!picker.eligible().includes(card))return;
+ closeModal();picker.apply(card);$('[data-a="map"]')?.focus();
 },
 evo:v=>{if(EV.done)return;const o=EV.e.o[+v];if(o.ok&&!o.ok())return;const m=o.f();if(m!=null){EV.msg=m;EV.done=1}render()},
 mpick:v=>{const c=MD.cards[+v],cb=MD.cb;MD.onClose=null;closeModal();if(cb)cb(c)},
 mask:v=>{const r=MD&&MD.ask;MD=null;$('#modal').innerHTML='';if(r)r(+v)},
 key:()=>{if(!C||C.busy||C.lock||C.keyUsed)return;C.keyUsed=1;if(!ddraw(1,1))toast('The Dormant Sanctums are empty.');render()},
-rasc:()=>{if(!RW.asc||RW.ascDone)return;const f=RW.asc.from;openPick((f==1?'Ascend':'Exalt')+` a card (T${f} to T${f+1})`,ascList(f),c=>{ascend(c);RW.ascDone=1;if(!RW.asc.free)RW.taken=true;render()})},
+rasc:()=>{if(!RW.asc||RW.ascDone)return;const f=RW.asc.from;openUpgradePicker((f==1?'Ascend':'Exalt')+` a card (T${f} to T${f+1})`,f,c=>{ascend(c);RW.ascDone=1;if(!RW.asc.free)RW.taken=true;render()},()=>!!RW.asc&&!RW.ascDone&&RW.asc.from===f)},
 swear:v=>{if(SR.done||!GODS[v])return;const cur=G.oaths,mx=has('twin')?2:1,no=cur.length>=mx?(mx==2?[cur[1],v]:[v]):[...cur,v];if(ordinaryCount(no,G.deck)<8)return;
  const drop=cur.filter(x=>!no.includes(x)),back=G.deck.some(c=>c.tier&&c.g==v);G.oaths=no;SR.done=1;
  SR.msg=`You swear the Oath of ${GODS[v].oath} to ${GODS[v].full}. ${GODS[v].law}${drop.length?' The cards of '+drop.map(x=>GODS[x].n).join(' and ')+' fall Dormant.':''}${back?' Your old '+GODS[v].sanc+' wakes at the tiers you left it.':''}`;
  if(drop.length&&has('inherit')){const el=G.deck.filter(c=>c.tier&&FK[c.id]&&drop.includes(c.g));if(el.length)openPick('Divine Inheritance: carry one card to '+GODS[v].n,el,c=>{c.g=v;SR.msg+=' '+name(c)+' crosses over to '+GODS[v].n+'.';render()},'Skip')}
  render()},
 renounce:()=>{if(SR.done||ordinaryCount([],G.deck)<8)return;const was=G.oaths.map(g=>GODS[g].n).join(' and ');G.oaths=[];SR.done=1;SR.msg=`You lay down your oath to ${was}. Your divine cards fall Dormant, waiting.`;render()},
-sasc:v=>{if(SR.done)return;const f=+v;openPick((f==1?'Ascend':'Exalt')+` a card (T${f} to T${f+1})`,ascList(f),c=>{ascend(c);SR.done=1;SR.msg=name(c)+' rises to '+TIERN[c.tier]+'.';render()})},
+sasc:v=>{if(SR.done)return;const f=+v;openUpgradePicker((f==1?'Ascend':'Exalt')+` a card (T${f} to T${f+1})`,f,c=>{ascend(c);SR.done=1;SR.msg=name(c)+' rises to '+TIERN[c.tier]+'.';render()},()=>!SR.done)},
 mclose:closeModal};
 document.addEventListener('click',e=>{if(e.detail>0&&performance.now()-ignoreClick<350)return;const b=e.target.closest('[data-a]');if(!b&&C&&C.sel>=0&&screen=='combat'&&e.target.closest('.stage')){C.sel=-1;return render()}if(!b||b.disabled)return;const f=A[b.dataset.a];if(f)f(b.dataset.v)});
 document.addEventListener('keydown',e=>{if(!MD&&e.target.matches?.('.node.can')&&['Enter',' '].includes(e.key)){e.preventDefault();return previewNode(e.target.dataset.v)}if(MD?.pile&&e.key==='Tab'){e.preventDefault();return $('#modal [data-a="mclose"]').focus()}if(MD&&e.key=='Escape')return closeModal();if(screen!='combat'||!C||MD)return;
