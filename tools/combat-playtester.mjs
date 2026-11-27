@@ -30,7 +30,7 @@ export function createPlaytester(snapshot, mechanics) {
       actions.push({type:'endTurn'}, {type:'choose', action:'deck', label:'Inspect deck'});
     }
     const state = structuredClone({
-      screen, hero:run?.hero, oaths:run?.oaths, turn:combat?.turn ?? null, hp:run?.hp, block:combat?.p.block,
+      screen, gold:run?.gold, rewardAudit:run?.rewardAudit ?? [], hero:run?.hero, oaths:run?.oaths, turn:combat?.turn ?? null, hp:run?.hp, block:combat?.p.block,
       energy:combat?.energy, statuses:combat?.p.st, hand, enemies, actions,
       dialog:dialog?.getAttribute('aria-label') ?? dialog?.querySelector('h2')?.textContent ?? null,
       busy:Boolean(combat?.busy || combat?.lock), deck:run?.deck, relics:run?.relics,
