@@ -213,3 +213,32 @@ test('draft exhausts only unlocked cards and handles missing rarities', () => {
   run("G.oaths.push('orun')");
   assert.equal(run("cardChoices('elite').sort().join(',')"),'stoneshatter,warmonger');
 });
+
+test('combat gold pays five per kill with bounded bonuses for each encounter tier', () => {
+  for(const [foes,kind,min,max] of [
+    [['tick'],'fight',7,17], [['tick','mask'],'fight',12,22],
+    [['warden'],'elite',25,35], [['king'],'boss',5,5]
+  ]) for(const [roll,expected] of [[0,min],[0.999,max]]){
+    const {run}=launch(['aether']);
+    run(`startCombat(${JSON.stringify(foes)},'${kind}'); var before=G.gold;
+      C.foes.forEach(e=>e.hp=0); Math.random=()=>${roll}; winCombat()`);
+    assert.equal(run('G.gold-before'),expected);
+    assert.equal(run('G.rewardAudit[0].killGold'),foes.length*5);
+    assert.equal(run('G.rewardAudit[0].gold'),expected);
+    assert.equal(run('JSON.stringify(G.rewardAudit[0].defeated)'),JSON.stringify(foes));
+  }
+});
+
+test('party reward audit survives reload and tracks each personal claim once', () => {
+  const first=launch(['oath','aether']);
+  first.run("A.previewNode('0,1');A.travel();startCombat(['warden'],'elite');C.foes[0].hp=0; winCombat()");
+  first.run("A.rrelic();A.inspectreward('0');A.rcard()");
+  const {run}=launch(null,first.storage);
+  run('A.contparty()');
+  assert.equal(run('G.rewardAudit.length'),1);
+  assert.equal(run('G.rewardAudit[0].chosenCard===G.rewardAudit[0].cards[0].id'),true);
+  assert.equal(run('G.rewardAudit[0].claimedRelic===G.rewardAudit[0].relic'),true);
+  run('A.map()');
+  assert.equal(run('G.rewardAudit.map(a=>a.seat).join()'),'0,1');
+  assert.equal(run('G.rewardAudit.every(a=>a.killGold===5)'),true);
+});
