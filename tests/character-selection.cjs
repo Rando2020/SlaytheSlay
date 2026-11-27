@@ -7,14 +7,14 @@ const view=vm.runInContext('pickV()',ctx);
 assert.match(view,/data-a="begin"/,'selection requires explicit confirmation');
 assert.match(view,/data-a="startdeck"/,'starting deck is inspectable');
 assert.match(view,/aria-pressed="true"/,'selected portrait is exposed accessibly');
-assert.match(view,/bg_oath_select.webp/,'approved Oathbound scene is shown');
+assert.match(view,/backgrounds\/oath_select.webp/,'approved Oathbound scene is shown');
 console.log('Selection rendering checks passed');
 
 ctx.selectedHero='aether';
 const aether=vm.runInContext('pickV()',ctx);
 assert.match(aether,/70 starting HP/);
 assert.match(aether,/aether.webp/);
-assert.doesNotMatch(aether,/bg_oath_select.webp/);
+assert.doesNotMatch(aether,/backgrounds\/oath_select.webp/);
 assert.match(aether,/Duelist . unavailable/);
 // A preview must isolate combat-dependent card descriptions and preserve card IDs,
 // including when the inspector throws while rendering.

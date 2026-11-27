@@ -60,33 +60,26 @@ Open `http://localhost:8787` on the host and choose **Multiplayer**, then **Play
 
 | Path | What it is |
 | --- | --- |
-| `index.html` | The whole game: markup, styles and script |
-| `assets/` | Cut-out hero poses used in game (WebP with transparency) |
-| `art/source/concept/` | Character concept, model and expression sheets |
-| `art/source/hero/` | Original generated hero poses and the parts sheet |
-| `assets/props/` | Props placed in each biome's midground and foreground |
-| `art/cutouts/props/` | All 50 props cut from the prop sheets, plus a numbered contact sheet |
-| `assets/enemies/` | Painted enemies, all facing left toward the hero. Each is a cut-out rig: one folder of part images per enemy |
-| `art/source/enemies/` | Original enemy art and model sheets |
-| `assets/fx/` | Ambient and combat effects (black background, drawn with screen blending) |
-| `art/cutouts/fx/` | Every effect cut from the two FX sheets, with contact sheets |
-| `assets/oath/` | Oathbound poses: idle, attack, hurt, cast (oath invocation), power (oath sworn) |
-| `art/source/oathbound/` | Oathbound concept sheets, generated poses and parts sheets |
-| `assets/bg_*_4k.webp` | 3840 px backgrounds (AI upscale blended 75/25 with a plain resize to keep brush texture), loaded only on large screens |
-| `docs/DEVLOG.md` | How the game was built, the decisions behind it and the art pipeline |
-| `tools/` | Python scripts used to cut the hero poses out of their backgrounds (`cut_oathbound.py` for the knight) |
+| `index.html` | The game: markup, styles, engine and data tables (`HEROES`, `EN`, `K`, `RELICS`...) |
+| `src/` | Scripts split out of the page: the Act map and online co-op |
+| `assets/` | Everything the game loads, by category: `heroes/`, `enemies/`, `backgrounds/`, `props/`, `fx/`, `scenes/`, `maps/`, `rigs/`, `ui/` |
+| `assets/manifest.js` | Generated list of asset files the game checks before showing optional art |
+| `art/` | Originals, never loaded: `source/heroes/<heroId>/`, `source/enemies/`, backgrounds, props, effects, and `cutouts/` contact sheets |
+| `tools/` | Cut-out, import, rig, lab and generator scripts |
+| `tests/` | Node tests (`node --test tests/*.cjs`) and browser test pages |
+| `docs/` | [Naming guide](docs/NAMING.md), [ID registry](docs/ID-REGISTRY.md), [dev log](docs/DEVLOG.md), design docs and QA captures |
+| `AGENTS.md` | Rules for AI agents and contributors (`CLAUDE.md` points here) |
 
-## Art pipeline
+## Adding art
 
-1. Generate a full-body pose facing right on a plain background, using the concept sheets as reference.
-2. Cut it out with the scripts in `tools/` (flat-color keying, or an AI matte via `rembg` for busy backgrounds).
-3. Save it to `assets/` as WebP, about 760 px tall, and add it to `PIMG` in `index.html`.
+Every game object has one ID (its key in `index.html`), and its files use that ID. The [naming guide](docs/NAMING.md) has the folder for each kind of art and step-by-step checklists. [ID-REGISTRY.md](docs/ID-REGISTRY.md) lists every ID with the exact path its art should use and whether it exists yet.
 
-Enemies stand on the right, so they must face **left**. Generated art usually faces right; mirror it when cutting it out so the file on disk already faces left, then add `img`, `w` (display width in px) and `ar` (width / height) to its entry in `EN`.
+1. Generate the art using the concept sheets as reference. Heroes face **right**; enemies face **left** (mirror them when cutting out).
+2. Cut it out with the scripts in `tools/` (flat-color keying, or an AI matte via `rembg` for busy backgrounds). Keep the original in `art/source/`.
+3. Save it at the path from the registry, for example `assets/ui/relics/heart.png` or `assets/enemies/hexmother/attack.webp`.
+4. Run `node tools/build-asset-manifest.mjs && node tools/build-id-registry.mjs`, then `node --test tests/*.cjs`. Card, relic, status and oath art appears with no code change.
 
 Open **Enemy Animation Lab** on the title screen to play, scrub and tune the painted rigs. The shared bone and attachment registry lives in `assets/rigs/registry.js`. See [Enemy rig tools](tools/rigs/README.md) for authoring and validation.
-
-Next up: painted art for the Hex Mother and the Hollow King, then layered backgrounds and card illustrations.
 
 ### Act I navigation and Map Lab
 

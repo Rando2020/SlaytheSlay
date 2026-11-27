@@ -27,9 +27,11 @@ A record of how SlaytheSlay (working title Hollow Ascent) was built, the decisio
   - `cut_oathbound.py`: the Oathbound poses, including erasing the painted swing arc.
 - **Effects sheets** with blotchy fake transparency are composited over black and drawn with screen blending, which hides the blotches.
 - **Upscale** with `tools/upscale.py` (Real-ESRGAN x4plus on CPU, about 6 minutes per background). Blend 75/25 with a plain resize to keep brush texture.
-- **Wire in:** hero poses go in `PIMG`, per-pose scale and anchor in `PMETA`, props in `PROPS`, ambient layers in `AMB`, combat bursts in `VFX`.
+- **Wire in:** name the file after its ID and put it in its category folder ([NAMING.md](NAMING.md)), then run `node tools/build-asset-manifest.mjs` and `node tools/build-id-registry.mjs`. Hero poses go in `assets/heroes/<heroId>/`, per-pose scale and anchor in `PMETA`, props in `PROPS`, ambient layers in `AMB`, combat bursts in `VFX`.
 
 ## Conventions
+
+- Naming and folders: see [NAMING.md](NAMING.md). One ID per game object, used for every file that belongs to it.
 
 - Poses are cropped to their content. The rig draws every pose at the same height unless `PMETA` says otherwise.
 - `assets/` holds what the game loads; `art/source/` keeps the originals; `art/cutouts/` keeps every cut piece with numbered contact sheets so props and effects can be referred to by id (for example `b25`, `slash2`).

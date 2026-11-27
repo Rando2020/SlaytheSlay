@@ -1,6 +1,6 @@
 # Enemy rig authoring
 
-Serve the repository root and open **Enemy Animation Lab** from the title screen. Enemy aliases in the art and combat data are Hollow / Veil Mask, Scrapper / Scrapclaw and Bulwark / Stone Warden.
+Serve the repository root and open **Enemy Animation Lab** from the title screen. Use the enemy ID (`veilmask`, `scrapclaw`, `stonewarden`...) as the registry key and the `assets/enemies/<id>/` folder name. Some older art sheets use working names: Hollow is `veilmask`, Scrapper is `scrapclaw` and Bulwark is `stonewarden`. See [docs/NAMING.md](../../docs/NAMING.md).
 
 ## Build a rig
 
@@ -9,7 +9,7 @@ Serve the repository root and open **Enemy Animation Lab** from the title screen
 3. Run `python compose2.py LAYOUT.json` to inspect the rest pose. Run `python export.py KEY LAYOUT.json 0.65 --name "Enemy Name" --template creature` to write the WebPs and register the layout. Existing unrelated files in the sprite directory are preserved.
 4. In the shared registry, bone pivots, sprite rectangles and weapon sockets are in rest-space pixels. A child inherits its parent's transform. Draw order follows the layers array independently of bone order. Available motion families include cloth sway, hair, floating shards, crystal pulse and moving limbs. A weapon or grip can be attached to any bone. The knight supplies a worked example with a moving spear and two elbow solves.
 5. Open the lab, select the rig, inspect each state and scrub both endpoints and the strike. Select a bone to display its pivot and adjust its rest angle. The browser retains these edits per rig. Export the complete JSON for review and replace the corresponding registry entry to ship it.
-6. To use an approved rig on an existing encounter, set its `EN` entry's `rig` to the registry key and `w` to its combat display width. Replay a fight at gameplay scale. Combat cues use presentation-only state and preserve the engine's existing hit timings and VFX.
+6. To use an approved rig on an existing encounter, set its `EN` entry's `rig` to the registry key (the same as the enemy ID) and `w` to its combat display width. Replay a fight at gameplay scale. Combat cues use presentation-only state and preserve the engine's existing hit timings and VFX.
 
 ## Fallen Cathedral Knight
 

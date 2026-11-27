@@ -57,7 +57,7 @@ function launch(heroes, storage = new Map(), leaveThreshold = false) {
 test('enemy HP scales each spawn exactly once for solo through four seats', () => {
   for (const count of [1, 2, 3, 4]) {
     const {run} = launch(Array(count).fill('aether'));
-    run("G.floor=11; Math.random=()=>0; startCombat(['tick','jugg','king'], 'fight')");
+    run("G.floor=11; Math.random=()=>0; startCombat(['aethertick','juggernaut','hollowking'], 'fight')");
     assert.equal(run('JSON.stringify(C.foes.map(e=>[e.hp,e.max]))'),
       JSON.stringify([14, 117, 180].map(hp => [hp * count, hp * count])));
   }
@@ -65,7 +65,7 @@ test('enemy HP scales each spawn exactly once for solo through four seats', () =
 
 test('two seats act before the enemy, which resolves each hit against personal block', async () => {
   const {run} = launch(['aether', 'oath']);
-  run("startCombat(['scrap'], 'fight'); C.foes[0].int={a:4,x:2}; C.p.block=6");
+  run("startCombat(['scrapclaw'], 'fight'); C.foes[0].int={a:4,x:2}; C.p.block=6");
   await run('A.end()');
   assert.equal(run('activeSeat()'), 1);
   assert.equal(run('G.hero'), 'oath');
@@ -81,7 +81,7 @@ test('two seats act before the enemy, which resolves each hit against personal b
 
 test('a fallen player is skipped and surviving players can finish the round', async () => {
   const {run} = launch(['aether', 'aether']);
-  run("startCombat(['scrap'], 'fight'); G.hp=1; C.foes[0].int={a:4,x:2}");
+  run("startCombat(['scrapclaw'], 'fight'); G.hp=1; C.foes[0].int={a:4,x:2}");
   await run('A.end()');
   await run('A.end()');
   assert.equal(run('screen'), 'combat');
@@ -95,7 +95,7 @@ test('a fallen player is skipped and surviving players can finish the round', as
 
 test('four-player enemy buffs and intents advance once while every player takes damage', async () => {
   const {run} = launch(Array(4).fill('aether'));
-  run("startCombat(['king'], 'boss')");
+  run("startCombat(['hollowking'], 'boss')");
   for (let seat = 0; seat < 4; seat++) {
     assert.equal(run('activeSeat()'), seat);
     await run('A.end()');
@@ -176,7 +176,7 @@ test('solo Threshold resumes and combat blessings expire after three wins', () =
   assert.equal(resumed('screen'), 'threshold');
   resumed("for(let seed=0;!G.threshold.offers.includes('first-light');seed++)newRunSeed('aether',seed); A.bless('first-light')");
   for (let i = 0; i < 4; i++) {
-    resumed("startCombat(['scrap'], 'fight')");
+    resumed("startCombat(['scrapclaw'], 'fight')");
     assert.equal(resumed('C.energy'), i < 3 ? 4 : 3);
     resumed('winCombat(); A.map()');
   }

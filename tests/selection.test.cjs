@@ -7,8 +7,11 @@ const root=path.resolve(__dirname,'..');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 test('selection scene and every hero pose ship with the static game',()=>{
  const selection=html.match(/\/\* Oathbound class selection:[\s\S]*?(?=\.pick\{)/)[0];
- const poses=html.match(/const PSET=([\s\S]*?);/)[1];
- const urls=[...selection.matchAll(/url\((assets\/[^)]+)\)/g),...poses.matchAll(/'(assets\/[^']+)'/g)].map(m=>m[1]);
+ const heroes=[...html.match(/const HEROES=\{([^\n]*\n[^\n]*)/)[1].matchAll(/(?:^|\n)(\w+):\{n:/g)].map(m=>m[1]);
+ const posesList=JSON.parse(html.match(/const HERO_POSES=(\[[^\]]*\])/)[1].replace(/'/g,'"'));
+ assert.deepEqual(heroes.sort(),['aether','oath']);
+ const poses=heroes.flatMap(h=>posesList.map(p=>`assets/heroes/${h}/${p}.webp`));
+ const urls=[...[...selection.matchAll(/url\((assets\/[^)]+)\)/g)].map(m=>m[1]),...poses];
  for(const url of urls) assert.ok(fs.existsSync(path.join(root,url)),`Missing deployed asset: ${url}`);
 });
 test('both registered classes start with their existing stats, deck and relic',()=>{
@@ -30,7 +33,7 @@ test('hero image requests opt into CORS before loading WebGL textures',()=>{
  const load=html.match(/function rigLoad\(\)\{[^\n]+/)[0];
  const requests=[];
  class ImageRequest {set src(value){requests.push({src:value,crossOrigin:this.crossOrigin})}}
- const ctx=vm.createContext({PSET:{oath:{idle:'assets/oath/idle.webp'},aether:{idle:'assets/hero_idle.webp'}},Image:ImageRequest});
+ const ctx=vm.createContext({PSET:{oath:{idle:'assets/heroes/oath/idle.webp'},aether:{idle:'assets/heroes/aether/idle.webp'}},Image:ImageRequest});
  vm.runInContext(load+';rigLoad()',ctx);
  assert.equal(requests.length,2);
  for(const r of requests)assert.equal(r.crossOrigin,'anonymous',r.src+' must remain usable by WebGL after CDN redirects');

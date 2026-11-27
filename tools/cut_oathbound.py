@@ -1,11 +1,11 @@
 # Cut the Oathbound poses out of their flat gray backgrounds.
 # Usage: python3 tools/cut_oathbound.py   (run from the repo root)
-# Writes assets/oath/<pose>.webp plus green-backed check images in /tmp.
+# Writes assets/heroes/oath/<pose>.webp plus green-backed check images in /tmp.
 from PIL import Image
 import numpy as np
 from scipy import ndimage as nd
 
-SRC = 'art/source/oathbound/poses/'
+SRC = 'art/source/heroes/oath/poses/'
 POSES = [('01-idle', 'idle'), ('02-attack', 'attack'), ('03-hurt', 'hurt'),
          ('04-oath-invocation', 'cast'), ('05-oath-sworn', 'power')]
 
@@ -67,7 +67,7 @@ def cut(path, name):
     out = Image.fromarray(np.dstack([col, alpha * 255]).astype(np.uint8), 'RGBA')
     bb = out.getchannel('A').point(lambda v: 255 if v > 20 else 0).getbbox()
     out = out.crop(bb)
-    out.save(f'assets/oath/{name}.webp', quality=90, method=6)
+    out.save(f'assets/heroes/oath/{name}.webp', quality=90, method=6)
     chk = Image.new('RGBA', out.size, (40, 140, 90, 255))
     chk.alpha_composite(out)
     chk.convert('RGB').save(f'/tmp/chk_oath_{name}.jpg', quality=85)

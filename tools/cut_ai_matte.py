@@ -28,7 +28,7 @@ for f,name in [('57c5f86a','attack'),('30b43041','hurt'),('e36c644d','cast2')]:
     o=np.dstack([rgb,np.clip(a,0,1)*255]).astype(np.uint8)
     im=Image.fromarray(o,'RGBA')
     bb=im.getchannel('A').point(lambda v:255 if v>30 else 0).getbbox();im=im.crop(bb)
-    im.save(f'/home/claude/slaytheslay/assets/hero_{name}.webp',quality=90,method=6)
+    im.save(f'assets/heroes/aether/{name}.webp',quality=90,method=6)
     c=Image.new('RGBA',im.size,(40,140,90,255));c.alpha_composite(im);out[name]=c.convert('RGB')
     print(name,im.size)
 W=sum(i.width for i in out.values());c=Image.new('RGB',(W,max(i.height for i in out.values())));x=0

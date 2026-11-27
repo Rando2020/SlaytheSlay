@@ -8,7 +8,7 @@ function game(hero='aether') {
  for(const file of ['assets/maps/act01/registry.js','src/act-map.js','assets/rigs/registry.js','assets/rigs/player.js'])vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,'..',file),'utf8'),ctx);
  const utils=html.slice(html.indexOf('const R=n=>'),html.indexOf('/* ---------- icons and art'));
  const core=html.slice(html.indexOf('/* ---------- data ---------- */'),html.indexOf('/* ---------- input ---------- */'));
- vm.runInContext('const $=()=>null;const RM=true;const RIG={img:{},whip:0};const ART={};function rigPose(){}function swingArc(){}function muzzle(){}'+utils+core+`;render=()=>{};toast=()=>{};banner=()=>{};closeModal=()=>{MD=null};newRun('${hero}');startCombat(['king'],'fight');C.foes[0].hp=C.foes[0].max=9999;C.energy=99;C.hand=[];C.draw=[];C.disc=[];`,ctx);
+ vm.runInContext('const $=()=>null;const RM=true;const RIG={img:{},whip:0};const ART={};function rigPose(){}function swingArc(){}function muzzle(){}'+utils+core+`;render=()=>{};toast=()=>{};banner=()=>{};closeModal=()=>{MD=null};newRun('${hero}');startCombat(['hollowking'],'fight');C.foes[0].hp=C.foes[0].max=9999;C.energy=99;C.hand=[];C.draw=[];C.disc=[];`,ctx);
  return {ctx,run:s=>vm.runInContext(s,ctx),json:s=>JSON.parse(vm.runInContext('JSON.stringify('+s+')',ctx))};
 }
 test('40 colorless definitions have upgrades and stay outside both class pools',()=>{
@@ -168,7 +168,7 @@ test('retrieval at hand cap cannot duplicate or lose a physical card; stacked dr
  const g=game('oath');g.run("C.hand=Array.from({length:10},()=>mk('strike'));C.disc=[mk('defend')];globalThis.id=C.disc[0].u;retrieveNeutral(id,'hand')");assert.equal(g.run('C.hand.length'),10);assert.equal(g.run('C.disc.filter(c=>c.u===id).length'),1);
  g.run("G.oaths=['aurel'];C.hand=[];C.sanc.aurel=[{...mk('invoke'),tier:1,g:'aurel',dturn:-1}]");stock(g);for(let i=0;i<4;i++)resolve(g,'borrowed_tomorrow');g.run('startTurn()');assert.equal(g.run('C.hand.length'),0);assert.equal(g.run('C.sanc.aurel.length'),1);assert.equal(g.run('C.energy'),0);
 });
-function nativeParty(g){g.run("G=bindParty({party:['aether','oath'].map(hero=>({hero,hp:HEROES[hero].hp,maxHp:HEROES[hero].hp,gold:99,deck:Array.from({length:20},()=>mk('strike')),relics:[],oaths:[]})),seat:0,seed:77,map:[],floor:1});startCombat(['king'],'fight');C.foes[0].hp=C.foes[0].max=9999;C.foes[0].int={a:4,x:2}")}
+function nativeParty(g){g.run("G=bindParty({party:['aether','oath'].map(hero=>({hero,hp:HEROES[hero].hp,maxHp:HEROES[hero].hp,gold:99,deck:Array.from({length:20},()=>mk('strike')),relics:[],oaths:[]})),seat:0,seed:77,map:[],floor:1});startCombat(['hollowking'],'fight');C.foes[0].hp=C.foes[0].max=9999;C.foes[0].int={a:4,x:2}")}
 test('native party support targets living seats and carries pre-turn Block through recipient reset',async()=>{
  const g=game();nativeParty(g);resolve(g,'cover',0,[1]);resolve(g,'reinforcements');resolve(g,'rally',0,[1]);resolve(g,'supply_cache',0,[1]);assert.equal(g.run('combatParty[1].p.block'),15);
  await g.run('endTurn()');assert.equal(g.run('activeSeat()'),1);assert.equal(g.run('C.p.block'),15);assert.equal(g.run('C.hand.length'),7);assert.equal(g.run('C.energy'),5);assert.ok(g.run('reqMsg(mk("supply_cache"))===null'),'other recipient still eligible');resolve(g,'supply_cache',0,[1]);assert.equal(g.run('C.neutralIncoming.length'),0,'different provider cannot supply same recipient twice');
@@ -207,7 +207,7 @@ test('changing targets weakens the second foe and stone remembers absorbed hits 
 });
 test('Sporeling still inflicts Poison and the next turn consumes a stack',()=>{
  const g=game();
- g.run("C.foes[0].k='spore';C.foes[0].hp=0;fell(C.foes[0]);globalThis.prePoison=G.hp;startTurn()");
+ g.run("C.foes[0].k='sporeling';C.foes[0].hp=0;fell(C.foes[0]);globalThis.prePoison=G.hp;startTurn()");
  assert.equal(g.run('prePoison-G.hp'),2);
  assert.equal(g.run('C.p.st.poison'),1);
 });

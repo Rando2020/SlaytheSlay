@@ -1,8 +1,8 @@
 # Oathbound selection artwork
 
-`assets/bg_oath_select.webp` is the existing approved kneeling-knight/four-gods selection painting, copied unchanged from the local project asset. No replacement artwork or class mechanics were generated for this fix. Original dimensions: 1672 × 941.
+`assets/backgrounds/oath_select.webp` is the existing approved kneeling-knight/four-gods selection painting, copied unchanged from the local project asset. No replacement artwork or class mechanics were generated for this fix. Original dimensions: 1672 × 941.
 
-`assets/bg_oath_select_4k.webp` is a 3840 × 2161 Lanczos resize of that file, encoded as WebP quality 90. It is a display derivative, not native 4K artwork.
+`assets/backgrounds/oath_select_4k.webp` is a 3840 × 2161 Lanczos resize of that file, encoded as WebP quality 90. It is a display derivative, not native 4K artwork.
 
 ## Verification
 

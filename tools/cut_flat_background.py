@@ -36,12 +36,12 @@ b=Image.fromarray(out,'RGBA')
 def norm(img,name,h=None):
     bb=img.getchannel('A').point(lambda v:255 if v>20 else 0).getbbox()
     img=img.crop(bb)
-    img.save(f'/home/claude/slaytheslay/assets/{name}.webp',quality=90,method=6);img.save(f'/tmp/{name}.png')
+    img.save(f'assets/heroes/aether/{name}.webp',quality=90,method=6);img.save(f'/tmp/aether_{name}.png')
     print(name,img.size)
     return img
-i1=norm(a,'hero_idle');b2=np.array(b);hh,ww=b2.shape[:2]
+i1=norm(a,'idle');b2=np.array(b);hh,ww=b2.shape[:2]
 bb=Image.fromarray(b2).getchannel('A').point(lambda v:255 if v>20 else 0).getbbox();x0,y0,x1,y1=bb
 cut=y0+(y1-y0)*0.957;b2[int(cut):,:int(x0+(x1-x0)*0.55),3]=0
-i2=norm(Image.fromarray(b2,'RGBA'),'hero_cast')
+i2=norm(Image.fromarray(b2,'RGBA'),'power')
 for n,i in [('idle',i1),('cast',i2)]:
     c=Image.new('RGBA',i.size,(40,140,90,255));c.alpha_composite(i);c.convert('RGB').save(f'/tmp/chk_{n}.jpg')
