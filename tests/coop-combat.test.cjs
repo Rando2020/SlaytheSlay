@@ -17,6 +17,8 @@ function launch(heroes, storage = new Map(), leaveThreshold = false) {
     URLSearchParams, location:{search:""}, cancelAnimationFrame:noop,
     document: {
       documentElement: {style: {}},
+      createElement: () => ({style:{}, remove:noop}),
+      body: {appendChild:noop},
       addEventListener: noop,
       querySelector: q => q === '#app' ? app : q === '#modal' ? modal : q.startsWith('#modal [') ? {focus:noop} : null
     },
@@ -182,3 +184,124 @@ test('solo Threshold resumes and combat blessings expire after three wins', () =
   }
 });
 
+
+test('victory weights follow the strongest defeated enemy and elite relics claim once', () => {
+  for (const [foes,kind,roll,rarity] of [
+    [['spore','tick'],'fight',0.65,1],
+    [['tick','mask'],'fight',0.65,2],
+    [['rustjaw'],'fight',0.93,3],
+    [['warden'],'elite',0.80,3]
+  ]) {
+    const {run}=launch(['aether']);
+    run(`startCombat(${JSON.stringify(foes)}, '${kind}'); Math.random=()=>${roll}; winCombat()`);
+    assert.equal(run('K[RW.cards[0]].r'),rarity);
+    assert.equal(run('new Set(RW.cards).size'),3);
+    assert.equal(run('!!RW.relic'),kind==='elite');
+    if(kind==='elite'){
+      run('var dropped=RW.relic; A.rrelic(); A.rrelic()');
+      assert.equal(run('G.relics.filter(id=>id===dropped).length'),1);
+    }
+  }
+});
+
+test('draft exhausts only unlocked cards and handles missing rarities', () => {
+  const {run}=launch(['oath']);
+  run("POOLS.oath={1:['warmonger'],2:['stoneshatter'],3:[]}; G.oaths=[]");
+  assert.equal(run("cardChoices('elite').length"),0);
+  run("G.oaths=['varran']");
+  assert.equal(run("JSON.stringify(cardChoices('elite'))"),'["warmonger"]');
+  run("G.oaths.push('orun')");
+  assert.equal(run("cardChoices('elite').sort().join(',')"),'stoneshatter,warmonger');
+});
+
+test('combat gold pays five per kill with bounded bonuses for each encounter tier', () => {
+  for(const [foes,kind,min,max] of [
+    [['tick'],'fight',7,17], [['tick','mask'],'fight',12,22],
+    [['warden'],'elite',25,35], [['king'],'boss',5,5]
+  ]) for(const [roll,expected] of [[0,min],[0.999,max]]){
+    const {run}=launch(['aether']);
+    run(`startCombat(${JSON.stringify(foes)},'${kind}'); var before=G.gold;
+      C.foes.forEach(e=>e.hp=0); Math.random=()=>${roll}; winCombat()`);
+    assert.equal(run('G.gold-before'),expected);
+    assert.equal(run('G.rewardAudit[0].killGold'),foes.length*5);
+    assert.equal(run('G.rewardAudit[0].gold'),expected);
+    assert.equal(run('JSON.stringify(G.rewardAudit[0].defeated)'),JSON.stringify(foes));
+  }
+});
+
+test('party reward audit survives reload and tracks each personal claim once', () => {
+  const first=launch(['oath','aether']);
+  first.run("A.previewNode('0,1');A.travel();startCombat(['warden'],'elite');C.foes[0].hp=0; winCombat()");
+  first.run("A.rrelic();A.inspectreward('0');A.rcard()");
+  const {run}=launch(null,first.storage);
+  run('A.contparty()');
+  assert.equal(run('G.rewardAudit.length'),1);
+  assert.equal(run('G.rewardAudit[0].chosenCard===G.rewardAudit[0].cards[0].id'),true);
+  assert.equal(run('G.rewardAudit[0].claimedRelic===G.rewardAudit[0].relic'),true);
+  run('A.map()');
+  assert.equal(run('G.rewardAudit.map(a=>a.seat).join()'),'0,1');
+  assert.equal(run('G.rewardAudit.every(a=>a.killGold===5)'),true);
+});
+
+test('seeded card reward audit covers both classes and every single and paired oath', t => {
+  const {run}=launch(['aether']);
+  const rows=run(`(()=>{
+    Math.random=seedRng(32735);
+    const gods=Object.keys(GODS);
+    const profiles=[[],...gods.map(g=>[g]),...gods.flatMap((g,i)=>gods.slice(i+1).map(h=>[g,h]))];
+    const rows=[];
+    for(const hero of ['aether','oath'])for(const oaths of hero==='oath'?profiles:[[]]){
+      G.hero=hero;G.oaths=oaths;
+      const eligible=new Set([...POOL[1],...POOL[2],...POOL[3]]);
+      for(const tier of ['common','uncommon','elite']){
+        let rareOffers=0,higherOffers=0;
+        const slots=[0,0,0],seen=new Set();
+        for(let i=0;i<5000;i++){
+          const ids=cardChoices(tier);
+          if(ids.length!==3||new Set(ids).size!==3||ids.some(id=>!eligible.has(id)))throw Error('Invalid draft '+hero+' '+oaths+' '+tier);
+          for(const id of ids){slots[K[id].r-1]++;seen.add(id)}
+          rareOffers+=Number(ids.some(id=>K[id].r===3));
+          higherOffers+=Number(ids.some(id=>K[id].r>=2));
+        }
+        rows.push({hero,oaths,tier,slots,rareOffers,higherOffers,seen:seen.size,pool:eligible.size,weights:CARD_REWARD_WEIGHTS[tier]});
+      }
+    }
+    return rows
+  })()`);
+  for(const row of rows){
+    assert.equal(row.seen,row.pool,'all eligible cards appeared');
+    for(const [i,count] of row.slots.entries())assert.ok(Math.abs(count/15000-row.weights[i]/100)<0.025,JSON.stringify(row));
+  }
+  for(const tier of ['common','uncommon','elite']){
+    const subset=rows.filter(row=>row.tier===tier);
+    const pct=key=>(subset.reduce((sum,row)=>sum+row[key],0)/subset.length/50).toFixed(1)+'%';
+    t.diagnostic(tier+' | offers: '+subset.length*5000+' | at least one rare: '+pct('rareOffers')+' | uncommon or rare: '+pct('higherOffers'));
+  }
+});
+
+test('reward audit distinguishes an open offer, a pick and a skipped offer by seat', () => {
+  const {run}=launch(['aether','oath']);
+  run("startCombat(['warden'],'elite');C.foes[0].hp=0;winCombat()");
+  assert.equal(run('G.rewardAudit[0].cardOutcome'),'pending');
+  run("A.inspectreward('0');A.rcard();A.rrelic();A.map();A.map()");
+  assert.equal(run("G.rewardAudit.map(a=>a.cardOutcome+'/'+a.relicOutcome).join(',')"),'picked/claimed,skipped/skipped');
+  assert.equal(run('G.rewardAudit.every(a=>a.eligibleByRarity.length===3)'),true);
+});
+
+test('rare decision report separates observed picks, skips, pending offers and missing legacy outcomes', () => {
+  const {run}=launch(['aether']);
+  const report=JSON.parse(run(`(()=>{
+    const cards=[{id:'r',rarity:3},{id:'c',rarity:1}];
+    const records=[
+      {tier:'elite',cards,chosenCard:'r'}, {tier:'elite',cards,chosenCard:'c'},
+      {tier:'elite',cards,cardOutcome:'skipped'}, {tier:'elite',cards,ascendedCard:'upgraded'},
+      {tier:'common',cards,cardOutcome:'pending'}, {tier:'common',cards},
+      {tier:'common',cards:[{id:'c',rarity:1}],chosenCard:'c'}
+    ];
+    return JSON.stringify(summarizeRareOffers(records));
+  })()`));
+  assert.deepEqual(report.total,{offers:6,resolved:4,rarePicked:1,lowerRarityPicked:1,skipped:1,ascended:1,pending:1,unknown:1,rarePickRate:0.25});
+  assert.equal(report.byEncounter.common.rarePickRate,null);
+  assert.equal(report.byEncounter.elite.resolved,4);
+  assert.equal(run("screen='dead';G.rewardAudit=[{}];endV().includes('data-a=\"rewardreport\"')"),true);
+});

@@ -980,8 +980,8 @@ const EN={
 spore:{n:'Sporeling',hp:[20,24],col:'#7bbf5a',s:'blob',rig:'sporeling',actionPoses:true,w:88,pas:['Burst Spores','When it dies, applies 2 Poison to you.'],ai:t=>[{n:'Spore Cloud',poison:3},{n:'Headbutt',a:6},{n:'Headbutt',a:6}][t%3]},
 tick:{n:'Aether Tick',hp:[11,14],col:'#b05a7a',s:'blob',rig:'aethertick',actionPoses:true,w:112,pas:['Charged Crystal','Charges up, then lunges. Siphon heals it for the damage it deals.'],ai:t=>[{n:'Charge',b:4},{n:'Lunge',a:10},{n:'Siphon',a:4,sip:1}][t%3]},
 scrap:{n:'Scrapclaw',hp:[42,46],col:'#c9a36b',s:'moth',rig:'scrapclaw',actionPoses:true,w:172,pas:['Overclock','Its canister vents to grant Strength and Block.'],ai:t=>t==0?{n:'Overclock',str:2,b:6}:[{n:'Twin Claws',a:4,x:2},{n:'Scrap Grab',a:6,weak:1}][(t-1)%2]},
-rustjaw:{n:'Rustjaw',hp:[38,42],col:'#6b8fbf',s:'beetle',rig:'rustjaw',actionPoses:true,w:150,pas:['Bloodscent','Gains 3 Strength the first time it drops below half HP.'],ai:t=>[{n:'Gnash',a:6,vuln:1},{n:'Maul',a:11},{n:'Hunker',b:9,a:4}][t%3]},
-mask:{n:'Veil Mask',hp:[26,30],col:'#8f86c8',s:'ghost',rig:'veilmask',actionPoses:true,w:150,fly:1,pas:['Hollow Veil','Its Phase grants Block that lasts until its next turn.'],ai:t=>[{n:'Hex Gaze',weak:1,vuln:1},{n:'Wail',a:8},{n:'Phase',b:10,a:3}][t%3]},
+rustjaw:{rewardTier:'uncommon',n:'Rustjaw',hp:[38,42],col:'#6b8fbf',s:'beetle',rig:'rustjaw',actionPoses:true,w:150,pas:['Bloodscent','Gains 3 Strength the first time it drops below half HP.'],ai:t=>[{n:'Gnash',a:6,vuln:1},{n:'Maul',a:11},{n:'Hunker',b:9,a:4}][t%3]},
+mask:{rewardTier:'uncommon',n:'Veil Mask',hp:[26,30],col:'#8f86c8',s:'ghost',rig:'veilmask',actionPoses:true,w:150,fly:1,pas:['Hollow Veil','Its Phase grants Block that lasts until its next turn.'],ai:t=>[{n:'Hex Gaze',weak:1,vuln:1},{n:'Wail',a:8},{n:'Phase',b:10,a:3}][t%3]},
 warden:{n:'Stone Warden',hp:[82,86],col:'#a0a6ad',s:'golem',big:1,rig:'stonewarden',actionPoses:true,w:212,keep:1,pas:['Bulwark','Keeps half its Block between turns. Shield Slam adds its Block to the damage.'],ai:t=>[{n:'Fortify',b:16},{n:'Shield Slam',a:6,slam:1},{n:'Tremor',a:5,x:2,weak:1}][t%3]},
 jugg:{n:'Juggernaut',hp:[90,96],col:'#9a7fb0',s:'golem',big:1,rig:'juggernaut',actionPoses:true,paintedIdle:true,w:168,pas:['Overpressure','At half HP its canister vents: +2 Strength and 10 Block (once).'],ai:t=>[{n:'Crushing Fist',a:13},{n:'Hammerfall',a:6,x:2,vuln:1},{n:'Vent',str:2,b:8}][t%3]},
 hex:{n:'Hex Mother',pas:['Witch','Curses you, then strikes.'],hp:[68,72],col:'#d0607a',s:'ghost',big:1,img:'hexmother/idle',ar:940/590,w:178,fly:1,paintedIdle:true,actionPoses:true,ai:t=>[{n:'Hexblade',a:9,vuln:2},{n:'Thousand Cuts',a:6,x:3},{n:'Dark Rite',weak:2,str:3}][t%3]},
@@ -1025,7 +1025,20 @@ const gainRelic=k=>{G.relics.push(k);if(k=='moss'){G.maxHp+=8;G.hp+=8}
  if(k=='legacy'){const el=ascList(2);if(el.length)openPick("Saint's Legacy: Exalt a card (T2 to T3)",el,c=>{ascend(c);render()},'Later');else toast('No T2 card to Exalt yet.')}
  if(k=='seal'){const el=G.deck.filter(c=>godOf(c)&&!c.seal);if(el.length)openPick('Broken Seal: choose a divine card',el,c=>{c.seal=1;toast(name(c)+' stays accessible whatever your allegiance.');render()},'Later');else toast('You have no divine card to seal yet.')}
  if(k=='halo'){const gs=['aurel','orun','mora'];chooseP('Broken Halo','Remove one Divine Price for the rest of the run.',gs.map(g=>`<b>${GODS[g].n}</b>: ${GODS[g].price}`)).then(i=>{G.halo=gs[i||0];toast(GODS[G.halo].n+"'s price is lifted.");render()})}};
-function cardChoices(b){const out=[];let g=0;while(out.length<3&&g++<60){const r=Math.random(),t=r<.07+b*.13?3:r<.42+b*.13?2:1,id=pick(POOL[t]);if(!out.includes(id))out.push(id)}return out}
+// Per-slot weights in common, uncommon, rare order. Only eligible tiers participate.
+const CARD_REWARD_WEIGHTS={common:[75,22,3],uncommon:[55,36,9],elite:[25,50,25],study:[58,35,7]};
+function cardChoices(tier){
+ const buckets=CARD_REWARD_WEIGHTS[tier].map((weight,index)=>({weight,ids:[...POOL[index+1]]}));
+ const choices=[];
+ while(choices.length<3){
+  const available=buckets.filter(bucket=>bucket.ids.length);
+  if(!available.length)break;
+  let roll=Math.random()*available.reduce((sum,bucket)=>sum+bucket.weight,0);
+  const bucket=available.find(bucket=>(roll-=bucket.weight)<0);
+  choices.push(bucket.ids.splice(R(bucket.ids.length),1)[0]);
+ }
+ return choices
+}
 function toast(m){const d=document.createElement('div');d.className='toast';d.style.zoom=Z;d.textContent=m;document.body.appendChild(d);setTimeout(()=>d.remove(),2000)}
 const fx=(sel,txt,cls='',an='')=>Q.push([sel,txt,cls,an]);
 function flush(){const q=Q;Q=[];q.forEach(([sel,txt,cls,an])=>{const el=$(sel);if(!el)return;const r=el.getBoundingClientRect();
@@ -1221,12 +1234,14 @@ async function enemyTurn(){
 function winCombat(){
  if(!C)return;
  const kind=C.kind;
+ const rewardTier=kind==='fight'?(C.foes.some(foe=>EN[foe.k].rewardTier==='uncommon')?'uncommon':'common'):kind;
+ const defeated=C.foes.filter(foe=>foe.hp<=0).map(foe=>foe.k);
  const originalSeat=activeSeat();for(let seat=0;seat<partySize();seat++){selectSeat(seat);thresholdCombatWon()}selectSeat(originalSeat);
- if(kind==='boss')forLivingHeroes(()=>{if(has('heart'))heal(6);if(has('pseal'))heal(1)});
+ if(kind==='boss')forLivingHeroes(()=>{if(has('heart'))heal(6);if(has('pseal'))heal(1);creditCombatReward('boss',defeated,0,[],null)});
  selectSeat(livingSeats()[0]);
  combatParty=[];combatEnemyPhase=false;C=null;
  if(kind==='boss'){wipe();screen='win';return render()}
- beginPartyRewards(kind);
+ beginPartyRewards({tier:rewardTier,defeated});
 }
 function die(){wipe();combatParty=[];combatEnemyPhase=false;C=null;screen='dead';render()}
 
@@ -1377,6 +1392,13 @@ function beginRoomVisits(seats,visit){
  roomVisits={seats:[...seats],...visit};advanceRoom()
 }
 function advanceRoom(){
+ if(screen==='reward'){
+  const audit=currentRewardAudit();
+  if(audit){
+   if(audit.cardOutcome==='pending')audit.cardOutcome='skipped';
+   if(audit.relicOutcome==='pending')audit.relicOutcome='skipped';
+  }
+ }
  if(roomVisits?.seats.length&&screen==='shop'&&G.threshold&&G.threshold.merchantRemaining>0)G.threshold.merchantRemaining--;
  if(!roomVisits||!roomVisits.seats.length)return goMap();
  selectSeat(roomVisits.seats.shift());if(roomVisits.reward)openCombatReward(roomVisits.reward);else openRoom(roomVisits.room,EVENTS[roomVisits.event]);render()
@@ -1384,10 +1406,27 @@ function advanceRoom(){
 function beginPartyRewards(kind){
  beginRoomVisits(livingSeats(),{reward:kind})
 }
-function openCombatReward(kind){
+function creditCombatReward(tier,defeated,bonus,cards,relic){
+ const killGold=defeated===null?null:defeated.length*5;
+ const gold=(killGold??0)+bonus;
+ G.gold+=gold;
+ const audit=G.rewardAudit??=[];
+ const index=audit.push({floor:G.floor,seat:activeSeat(),hero:G.hero,tier,defeated,killGold,bonus,gold,
+  oaths:[...G.oaths],eligibleByRarity:[1,2,3].map(rarity=>POOL[rarity].length),
+  cards:cards.map(id=>({id,rarity:K[id].r})),relic,chosenCard:null,claimedRelic:null,
+  cardOutcome:cards.length?'pending':'none',relicOutcome:relic?'pending':'none'})-1;
+ return {gold,auditIndex:index}
+}
+function currentRewardAudit(){return G.rewardAudit?.[RW.auditIndex]}
+function openCombatReward(reward){
+ // Older saves only stored the encounter kind for the remaining party seats.
+ const kind=reward.tier??reward;
+ const defeated=reward.defeated??null;
   if(has('heart'))heal(6);if(has('pseal'))heal(1);
-  const elite=kind==='elite',gold=elite?25+R(11):10+R(11);G.gold+=gold;
-  RW={gold,cards:cardChoices(elite?1:0),relic:elite?randRelic():null,taken:false,asc:G.hero==='oath'&&(elite||Math.random()<.1)&&ascList(1).length?{from:1}:null};screen='reward'
+  const elite=kind==='elite';
+  const bonus=(defeated===null?(elite?25:10):(elite?20:2))+R(11);
+  const cards=cardChoices(kind==='fight'?'common':kind),relic=elite?randRelic():null;
+  RW={...creditCombatReward(kind,defeated,bonus,cards,relic),cards,relic,taken:false,asc:G.hero==='oath'&&(elite||Math.random()<.1)&&ascList(1).length?{from:1}:null};screen='reward'
 }
 function openRoom(t,sharedEvent){
  if(t==='rest'){RS={done:0,msg:''};screen='rest'}
@@ -1411,7 +1450,7 @@ const EVENTS=[
  {l:'Harvest spores: gain Toxin Dart',f:()=>{G.deck.push(mk('toxin'));return 'You pocket a handful of spores. Toxin Dart added.'}}]},
 {n:'Burned Library',t:'Half the shelves are ash. A few pages still glow with stubborn ink.',o:[
  {l:'Study universal techniques: choose 1 of 3 colorless cards',f:()=>{openPick('Learn a colorless technique',colorlessChoices().map(id=>mk(id)),c=>{G.deck.push(c);EV.msg='You learn '+name(c)+'.';EV.done=1;render()});return null}},
- {l:'Study: choose 1 of 3 cards',f:()=>{openPick('Choose a card to add',cardChoices(0).map(id=>mk(id)),c=>{G.deck.push(c);EV.msg='You learn '+name(c)+'.';EV.done=1;render()});return null}},
+ {l:'Study: choose 1 of 3 cards',f:()=>{openPick('Choose a card to add',cardChoices('study').map(id=>mk(id)),c=>{G.deck.push(c);EV.msg='You learn '+name(c)+'.';EV.done=1;render()});return null}},
  {l:'Burn a page: remove a card',ok:()=>G.deck.length>1,f:()=>{openPick('Remove a card',G.deck,c=>{G.deck.splice(G.deck.indexOf(c),1);EV.msg=name(c)+' goes up in smoke.';EV.done=1;render()});return null}}]}];
 
 /* ---------- views ---------- */
@@ -1570,7 +1609,37 @@ function restV(){
 
 function eventV(){const e=EV.e;return `<div class="panel"><svg class="pic" viewBox="0 0 200 120" aria-hidden="true"><ellipse cx="100" cy="114" rx="70" ry="6" fill="#000" opacity=".5"/><path d="M58 114V58C58 31 77 14 100 14S142 31 142 58V114Z" fill="#0d0807" stroke="#e8c86a" stroke-width="3"/><circle cx="100" cy="68" r="22" fill="#ff5a36" opacity=".25"/><circle cx="100" cy="68" r="9" fill="#ff5a36"/><text x="100" y="74" text-anchor="middle" font-family="Cinzel,serif" font-weight="800" font-size="16" fill="#1a0d09">?</text></svg><h2>${e.n}</h2><p class="sub">${EV.msg||e.t}</p>
  ${EV.done?`<button class="btn pri" data-a="map">Continue</button>`:`<div class="opts">${e.o.map((o,i)=>`<button class="btn opt" data-a="evo" data-v="${i}" ${o.ok&&!o.ok()?'disabled':''}>${o.l}</button>`).join('')}</div>`}</div>`}
-function endV(){const w=screen=='win';return `<div class="panel end"><svg class="pic" viewBox="0 0 200 120" aria-hidden="true">${w?`<g transform="translate(100 64) scale(4.2)">${NI.boss}</g>`:`<g transform="translate(100 62) scale(4.2)">${NI.elite}</g>`}</svg><h1>${w?'The King falls':'Your climb ends'}</h1><p class="sub">${G.party?(w?`Your ${partySize()} climbers defeated the Hollow King.`:`Your party fell on floor ${G.floor} of 13.`):w?`You toppled the Hollow King with a deck of ${G.deck.length} cards and ${G.relics.length} relics.`:`You fell on floor ${G.floor} of 13 with ${G.deck.length} cards in your deck.`}</p><button class="btn pri" data-a="${G.party?'title':'new'}">${G.party?'Return to title':'Start a new run'}</button></div>`}
+function summarizeRareOffers(records){
+ const counts=()=>({offers:0,resolved:0,rarePicked:0,lowerRarityPicked:0,skipped:0,ascended:0,pending:0,unknown:0});
+ const total=counts(),byEncounter={};
+ for(const row of records){
+  if(!row.cards?.some(card=>card.rarity===3))continue;
+  const picked=row.cards.find(card=>card.id===row.chosenCard);
+  let outcome='unknown';
+  if(picked)outcome=picked.rarity===3?'rarePicked':'lowerRarityPicked';
+  else if(row.ascendedCard)outcome='ascended';
+  else if(['pending','skipped'].includes(row.cardOutcome))outcome=row.cardOutcome;
+  const group=byEncounter[row.tier]??=counts();
+  for(const bucket of [total,group]){
+   bucket.offers++;
+   bucket[outcome]++;
+   if(outcome!=='pending'&&outcome!=='unknown')bucket.resolved++;
+  }
+ }
+ for(const bucket of [total,...Object.values(byEncounter)]){
+  bucket.rarePickRate=bucket.resolved?bucket.rarePicked/bucket.resolved:null;
+ }
+ return {total,byEncounter}
+}
+function downloadRewardReport(){
+ const records=G.rewardAudit||[];
+ const report={seed:G.seed,screen,rewards:records,rareOfferSummary:summarizeRareOffers(records)};
+ const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'}));
+ const link=document.createElement('a');
+ link.href=url;link.download='hollow-ascent-rewards-'+G.seed+'.json';link.click();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function endV(){const w=screen=='win';return `<div class="panel end"><svg class="pic" viewBox="0 0 200 120" aria-hidden="true">${w?`<g transform="translate(100 64) scale(4.2)">${NI.boss}</g>`:`<g transform="translate(100 62) scale(4.2)">${NI.elite}</g>`}</svg><h1>${w?'The King falls':'Your climb ends'}</h1><p class="sub">${G.party?(w?`Your ${partySize()} climbers defeated the Hollow King.`:`Your party fell on floor ${G.floor} of 13.`):w?`You toppled the Hollow King with a deck of ${G.deck.length} cards and ${G.relics.length} relics.`:`You fell on floor ${G.floor} of 13 with ${G.deck.length} cards in your deck.`}</p><button class="btn pri" data-a="${G.party?'title':'new'}">${G.party?'Return to title':'Start a new run'}</button> ${G.rewardAudit?.length?'<button class="btn" data-a="rewardreport">Download reward report</button>':''}</div>`}
 function thresholdV(){const t=G.threshold,p=t.pending,b=blessingById(t.selected);return `<section class="threshold" aria-label="The Threshold"><h1>The Threshold</h1><p class="sub">${G.party?`Player ${activeSeat()+1} of ${partySize()} · `:""}Choose what you carry into the ascent.</p>${p?`<h2>${b.n}</h2><p class="sub">${b.d}</p><div class="row">${p.choices.map(v=>{const c=p.type==='card'?{id:v,up:0}:G.deck.find(x=>x.u===v);return c?cardV(c,`data-a="blessresolve" data-v="${v}"`):''}).join('')}</div>`:`<div class="threshold-offers">${t.offers.map((id,i)=>{const a=blessingById(id);return `<button class="threshold-offer" style="--delay:${i*130}ms" data-a="bless" data-v="${id}"><span class="threshold-art">${ICO[a.icon]}</span><b>${a.n}</b><span>${a.d}</span><i>${a.flavor}</i><strong>Accept offering</strong></button>`}).join('')}</div>`}</section>`}
 const VIEWS={threshold:thresholdV,map:mapV,combat:combatV,reward:rewardV,shop:shopV,rest:restV,shrine:shrineV,event:eventV,dead:endV,win:endV};
 function render(){hideKeyword();setZoom();PT=null;PV.key='';$('#app').innerHTML=screen=='title'?titleV():screen=='maplab'?labV():screen=='partymenu'?partyMenuV():screen=='pick'?pickV():screen=='oathpreview'?oathPreviewV():topV()+VIEWS[screen]();
@@ -1828,11 +1897,12 @@ inspectreward:inspectReward,
 rcard:()=>{
  const chosen=MD?.reward;
  if(screen!=='reward'||!chosen||chosen.offer!==RW||RW.taken||RW.cards[chosen.index]!==chosen.id)return;
- G.deck.push(mk(chosen.id));RW.taken=true;closeModal();render();
+ G.deck.push(mk(chosen.id));const audit=currentRewardAudit();if(audit){audit.chosenCard=chosen.id;audit.cardOutcome='picked'}RW.taken=true;closeModal();render();
  ($('[data-a="rrelic"]')||$('[data-a="rasc"]')||$('[data-a="map"]'))?.focus();
 },
-rrelic:()=>{if(!RW.relic)return;gainRelic(RW.relic);toast('Gained '+RELICS[RW.relic].n);RW.relic=null;render()},
+rrelic:()=>{if(!RW.relic)return;gainRelic(RW.relic);const audit=currentRewardAudit();if(audit){audit.claimedRelic=RW.relic;audit.relicOutcome='claimed'}toast('Gained '+RELICS[RW.relic].n);RW.relic=null;render()},
 map:advanceRoom,
+rewardreport:downloadRewardReport,
 inspectware:inspectWare,
 buy:()=>{
  const item=MD?.ware;
@@ -1872,7 +1942,7 @@ evo:v=>{if(EV.done)return;const o=EV.e.o[+v];if(o.ok&&!o.ok())return;const m=o.f
 mpick:v=>{const c=MD.cards[+v],cb=MD.cb;MD.onClose=null;closeModal();if(cb)cb(c)},
 mask:v=>{const r=MD&&MD.ask;MD=null;$('#modal').innerHTML='';if(r)r(+v)},
 key:()=>{if(!C||C.busy||C.lock||C.keyUsed)return;C.keyUsed=1;if(!ddraw(1,1))toast('The Dormant Sanctums are empty.');render()},
-rasc:()=>{if(!RW.asc||RW.ascDone)return;const f=RW.asc.from;openPick((f==1?'Ascend':'Exalt')+` a card (T${f} to T${f+1})`,ascList(f),c=>{ascend(c);RW.ascDone=1;if(!RW.asc.free)RW.taken=true;render()})},
+rasc:()=>{if(!RW.asc||RW.ascDone||(RW.taken&&!RW.asc.free))return;const f=RW.asc.from;openPick((f==1?'Ascend':'Exalt')+` a card (T${f} to T${f+1})`,ascList(f),c=>{ascend(c);RW.ascDone=1;const audit=currentRewardAudit();if(audit){audit.ascendedCard=c.id;audit.cardOutcome='ascended'}if(!RW.asc.free)RW.taken=true;render()})},
 swear:v=>{if(SR.done||!GODS[v])return;const cur=G.oaths,mx=has('twin')?2:1,no=cur.length>=mx?(mx==2?[cur[1],v]:[v]):[...cur,v];if(ordinaryCount(no,G.deck)<8)return;
  const drop=cur.filter(x=>!no.includes(x)),back=G.deck.some(c=>c.tier&&c.g==v);G.oaths=no;SR.done=1;
  SR.msg=`You swear the Oath of ${GODS[v].oath} to ${GODS[v].full}. ${GODS[v].law}${drop.length?' The cards of '+drop.map(x=>GODS[x].n).join(' and ')+' fall Dormant.':''}${back?' Your old '+GODS[v].sanc+' wakes at the tiers you left it.':''}`;
@@ -2085,7 +2155,7 @@ if (combatLab && screen !== "gallery") {
         endTurn,
         choose:(action, value) => A[action](value)
       },
-      snapshot:() => ({url:location.href, screen, run:G, combat:C})
+      snapshot:() => ({url:location.href, screen, run:G, combat:C,rareOfferSummary:summarizeRareOffers(G?.rewardAudit||[])})
     });
   }).catch(error => {
     const message = document.createElement('p');
