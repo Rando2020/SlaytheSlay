@@ -211,3 +211,38 @@ test('Sporeling still inflicts Poison and the next turn consumes a stack',()=>{
  assert.equal(g.run('prePoison-G.hp'),2);
  assert.equal(g.run('C.p.st.poison'),1);
 });
+
+test('Covering Shot grants Block only against attack intents, including on a finishing shot',()=>{
+ for(const up of [0,1]){
+  const g=game();
+  g.run("C.foes[0].int={b:8}");
+  resolve(g,'iron',up);
+  assert.equal(g.run('C.p.block'),0);
+  assert.equal(g.run('9999-C.foes[0].hp'),up?9:6);
+  g.run("C.foes[0].hp=1;C.foes[0].int={a:5}");
+  resolve(g,'iron',up);
+  assert.equal(g.run('C.p.block'),5);
+ }
+});
+test('Pocket the Brass banks the card for the following turn only after a cartridge discard',()=>{
+ const g=game();stock(g);
+ resolve(g,'shrug',0,[],false);
+ assert.equal(g.run('C.neutralIncoming?.length||0'),0);
+ g.run("C.hand=[mk('defend')]");
+ resolve(g,'bash',0,[g.run('C.hand[0].u')]);
+ resolve(g,'shrug',1,[],false);
+ assert.equal(g.run('C.p.block'),17);
+ assert.equal(g.run('C.hand.length'),0);
+ g.run('startTurn()');
+ assert.equal(g.run('C.hand.length'),6);
+ assert.equal(g.run('C.neutralIncoming.length'),0);
+});
+test('Rivet Punch strips armor before ordinary attack damage and gets no bonus on bare targets',()=>{
+ for(const up of [0,1])for(const block of [0,4,20]){
+  const g=game();g.run('C.foes[0].block='+block);
+  resolve(g,'heavy',up);
+  const remaining=Math.max(0,block-(up?10:7));
+  assert.equal(g.run('9999-C.foes[0].hp'),Math.max(0,(up?15:12)-remaining));
+  assert.equal(g.run('C.foes[0].block'),Math.max(0,remaining-(up?15:12)));
+ }
+});

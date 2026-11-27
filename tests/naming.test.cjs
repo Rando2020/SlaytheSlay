@@ -38,7 +38,10 @@ test('asset files use lowercase names inside a known category folder', () => {
       const p = dir + '/' + entry.name;
       if (entry.isDirectory()) { walk(p); continue; }
       if (entry.name === 'README.md') continue;
-      assert.match(entry.name, /^[a-z0-9][a-z0-9_-]*\.(webp|png|js|json)$/,
+      const allowed = dir === 'assets/maps/act01/symbols'
+        ? /^[a-z0-9][a-z0-9_-]*\.(webp|png|js|json|svg)$/
+        : /^[a-z0-9][a-z0-9_-]*\.(webp|png|js|json)$/;
+      assert.match(entry.name, allowed,
         `${p}: file names are lowercase letters, digits, "-" and "_" with a lowercase extension.`);
     }
   })('assets');

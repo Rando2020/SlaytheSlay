@@ -108,9 +108,9 @@ Card art is looked up in order: `assets/ui/cards/art/<heroId>/<cardId>.png`, the
 | `defend` | Take Cover | Skill | starter | `ui/cards/art/aether/defend.png` | missing |
 | `bash` | Vent Shot | Attack | starter | `ui/cards/art/aether/bash.png` | missing |
 | `cleave` | Scatterglass | Attack | common | `ui/cards/art/aether/cleave.png` | missing |
-| `iron` | Iron Wave | Attack | common | `ui/cards/art/aether/iron.png` | missing |
+| `iron` | Covering Shot | Attack | common | `ui/cards/art/aether/iron.png` | missing |
 | `pommel` | Cycle the Breech | Attack | common | `ui/cards/art/aether/pommel.png` | missing |
-| `shrug` | Shrug Off | Skill | common | `ui/cards/art/aether/shrug.png` | missing |
+| `shrug` | Pocket the Brass | Skill | common | `ui/cards/art/aether/shrug.png` | missing |
 | `twin` | Twin Slash | Attack | common | `ui/cards/art/aether/twin.png` | missing |
 | `stab` | Burring Round | Attack | common | `ui/cards/art/aether/stab.png` | missing |
 | `toxin` | Loose Cartridge | Attack | common | `ui/cards/art/aether/toxin.png` | missing |
@@ -118,7 +118,7 @@ Card art is looked up in order: `assets/ui/cards/art/<heroId>/<cardId>.png`, the
 | `slam` | Body Slam | Attack | common | `ui/cards/art/aether/slam.png` | missing |
 | `inflame` | Inflame | Power | uncommon | `ui/cards/art/aether/inflame.png` | missing |
 | `upper` | Uppercut | Attack | uncommon | `ui/cards/art/aether/upper.png` | missing |
-| `heavy` | Heavy Blade | Attack | uncommon | `ui/cards/art/aether/heavy.png` | missing |
+| `heavy` | Rivet Punch | Attack | uncommon | `ui/cards/art/aether/heavy.png` | missing |
 | `catalyst` | Crack the Ampoule | Attack | uncommon | `ui/cards/art/aether/catalyst.png` | missing |
 | `blood` | Bloodletting | Skill | uncommon | `ui/cards/art/aether/blood.png` | missing |
 | `trance` | Battle Trance | Skill | uncommon | `ui/cards/art/aether/trance.png` | missing |

@@ -120,3 +120,5 @@ Save it as `assets/ui/relics/<relicId>.png` and run the generators. A relic with
 
 - Branch names: `<type>/<short-name>` with type `feat`, `fix`, `art`, `balance`, `docs` or `chore`, for example `art/hexmother-poses`.
 - One feature per branch. Merge `main` in before opening the PR, run the generators and tests, and delete the branch after it merges.
+
+Act I map symbols use lowercase encounter IDs in assets/maps/act01/symbols/<id>.svg. These vector icons are supported alongside the painted map assets.
