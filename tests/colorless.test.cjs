@@ -167,3 +167,18 @@ test('retrieval at hand cap cannot duplicate or lose a physical card; stacked dr
  const g=game('oath');g.run("C.hand=Array.from({length:10},()=>mk('strike'));C.disc=[mk('defend')];globalThis.id=C.disc[0].u;retrieveNeutral(id,'hand')");assert.equal(g.run('C.hand.length'),10);assert.equal(g.run('C.disc.filter(c=>c.u===id).length'),1);
  g.run("G.oaths=['aurel'];C.hand=[];C.sanc.aurel=[{...mk('invoke'),tier:1,g:'aurel',dturn:-1}]");stock(g);for(let i=0;i<4;i++)resolve(g,'borrowed_tomorrow');g.run('startTurn()');assert.equal(g.run('C.hand.length'),0);assert.equal(g.run('C.sanc.aurel.length'),1);assert.equal(g.run('C.energy'),0);
 });
+function nativeParty(g){g.run("G=bindParty({party:['aether','oath'].map(hero=>({hero,hp:HEROES[hero].hp,maxHp:HEROES[hero].hp,gold:99,deck:Array.from({length:20},()=>mk('strike')),relics:[],oaths:[]})),seat:0,seed:77,map:[],floor:1});startCombat(['king'],'fight');C.foes[0].hp=C.foes[0].max=9999;C.foes[0].int={a:4,x:2}")}
+test('native party support targets living seats and carries pre-turn Block through recipient reset',async()=>{
+ const g=game();nativeParty(g);resolve(g,'cover',0,[1]);resolve(g,'reinforcements');resolve(g,'rally',0,[1]);resolve(g,'supply_cache',0,[1]);assert.equal(g.run('combatParty[1].p.block'),15);
+ await g.run('endTurn()');assert.equal(g.run('activeSeat()'),1);assert.equal(g.run('C.p.block'),15);assert.equal(g.run('C.hand.length'),7);assert.equal(g.run('C.energy'),5);assert.ok(g.run('reqMsg(mk("supply_cache"))===null'),'other recipient still eligible');resolve(g,'supply_cache',0,[1]);assert.equal(g.run('C.neutralIncoming.length'),0,'different provider cannot supply same recipient twice');
+ resolve(g,'mark_for_death');g.run('focusCombatSeat(0)');resolve(g,'counterweight');assert.equal(g.run('9999-C.foes[0].hp'),11);
+});
+test('native Intercept redirects an explicit single-target multi-hit action, never party-wide attacks',async()=>{
+ const g=game();nativeParty(g);g.run('C.p.block=0');resolve(g,'intercept',0,[1]);await g.run('endTurn()');g.run('C.foes[0].int={a:7,x:2,target:1}');await g.run('endTurn()');assert.equal(g.run('partyMember(0).hp'),66);assert.equal(g.run('partyMember(1).hp'),80);
+ const h=game();nativeParty(h);resolve(h,'intercept',0,[1]);await h.run('endTurn()');await h.run('endTurn()');assert.equal(h.run('partyMember(0).hp'),70);assert.equal(h.run('partyMember(1).hp'),72);assert.equal(h.run('combatParty[0].neutral.redirects.length'),1);
+});
+test('party previews cannot mutate other members or their combat states, and Threshold seed outputs stay stable',()=>{
+ const g=game();nativeParty(g);vm.runInContext(html.match(/function simCard\(c,ti\)\{[^\n]+/)[0],g.ctx);
+ for(const id of ['cover','rally','supply_cache','reinforcements']){g.run(`globalThis.before=JSON.stringify([G,combatParty]);simCard(mk('${id}'),0)`);assert.equal(g.run('JSON.stringify([G,combatParty])===before'),true,id)}
+ g.run("newRunSeed('oath',1234);globalThis.a=JSON.stringify([G.map,G.threshold.offers]);newRunSeed('oath',1234)");assert.equal(g.run('JSON.stringify([G.map,G.threshold.offers])===a'),true);
+});

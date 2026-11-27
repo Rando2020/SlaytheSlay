@@ -10,7 +10,7 @@ const server=http.createServer((req,res)=>{
  const file=path.resolve(root,'.'+new URL(req.url,'http://local').pathname);
  if(!file.startsWith(root+path.sep)&&file!==root){res.writeHead(403);return res.end()}
  const p=file===root?path.join(root,'index.html'):file;
- try{const data=fs.readFileSync(p);res.setHeader('Content-Type',p.endsWith('.html')?'text/html':p.endsWith('.png')?'image/png':p.endsWith('.webp')?'image/webp':'application/octet-stream');res.end(data)}catch{res.writeHead(404);res.end()}
+ try{const data=fs.readFileSync(p);res.setHeader('Content-Type',p.endsWith('.html')?'text/html':p.endsWith('.js')?'text/javascript':p.endsWith('.png')?'image/png':p.endsWith('.webp')?'image/webp':'application/octet-stream');res.end(data)}catch{res.writeHead(404);res.end()}
 });
 const chromePath=process.env.CHROME_PATH||path.join(process.env.ProgramFiles||'C:/Program Files','Google/Chrome/Application/chrome.exe');
 let chrome,sock;
@@ -34,7 +34,7 @@ let chrome,sock;
  async function saved(id,up=0,type='fight',n=10){
   const g={hero:'aether',hp:70,maxHp:70,gold:999,deck:Array.from({length:n},(_,i)=>({id,up,u:i+1})),relics:['heart'],oaths:[],map:[[{t:type,next:[],jx:0,jy:0}]],pos:null,path:[],floor:0};
   await evalJS(`localStorage.setItem('hollow-ascent-v1',${JSON.stringify(JSON.stringify(g))});window.__oldPage=true;location.reload()`);
-  await wait('!window.__oldPage && document.readyState==="complete"');
+  await wait('!window.__oldPage && document.readyState==="complete" && performance.now()>400');
   await click('[data-a=cont]');await click('[data-a=go]');
  }
  await saved('read_the_room');await wait('document.querySelectorAll(".hand .card").length===5');
