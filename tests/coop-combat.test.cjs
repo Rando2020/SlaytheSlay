@@ -17,6 +17,8 @@ function launch(heroes, storage = new Map(), leaveThreshold = false) {
     URLSearchParams, location:{search:""}, cancelAnimationFrame:noop,
     document: {
       documentElement: {style: {}},
+      createElement: () => ({style:{}, remove:noop}),
+      body: {appendChild:noop},
       addEventListener: noop,
       querySelector: q => q === '#app' ? app : q === '#modal' ? modal : q.startsWith('#modal [') ? {focus:noop} : null
     },
@@ -182,3 +184,32 @@ test('solo Threshold resumes and combat blessings expire after three wins', () =
   }
 });
 
+
+test('victory weights follow the strongest defeated enemy and elite relics claim once', () => {
+  for (const [foes,kind,roll,rarity] of [
+    [['spore','tick'],'fight',0.65,1],
+    [['tick','mask'],'fight',0.65,2],
+    [['rustjaw'],'fight',0.93,3],
+    [['warden'],'elite',0.80,3]
+  ]) {
+    const {run}=launch(['aether']);
+    run(`startCombat(${JSON.stringify(foes)}, '${kind}'); Math.random=()=>${roll}; winCombat()`);
+    assert.equal(run('K[RW.cards[0]].r'),rarity);
+    assert.equal(run('new Set(RW.cards).size'),3);
+    assert.equal(run('!!RW.relic'),kind==='elite');
+    if(kind==='elite'){
+      run('var dropped=RW.relic; A.rrelic(); A.rrelic()');
+      assert.equal(run('G.relics.filter(id=>id===dropped).length'),1);
+    }
+  }
+});
+
+test('draft exhausts only unlocked cards and handles missing rarities', () => {
+  const {run}=launch(['oath']);
+  run("POOLS.oath={1:['warmonger'],2:['stoneshatter'],3:[]}; G.oaths=[]");
+  assert.equal(run("cardChoices('elite').length"),0);
+  run("G.oaths=['varran']");
+  assert.equal(run("JSON.stringify(cardChoices('elite'))"),'["warmonger"]');
+  run("G.oaths.push('orun')");
+  assert.equal(run("cardChoices('elite').sort().join(',')"),'stoneshatter,warmonger');
+});
