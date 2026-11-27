@@ -287,3 +287,21 @@ test('reward audit distinguishes an open offer, a pick and a skipped offer by se
   assert.equal(run("G.rewardAudit.map(a=>a.cardOutcome+'/'+a.relicOutcome).join(',')"),'picked/claimed,skipped/skipped');
   assert.equal(run('G.rewardAudit.every(a=>a.eligibleByRarity.length===3)'),true);
 });
+
+test('rare decision report separates observed picks, skips, pending offers and missing legacy outcomes', () => {
+  const {run}=launch(['aether']);
+  const report=JSON.parse(run(`(()=>{
+    const cards=[{id:'r',rarity:3},{id:'c',rarity:1}];
+    const records=[
+      {tier:'elite',cards,chosenCard:'r'}, {tier:'elite',cards,chosenCard:'c'},
+      {tier:'elite',cards,cardOutcome:'skipped'}, {tier:'elite',cards,ascendedCard:'upgraded'},
+      {tier:'common',cards,cardOutcome:'pending'}, {tier:'common',cards},
+      {tier:'common',cards:[{id:'c',rarity:1}],chosenCard:'c'}
+    ];
+    return JSON.stringify(summarizeRareOffers(records));
+  })()`));
+  assert.deepEqual(report.total,{offers:6,resolved:4,rarePicked:1,lowerRarityPicked:1,skipped:1,ascended:1,pending:1,unknown:1,rarePickRate:0.25});
+  assert.equal(report.byEncounter.common.rarePickRate,null);
+  assert.equal(report.byEncounter.elite.resolved,4);
+  assert.equal(run("screen='dead';G.rewardAudit=[{}];endV().includes('data-a=\"rewardreport\"')"),true);
+});
