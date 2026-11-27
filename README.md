@@ -26,7 +26,7 @@ then visit `http://localhost:8000`.
 ## What's in it
 
 - Branching 13-floor map: fights, elites, rest sites, shops, events, treasure and a boss
-- Painted enemies with their own moves and passives: Sporeling (Spore Cloud poisons you, Burst Spores on death), Aether Tick (Charge, Lunge, Siphon heals), Scrapclaw (Overclock, Twin Claws, Scrap Grab), Rustjaw (Gnash, Maul, Hunker; Bloodscent gives +3 Strength below half HP), Veil Mask (Hex Gaze, Wail, Phase) and the elite Stone Warden (Bulwark keeps half its Block; Shield Slam adds its Block to the hit). Each move's name shows above its intent; hover the ◆ by an enemy's name to read its passive
+- Painted enemies with their own moves and passives: Sporeling (Spore Cloud poisons you, Burst Spores on death), Aether Tick (Charge, Lunge, Siphon heals), Scrapclaw (Overclock, Twin Claws, Scrap Grab), Rustjaw (Gnash, Maul, Hunker; Bloodscent gives +3 Strength below half HP), Veil Mask (Hex Gaze, Wail, Phase), and the elites Stone Warden (Bulwark keeps half its Block; Shield Slam adds its Block to the hit) and Juggernaut (Crushing Fist, Hammerfall, Vent; Overpressure vents for +2 Strength and 10 Block at half HP). Each move's name shows above its intent; hover the ◆ by an enemy's name to read its passive
 - 25 cards with upgrades, 7 relics, Strength, Vulnerable, Weak and Poison
 - Side-view combat stage with a painted backdrop for each third of the climb: sunlit ruins (floors 1 to 4), the great aether tree (5 to 9) and the storm-sealed gate (10 to 13, also the title art)
 - Diorama depth: the backdrop, a midground prop layer and a blurred foreground layer sit at different depths and slide past each other as the camera slowly sways
