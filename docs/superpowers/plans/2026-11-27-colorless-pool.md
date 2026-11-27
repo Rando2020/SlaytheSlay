@@ -30,5 +30,5 @@
 - Full suite: node --test → 66/66. Real-play matrix: 480 combinations. Browser smoke passed with zero runtime exceptions.
 - Independent reviews: no blocking findings, integration reviewer independently verified 66/66; Second Opinion text now matches required two selections.
 - Rulings: Cheap Shot target means enemy; HP costs follow sac rules; newly merged native party and seeded Threshold systems integrated; strongest-only Mark and per-recipient Supply cap are provisional safeguards.
-- Minor deferred: choice-dependent previews may omit benefits until selection.
+- Minor deferred: choice-dependent previews may omit benefits until selection; colorless draw cards do not yet populate the newly merged hover draw forecast.
 - Delivery: feature branch feat/colorless-card-pool; PR to main, never merge.
