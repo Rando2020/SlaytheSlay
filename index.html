@@ -160,9 +160,11 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 .chips:empty{display:none}
 .chip{font-size:13px;font-weight:800;padding:1px 6px;border-radius:7px;background:#0007;white-space:nowrap;display:inline-flex;align-items:center;gap:2px}
 .chip.blk,.chip.b{background:var(--moss);color:#0c201c}.chip.u{background:#e8c86a2e;color:var(--gold)}.chip.d{background:#b58ae02e;color:#d2b6f2}.chip.p{background:#9bd36a2e;color:var(--tox)}
-.hand{position:relative;height:204px;margin-top:2px}
+.hand{--hand-card-width:148px;--hand-card-height:212px;position:relative;height:calc(var(--hand-card-height) + 66px);margin-top:2px}
 .hand .empty{position:absolute;inset:0;display:grid;place-items:center;color:var(--mute);margin:0}
-.hand .card{position:absolute;top:38px;transform-origin:50% 130%;transform:translateY(var(--y)) rotate(var(--r));transition:transform .18s ease-out}
+.hand .card{position:absolute;top:22px;width:var(--hand-card-width);height:var(--hand-card-height);
+ --step:min(calc(var(--hand-card-width) + 10px),calc((100% - var(--hand-card-width) - 68px) / var(--gaps)));
+ left:calc(50% - var(--hand-card-width) / 2 + var(--offset) * var(--step));transform-origin:50% 130%;transform:translateY(var(--y)) rotate(var(--r));transition:transform .18s ease-out}
 .hand .card.sel{transform:translateY(-32px) rotate(0) scale(1.07);z-index:40!important;box-shadow:0 0 0 3px var(--gold),0 16px 26px #000d}
 @keyframes deal{from{transform:translate(-170px,70px) rotate(-28deg);opacity:0}}
 .ctl{display:flex;align-items:center;gap:12px;padding:4px 14px 16px}
@@ -191,7 +193,7 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 @keyframes ban{0%{opacity:0;transform:scaleY(.15)}10%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0}}
 .fl{transform-box:fill-box;transform-origin:50% 100%;animation:flick .6s ease-in-out infinite alternate}
 /* cards */
-.card{position:relative;flex:none;width:106px;height:152px;border-radius:11px;border:0;padding:0;background:var(--card);color:var(--cardink);box-shadow:0 8px 16px #000a,inset 0 0 0 3px var(--tc);display:flex;flex-direction:column;text-align:center;transition:transform .15s;scroll-snap-align:center}
+.card{position:relative;flex:none;width:168px;height:240px;border-radius:11px;border:0;padding:0;background:var(--card);color:var(--cardink);box-shadow:0 8px 16px #000a,inset 0 0 0 3px var(--tc);display:flex;flex-direction:column;text-align:center;transition:transform .15s;scroll-snap-align:center}
 .card.t-atk{--tc:#c4452c}.card.t-skl{--tc:#3c8b7c}.card.t-pow{--tc:#c4962a}.card.t-curse{--tc:#5d4b62;background:#d6cbd6}
 .card .cost{position:absolute;top:-8px;left:-8px;width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffb391,var(--ember) 60%,#9a2810);color:#1a0d09;font:800 16px Cinzel,serif;display:grid;place-items:center;border:2px solid #1a0d09}
 .card .nm{font:800 12.5px/1.1 Cinzel,serif;padding:11px 8px 3px;min-height:34px;display:grid;place-items:center}
@@ -232,7 +234,7 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 .shake{animation:sh .32s}
 @keyframes sh{20%{transform:translateX(-7px)}45%{transform:translateX(6px)}70%{transform:translateX(-3px)}}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#2d1b17;border:1px solid var(--gold);padding:10px 16px;border-radius:12px;z-index:60;max-width:90vw;font-weight:700;box-shadow:0 10px 24px #000a}
-@media(max-width:600px){.card{width:98px;height:146px}.foes .unit.pw{width:calc(var(--w)*.78px + 6px)}.foes .unit.pw .spr.paint{width:calc(var(--w)*.78px);height:calc(var(--h)*.78px)}.unit{width:110px}.spr{width:104px;height:87px}.unit.big{width:150px}.unit.big .spr{width:144px;height:120px}.hero{width:128px}.hero .spr{width:128px;height:198px}}
+@media(max-width:600px){.card{width:140px;height:202px}.hand{--hand-card-width:112px;--hand-card-height:168px}.hand .card.sel{transform-origin:50% 90%;transform:translateY(-26px) scale(1.2)}.foes .unit.pw{width:calc(var(--w)*.78px + 6px)}.foes .unit.pw .spr.paint{width:calc(var(--w)*.78px);height:calc(var(--h)*.78px)}.unit{width:110px}.spr{width:104px;height:87px}.unit.big{width:150px}.unit.big .spr{width:144px;height:120px}.hero{width:128px}.hero .spr{width:128px;height:198px}}
 .rig.tall{top:-50%;height:150%}
 .pop.o{font-size:19px;color:var(--gold)}.pop.o-varran{color:#ff7563}.pop.o-orun{color:#8cc4ff}.pop.o-mora{color:#c9a2ff}
 .chip.oath{border:0;font:inherit;font-size:13px;font-weight:800;cursor:pointer;color:#1a0d09;box-shadow:0 0 10px currentColor}
@@ -302,9 +304,17 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 .card.t-skl{--face:url(assets/ui/cards/skill-face.png)}
 .card.t-pow{--face:url(assets/ui/cards/power-face.png)}
 .card.t-curse{--face:url(assets/ui/cards/curse-face.png)}
-.card[class*="t-"]{background:var(--face) center/100% 100% no-repeat}
-.card .nm{height:22.37%;min-height:0;flex:none}
-.card .art{margin:0 8.49%;height:26.32%;flex:none;overflow:hidden}
+/* Slice the painted frame at its opening so the bronze rim follows the larger art. */
+.card:is(.t-atk,.t-skl,.t-pow,.t-curse){
+ background:transparent;border-image-source:var(--face);
+ border-image-slice:136 36 312 fill;border-image-width:18% 8.49% calc(82% - var(--art-height,40%));
+}
+.card .nm{height:18%;min-height:0;flex:none;padding:3px 10px 1px;font-size:14px}
+.card .ds{padding:4px 8px;font-size:14px}
+@media(max-width:600px){.hand .nm,.hand .ds{font-size:12px}.hand .ds{padding:2px 5px}.hand .ty{font-size:10px;padding-bottom:3px}}
+.card .art{margin:0 8.49%;height:var(--art-height,40%);flex:none;overflow:hidden}
+.card.wordy{--art-height:28%}
+@media(max-width:600px){.hand .wordy{--art-height:18%}}
 .card .art img{width:100%;height:100%;object-fit:cover}
 .hud-icon{vertical-align:middle;object-fit:contain}
 .orb{background:url(assets/ui/hud/energy-housing.png) center/contain no-repeat,radial-gradient(circle,#ffb391 0%,#ff693f 42%,transparent 64%);box-shadow:none}
@@ -359,9 +369,8 @@ body:has(#app>.stage){overflow:hidden}
 #app>.stage .hero .spr{width:100%;height:clamp(180px,30vh,290px)}
 #app>.stage .foes{gap:clamp(4px,2vw,30px)}
 #app>.hand{position:fixed;left:50%;bottom:70px;transform:translateX(-50%);width:min(100%,1120px);height:230px;margin:0;z-index:20;pointer-events:none}
-#app>.hand .card{pointer-events:auto;top:24px;width:128px;height:180px;box-shadow:0 12px 24px #000b,inset 0 0 0 3px var(--tc)}
+#app>.hand .card{pointer-events:auto;top:24px;width:var(--hand-card-width);height:var(--hand-card-height);box-shadow:0 12px 24px #000b,inset 0 0 0 3px var(--tc)}
 #app>.hand .card .ds{font-size:14px}
-#app>.hand .card .art{height:48px}
 #app>.hand .card:focus-visible{transform:translateY(-32px) rotate(0) scale(1.07);z-index:40!important}
 #app>.ctl{position:fixed;inset:auto 0 0;z-index:21;padding:8px clamp(16px,3vw,48px) max(12px,env(safe-area-inset-bottom));pointer-events:none;background:linear-gradient(transparent,#100c0d88)}
 #app>.ctl>*{pointer-events:auto}
@@ -369,9 +378,8 @@ body:has(#app>.stage){overflow:hidden}
 #app>.ctl .btn{min-width:116px;box-shadow:0 4px 18px #0008}
 @media(max-width:603px){
  #app>.hand{height:204px;bottom:72px}
- #app>.hand .card{width:98px;height:146px;top:32px}
+ #app>.hand .card{top:24px}
  #app>.hand .card .ds{font-size:13px}
- #app>.hand .card .art{height:40px}
  #app>.stage .actors{padding:0 10px;gap:0;bottom:290px}
  #app>.stage .foes{gap:0}
  #app>.stage .unit:not(.hero):not(.pw){width:82px}
@@ -384,9 +392,8 @@ body:has(#app>.stage){overflow:hidden}
  #app>.ctl .btn{min-width:90px;padding:0 12px}
 }
 @media(max-height:600px){
- #app>.hand{height:158px;bottom:52px}
- #app>.hand .card{height:142px;top:12px}
- #app>.hand .card .art{height:30px}
+ #app>.hand{--hand-card-width:110px;--hand-card-height:152px;height:170px;bottom:52px}
+ #app>.hand .card{top:12px}
  #app>.stage .actors{bottom:210px;padding-inline:5vw}
  #app>.stage .hero .spr{height:100px}
  #app>.stage .rig.tall{top:-30%;height:130%}
@@ -416,7 +423,7 @@ body:has(#app>.stage){overflow:hidden}
  #app>.stage .unit:not(.hero):not(.pw) .spr{width:144px;height:120px}
  #app>.stage .unit.big:not(.pw){width:190px}
  #app>.stage .unit.big:not(.pw) .spr{width:184px;height:154px}
- #app>.hand{height:190px}
+ #app>.hand{height:244px}
 }
 #app>.stage .gshadow{left:4%;right:4%;height:16px;bottom:-5px;background:radial-gradient(closest-side,#080706b0,transparent)}
 /* The painted idle and action rig share one target box and ground line. */
@@ -1304,7 +1311,7 @@ const statusArt={str:'strength',vuln:'vulnerable',weak:'weak',poison:'poison'};
 const oathArt={aurel:'radiance',varran:'conquest',orun:'protection',mora:'twilight'};
 const stV=st=>Object.keys(st).filter(k=>st[k]&&STN[k]).map(k=>`<span class="chip ${STN[k][1]}" title="${STN[k][2]}">${statusArt[k]?hudIcon("status-"+statusArt[k],16):""}${STN[k][0]} ${st[k]}</span>`).join('');
 const cardArt=(c,hero)=>c.id==="strike"?`<img alt="" src="assets/ui/cards/${hero==="oath"?"dawn":"aetherwright"}-strike.png">`:ART[KD(c).t];
-function cardV(c,attrs='',cls=''){const k=KD(c),co=cost(c),g=godOf(c),dorm=g&&G&&G.hero=='oath'&&!ACT(g)&&!c.seal&&!c.tmpS;return `<button class="card t-${k.t} r${k.r}${c.up?' up':''}${g?' g-'+g:''}${c.tier?' tr'+c.tier:''}${dorm?' dorm':''}${K[c.id].m&&!c.tier?' mal':''} ${cls}" ${attrs}>${co>=0?`<span class="cost">${co}</span>`:''}${c.tier?`<span class="tier" title="${TIERN[c.tier]}">T${c.tier}</span>`:''}<span class="nm">${name(c)}</span><span class="art">${cardArt(c,G?.hero)}</span><span class="ds"><span>${keywordText(k.d(c.up,c))}</span></span><span class="ty">${TN[k.t]}${k.colorless?' · Colorless':''}${g?' · '+GODS[g].n:K[c.id].m?' · Malleable':''}${dorm?' · Dormant':''}</span></button>`}
+function cardV(c,attrs='',cls=''){const k=KD(c),description=k.d(c.up,c),co=cost(c),g=godOf(c),dorm=g&&G&&G.hero=='oath'&&!ACT(g)&&!c.seal&&!c.tmpS;return `<button class="card t-${k.t} r${k.r}${description.length>32?' wordy':''}${c.up?' up':''}${g?' g-'+g:''}${c.tier?' tr'+c.tier:''}${dorm?' dorm':''}${K[c.id].m&&!c.tier?' mal':''} ${cls}" ${attrs}>${co>=0?`<span class="cost">${co}</span>`:''}${c.tier?`<span class="tier" title="${TIERN[c.tier]}">T${c.tier}</span>`:''}<span class="nm">${name(c)}</span><span class="art">${cardArt(c,G?.hero)}</span><span class="ds"><span>${keywordText(description)}</span></span><span class="ty">${TN[k.t]}${k.colorless?' · Colorless':''}${g?' · '+GODS[g].n:K[c.id].m?' · Malleable':''}${dorm?' · Dormant':''}</span></button>`}
 function intV(e){const n=e.int,o=[],d0=EN[e.k];if(n.a){const bl=n.slam&&d0.keep?Math.floor(e.block/2):0;let d=n.a+bl+(e.st.str||0);if(e.st.weak)d*=.75;if(C.p.st.vuln)d*=1.5;o.push(`<span class="it a" title="${G.party?'Attacks all living climbers. Damage shown for the active climber.':'Attack'}">${G.party?'All · ':''}${hudIcon("intent-attack",14)}${Math.floor(d)}${n.x>1?'×'+n.x:''}</span>`)}
  if(n.b)o.push(`<span class="it b" title="Block">${hudIcon("intent-block",14)}${n.b}</span>`);if(n.str)o.push(`<span class="it u" title="Buff">${hudIcon("intent-buff",14)}</span>`);if(n.weak||n.vuln||n.poison)o.push(`<span class="it d" title="Debuff">${hudIcon("intent-debuff",14)}${n.poison||''}</span>`);return (n.n?`<span class="iname">${n.n}</span>`:'')+`<span class="irow">${o.join('')}</span>`}
 const relicArtwork={
@@ -1392,9 +1399,9 @@ function rigV(d){
  return `<span class="spr paint">${idle}${actions}</span>`}
 function foeV(e,tg,now){const d=EN[e.k],dead=e.hp<=0,el=dead?now-(e.dieAt||0):0,st=dead?(el<800?' dying':' dead'):'';
  return `<button class="unit${d.big?' big':''}${d.img||d.rig?' pw':''}${tg&&!dead?' tgt':''}${st}" id="f${e.i}" data-a="foe" data-v="${e.i}" aria-label="${d.n}" style="${d.img||d.rig?`--w:${d.w};--h:${(d.w/(d.rig?EnemyRigData[d.rig].size[0]/EnemyRigData[d.rig].size[1]:d.ar)).toFixed(1)};`:''}${st==' dying'?`animation-delay:-${el|0}ms`:''}"><span class="ints">${dead?'':intV(e)}</span>${d.rig?rigV(d):d.img?`<span class="spr paint"><img class="bob${d.fly?' fly':''}" src="assets/enemies/${d.img}.webp" alt="" draggable="false" style="animation-delay:-${(now+e.i*900)%2600|0}ms"></span>`:`<span class="spr"><svg class="bob${d.s=='moth'||d.s=='ghost'?' fly':''}" viewBox="0 0 120 100" style="animation-delay:-${(now+e.i*900)%2600|0}ms" aria-hidden="true">${d.mir?`<g transform="matrix(-1 0 0 1 120 0)">${SPR[d.s](d.col)}</g>`:SPR[d.s](d.col)}</svg></span>`}<span class="info"><span class="fn"${d.pas?` title="${d.pas[0]}: ${d.pas[1]}"`:''}>${d.n}${d.pas?'<i class="pas">◆</i>':''}</span><span class="bar"><i style="width:${e.hp/e.max*100}%"></i></span><span class="hpt">${e.hp}/${e.max}${e.block?` <span class="chip blk">${hudIcon("intent-block",14)}${e.block}</span>`:''}</span><span class="chips">${stV(e.st)}</span></span></button>`}
-function handV(){const n=C.hand.length;if(!n)return '<p class="empty">No cards in hand</p>';const W=Math.min(innerWidth,1120)-24,cw=W<580?98:128,mid=(n-1)/2,step=n>1?Math.min(cw+10,(W-cw-90)/(n-1)):0,now=performance.now();
- return C.hand.map((c,i)=>{const o=i-mid,x=W/2+o*step-cw/2+12,rot=n>1?o*Math.min(5,26/n):0,y=o*o*Math.min(3.2,16/n),dl=c.dt?c.dt-now:-999,an=dl>-420&&!RM?`;animation:deal .42s ease-out ${dl|0}ms backwards`:'';
-  return cardV(c,`data-a="card" data-v="${i}" style="left:${x.toFixed(1)}px;--r:${rot.toFixed(2)}deg;--y:${y.toFixed(1)}px;z-index:${i+1}${an}"`,(i==C.sel?'sel ':'')+(playable(c)?'':'no'))}).join('')}
+function handV(){const n=C.hand.length;if(!n)return '<p class="empty">No cards in hand</p>';const mid=(n-1)/2,now=performance.now();
+ return C.hand.map((c,i)=>{const o=i-mid,rot=n>1?o*Math.min(4,12/n):0,y=Math.min(24,o*o*Math.min(3.2,16/n)),dl=c.dt?c.dt-now:-999,an=dl>-420&&!RM?`;animation:deal .42s ease-out ${dl|0}ms backwards`:'';
+  return cardV(c,`data-a="card" data-v="${i}" style="--offset:${o};--gaps:${Math.max(1,n-1)};--r:${rot.toFixed(2)}deg;--y:${y.toFixed(1)}px;z-index:${i+1}${an}"`,(i==C.sel?'sel ':'')+(playable(c)?'':'no'))}).join('')}
 function combatV(){const tg=C.sel>=0,now=performance.now();
  return `<div class="stage biome-${biome(G.floor)}">${scene(G.floor)}<div class="foreground-soften" aria-hidden="true"></div><p class="hint">${C.won?'Victory':combatEnemyPhase?'Enemy turn':C.busy?'Ending turn':tg?'Drag to an enemy, or tap one':'Your turn '+C.turn}</p><output class="draw-forecast" aria-live="polite">${C.sel>=0?drawForecast(C.hand[C.sel]):''}</output><div class="actors">${heroV(now)}<div class="foes">${C.foes.map(e=>foeV(e,tg,now)).join('')}</div></div>${fgV(G.floor)}</div>
  <div class="hand">${handV()}</div>

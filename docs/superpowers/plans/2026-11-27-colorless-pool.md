@@ -2,7 +2,7 @@
 
 **Goal:** Implement the user's 40-card specification on current main, preserving class rewards, saves and neutral art.
 **Architecture:** Extend the existing registry inside the static game's closure. Reuse Attack, Block, exhaust and choice interfaces; add isolated colorless state/hooks for history, delayed effects, retention, safe retrieval and recipient routing.
-**Spec:** User request in this chat, continuing conversation 6b09283d-69a8-83ea-afab-9c16f42e4051. Initial baseline aaa1e8e; integrated newly merged main 3373dc4 and 96ae95a; no tracked AGENTS.md.
+**Spec:** User request in this chat, continuing conversation 6b09283d-69a8-83ea-afab-9c16f42e4051. Initial baseline aaa1e8e; integrated newly merged main 3373dc4, 96ae95a and ced57ec; no tracked AGENTS.md.
 
 ## Constraints and decisions
 - No new art or dependencies; use existing ART fallback. Ordinary rewards stay class-only.
