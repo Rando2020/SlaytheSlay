@@ -25,3 +25,13 @@ test('both registered classes start with their existing stats, deck and relic',(
  }
  vm.runInContext('newRun()',ctx);assert.equal(vm.runInContext('screen',ctx),'pick');
 });
+
+test('hero image requests opt into CORS before loading WebGL textures',()=>{
+ const load=html.match(/function rigLoad\(\)\{[^\n]+/)[0];
+ const requests=[];
+ class ImageRequest {set src(value){requests.push({src:value,crossOrigin:this.crossOrigin})}}
+ const ctx=vm.createContext({PSET:{oath:{idle:'assets/oath/idle.webp'},aether:{idle:'assets/hero_idle.webp'}},Image:ImageRequest});
+ vm.runInContext(load+';rigLoad()',ctx);
+ assert.equal(requests.length,2);
+ for(const r of requests)assert.equal(r.crossOrigin,'anonymous',r.src+' must remain usable by WebGL after CDN redirects');
+});

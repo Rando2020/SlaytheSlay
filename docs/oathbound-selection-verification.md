@@ -11,4 +11,3 @@ Run `node --test tests/selection.test.cjs`. This checks that both selection reso
 The game has no compilation step or package dependency: deploy index.html and the assets directory together through a static web host. Opening index.html over file:// is unsuitable for WebGL image loading.
 
 The main-branch raw.githack URL is a temporary source preview. It can show a third-party content notice and cache the branch; it does not include unmerged PR artwork. For reproducible review use a commit-pinned raw.githack URL. A permanent production host remains separate work.
-

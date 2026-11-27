@@ -867,7 +867,7 @@ function oathWeights(im,k){const c=document.createElement('canvas'),W=c.width=Ma
   w[(j*GX+i)*2]=n?cape/n*sm(.18,.55,v)*(.35+.65*out):0;w[(j*GX+i)*2+1]=n&&v<hv?Math.min(1,hair/n*1.4):0}
  for(let p=0;p<2;p++){const o=new Float32Array(w.length);for(let j=0;j<GY;j++)for(let i=0;i<GX;i++)for(let ch=0;ch<2;ch++){let s=0,c=0;for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const ii=i+a,jj=j+b;if(ii<0||jj<0||ii>=GX||jj>=GY)continue;s+=w[(jj*GX+ii)*2+ch];c++}o[(j*GX+i)*2+ch]=s/c}w=o}
  return w}
-function rigLoad(){for(const h in PSET)for(const k in PSET[h]){const key=h+':'+k,im=new Image();im.onload=()=>{RIG.img[key]=im;try{RIG.wt[key]=rigWeights(im,k,h)}catch(e){RIG.wt[key]=new Float32Array(GX*GY*2)}};im.src=PSET[h][k]}}
+function rigLoad(){for(const h in PSET)for(const k in PSET[h]){const key=h+':'+k,im=new Image();im.onload=()=>{RIG.img[key]=im;try{RIG.wt[key]=rigWeights(im,k,h)}catch(e){RIG.wt[key]=new Float32Array(GX*GY*2)}};im.crossOrigin='anonymous';im.src=PSET[h][k]}}
 const VS=`attribute vec2 a_uv;attribute vec2 a_w;uniform float u_t,u_whip,u_ax;uniform vec2 u_sc,u_off;varying vec2 v_uv;
 void main(){vec2 p=a_uv;float t=u_t;float b=.5+.5*sin(t*2.1);float up=clamp((.56-p.y)/.56,0.,1.);
 p.y-=up*.013*b;p.x+=up*up*.006*sin(t*1.05);
