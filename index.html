@@ -474,6 +474,7 @@ body:has(#app>.stage){overflow:hidden}
 .pile-icon{display:inline-block;vertical-align:-.16em;object-fit:contain;pointer-events:none}
 .pile-btn{display:inline-flex;align-items:center;gap:4px}.card-keyword .pile-icon{width:1em;height:1em;margin-right:.12em}
 </style><link rel="stylesheet" href="src/act-map.css">
+<link rel="stylesheet" href="assets/scenes/ember/landing.css">
 </head><body>
 <div id="app"></div><div id="modal"></div><svg id="aim" aria-hidden="true"><path id="aimP" fill="none" stroke="none"/><g id="aimG"></g></svg>
 <script src="assets/manifest.js"></script>
@@ -1483,8 +1484,18 @@ function shrineV(){const cur=G.oaths||[],mx=has('twin')?2:1,o=[];
 function shopV(){return `<div class="panel"><h2>The Merchant</h2><p class="sub">Everything has a price. You have ${G.gold} gold. The last two slots offer colorless techniques for any class.</p><div class="row">${SH.cards.map((s,i)=>`<div class="ware">${cardV({id:s.id,up:0},s.sold?'disabled':`data-a="inspectware" data-v="${i}"`,s.sold?'no':'')}<span class="price${!s.sold&&G.gold<s.p?' poor':''}">${s.sold?'Sold':s.p+' gold'}</span></div>`).join('')}</div>
  <div class="opts">${SH.relic?`<button class="btn opt" data-a="buyrel" ${SH.relic.sold?'disabled':''}>${SH.relic.sold?'Relic sold':`Relic, ${SH.relic.p} gold: ${RELICS[SH.relic.k].n}. ${RELICS[SH.relic.k].d}`}</button>`:''}<button class="btn opt" data-a="remove" ${SH.removed?'disabled':''}>${SH.removed?'Card removed':'Remove a card from your deck: '+merchantPrice(75)+' gold'}</button></div><button class="btn pri" data-a="map">Leave the shop</button></div>`}
 const restHealing=()=>Math.min(G.maxHp-G.hp,Math.round(G.maxHp*.3));
-function restV(){return `<div class="panel"><img class="rest-art" src="assets/scenes/rest-site.webp" alt=""><h2>Rest site</h2><p class="sub">${RS.msg||'The fire is warm. There is time for one thing before you climb on.'}</p>
- ${RS.done?'':`<div class="row"><button class="btn" data-a="rheal" ${restHealing()?'':'disabled'}>Rest · ${restHealing()?'Heal '+restHealing()+' HP ('+G.hp+' → '+(G.hp+restHealing())+')':'Full HP'}</button><button class="btn" data-a="rsmith">Smith: upgrade a card</button></div>`}<button class="btn${RS.done?' pri':''}" data-a="map">${RS.done?'Continue':'Skip'}</button></div>`}
+function restV(){
+ const hp=restHealing(),confirm=RS.pending;
+ let actions;
+ if(RS.done) actions='<button class="btn pri" data-a="map">Continue</button>';
+ else if(confirm) actions=`<button class="btn pri" data-a="${confirm==='heal'?'rheal':'map'}">${confirm==='heal'?'Rest · '+G.hp+' → '+(G.hp+hp)+' HP':'Leave without resting or smithing'}</button><button class="btn" data-a="restback">Back</button>`;
+ else actions=`<button class="btn" data-a="restpreview" data-v="heal" ${hp?'':'disabled'}>Rest<small>${hp?'Recover '+hp+' HP · '+G.hp+' → '+(G.hp+hp):'Full HP'}</small></button>
+ <button class="btn" data-a="rsmith" ${upgradable().length?'':'disabled'}>Smith<small>${upgradable().length?'Preview a card upgrade':'No eligible cards'}</small></button>
+ <button class="btn" data-a="restpreview" data-v="skip">Skip</button>`;
+ return `<section class="ember-room" aria-label="Rest site"><div class="ember-stage"><span class="ember-mist"></span><span class="ember-light"></span><span class="ember-fire"></span><span class="ember-press"></span>
+ <header class="ember-title"><h2>The Ember Landing</h2><p>${RS.msg||'Choose one action before you climb.'}</p></header></div><div class="ember-controls">${actions}</div></section>`
+}
+
 function eventV(){const e=EV.e;return `<div class="panel"><svg class="pic" viewBox="0 0 200 120" aria-hidden="true"><ellipse cx="100" cy="114" rx="70" ry="6" fill="#000" opacity=".5"/><path d="M58 114V58C58 31 77 14 100 14S142 31 142 58V114Z" fill="#0d0807" stroke="#e8c86a" stroke-width="3"/><circle cx="100" cy="68" r="22" fill="#ff5a36" opacity=".25"/><circle cx="100" cy="68" r="9" fill="#ff5a36"/><text x="100" y="74" text-anchor="middle" font-family="Cinzel,serif" font-weight="800" font-size="16" fill="#1a0d09">?</text></svg><h2>${e.n}</h2><p class="sub">${EV.msg||e.t}</p>
  ${EV.done?`<button class="btn pri" data-a="map">Continue</button>`:`<div class="opts">${e.o.map((o,i)=>`<button class="btn opt" data-a="evo" data-v="${i}" ${o.ok&&!o.ok()?'disabled':''}>${o.l}</button>`).join('')}</div>`}</div>`}
 function endV(){const w=screen=='win';return `<div class="panel end"><svg class="pic" viewBox="0 0 200 120" aria-hidden="true">${w?`<g transform="translate(100 64) scale(4.2)">${NI.boss}</g>`:`<g transform="translate(100 62) scale(4.2)">${NI.elite}</g>`}</svg><h1>${w?'The King falls':'Your climb ends'}</h1><p class="sub">${G.party?(w?`Your ${partySize()} climbers defeated the Hollow King.`:`Your party fell on floor ${G.floor} of 13.`):w?`You toppled the Hollow King with a deck of ${G.deck.length} cards and ${G.relics.length} relics.`:`You fell on floor ${G.floor} of 13 with ${G.deck.length} cards in your deck.`}</p><button class="btn pri" data-a="${G.party?'title':'new'}">${G.party?'Return to title':'Start a new run'}</button></div>`}
@@ -1764,14 +1775,16 @@ buy:()=>{
 },
 buyrel:()=>{const r=SH.relic;if(!r||r.sold)return;if(G.gold<r.p)return toast('Not enough gold.');G.gold-=r.p;r.sold=1;gainRelic(r.k);render()},
 remove:()=>{if(SH.removed)return;const p=merchantPrice(75);if(G.gold<p)return toast('Not enough gold.');openPick('Remove a card ('+p+' gold)',G.deck,c=>{G.gold-=p;SH.removed=1;G.deck.splice(G.deck.indexOf(c),1);toast(name(c)+' removed.');render()})},
-rheal:()=>{if(RS.done||!restHealing())return;const b=G.hp;heal(restHealing());RS.done=1;RS.msg='You rest by the fire and recover '+(G.hp-b)+' HP.';render()},
+restpreview:v=>{if(screen!=='rest'||RS.done||!['heal','skip'].includes(v))return;RS.pending=v;render();$('.ember-controls .btn')?.focus()},
+restback:()=>{const prior=RS.pending;delete RS.pending;render();$('[data-a="restpreview"][data-v="'+prior+'"]')?.focus()},
+rheal:()=>{if(screen!=='rest'||RS.done||RS.pending!=='heal'||!restHealing())return;const b=G.hp;heal(restHealing());RS.done=1;RS.msg='You rest by the fire and recover '+(G.hp-b)+' HP.';render()},
 rsmith:openSmith,
 smithpreview:v=>previewSmith(Number(v)),
 smithconfirm:()=>{
  const card=MD?.smith?.[MD.index];
  if(screen!=='rest'||RS.done||!card||!upgradable().includes(card))return;
  card.up=1;RS.done=1;RS.msg='You hammer '+name(card)+' into shape.';
- closeModal();render();$('[data-a="map"]')?.focus();
+ closeModal();render();$('.ember-press')?.classList.add('strike');$('[data-a="map"]')?.focus();
 },
 evo:v=>{if(EV.done)return;const o=EV.e.o[+v];if(o.ok&&!o.ok())return;const m=o.f();if(m!=null){EV.msg=m;EV.done=1}render()},
 mpick:v=>{const c=MD.cards[+v],cb=MD.cb;MD.onClose=null;closeModal();if(cb)cb(c)},
