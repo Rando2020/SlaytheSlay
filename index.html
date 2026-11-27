@@ -377,7 +377,15 @@ body:has(#app>.stage){overflow:hidden}
 /* Only the nearest scenery softens; actors and the hand stay above this layer. */
 #app>.stage .foreground-soften{position:absolute;inset:80% 0 0;z-index:0;pointer-events:none;-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);-webkit-mask-image:linear-gradient(transparent,#000 80%);mask-image:linear-gradient(transparent,#000 80%);background:linear-gradient(transparent,#100c0d44)}
 #app>.stage .actors{z-index:2}
-#app>.stage .bgL>.bgimg{height:110%;top:-10%}
+#app>.stage .bgL>.bgimg{height:125%;top:-19.5%}
+/* Center the encounter within the larger world, preserving the standing line. */
+@media(min-width:900px) and (min-height:601px){
+ #app>.stage .actors{left:50%;right:auto;transform:translateX(-50%);width:860px;max-width:100%;padding-inline:28px;gap:32px}
+ #app>.stage .actors:has(.foes>.unit:nth-child(3)){width:1060px}
+ #app>.stage .hero{margin-bottom:56px;flex-shrink:0}
+ #app>.stage .hero .info{order:-1}
+ #app>.stage .foes{flex-shrink:0}
+}
 </style></head><body>
 <div id="app"></div><div id="modal"></div><svg id="aim" aria-hidden="true"><path id="aimP" fill="none" stroke="none"/><g id="aimG"></g></svg>
 <script>
