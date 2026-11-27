@@ -1370,7 +1370,7 @@ function enter(f,l){if(screen!=='map'||(G.threshold&&!G.threshold.applied))retur
  else if(t=='boss')startCombat(['king'],'boss');
  else{
   const seats=livingSeats().filter(i=>t!=='shrine'||partyMember(i).hero==='oath');
-  const sharedEvent=t==='event'?pick(EVENTS):null;
+  const sharedEvent=t==='event'?drawMysteryRoom(f,l):null;
   beginRoomVisits(seats,{room:t,event:EVENTS.indexOf(sharedEvent)})
  }}
 function beginRoomVisits(seats,visit){
@@ -1396,23 +1396,71 @@ function openRoom(t,sharedEvent){
  else if(t==='event'){EV={e:sharedEvent,done:0,msg:''};screen='event'}
  else{const r=randRelic(),gold=r?20:90;G.gold+=gold;RW={gold,cards:[],relic:r,taken:true,title:'Treasure',asc:G.hero==='oath'&&ascList(2).length?{from:2,free:1}:null};screen='reward'}
 }
+const MYSTERY_TIERS=[
+ {from:1, weights:{common:65,uncommon:28,rare:6,legendary:0,unique:1}},
+ {from:5, weights:{common:50,uncommon:32,rare:14,legendary:2,unique:2}},
+ {from:9, weights:{common:40,uncommon:34,rare:19,legendary:4,unique:3}}
+];
+function drawMysteryRoom(floor,lane){
+ // Older runs recorded display names in the current event cycle.
+ const history=(G.mysteryHistory||[]).map(key=>EVENTS.find(room=>room.n===key)?.id||key);
+ const last=history[history.length-1];
+ const weights=MYSTERY_TIERS.filter(stage=>stage.from<=floor+1).at(-1).weights;
+ const eligible=EVENTS.filter(room=>weights[room.rarity]>0&&(!room.unlock||room.unlock())&&
+  (room.rarity!=='unique'||!history.includes(room.id)));
+ const candidates=eligible.filter(room=>room.id!==last);
+ const pool=candidates.length?candidates:eligible;
+ const tiers=Object.entries(weights).filter(([tier])=>pool.some(room=>room.rarity===tier));
+ const rng=seedRng(G.seed^0x45564e54^Math.imul(floor+1,65537)^lane);
+ let roll=rng()*tiers.reduce((sum,[,weight])=>sum+weight,0);
+ const [tier]=tiers.find(([,weight])=>(roll-=weight)<0);
+ const peers=pool.filter(room=>room.rarity===tier);
+ const unseen=peers.filter(room=>!history.includes(room.id));
+ const options=unseen.length?unseen:peers;
+ const room=options[Math.floor(rng()*options.length)];
+ G.mysteryHistory=[...history,room.id];
+ return room;
+}
 const EVENTS=[
-{n:'Whispering Shrine',t:'A cracked altar hums in the dark. It asks for blood and offers something old in return.',o:[
+{id:'whispering-shrine',rarity:'rare',n:'Whispering Shrine',t:'A cracked altar hums in the dark. It asks for blood and offers something old in return.',o:[
  {l:'Pray: lose 8 HP, gain a relic',f:()=>{G.hp=Math.max(1,G.hp-8);const r=randRelic();if(r){gainRelic(r);return 'The altar gives you '+RELICS[r].n+'. '+RELICS[r].d}G.gold+=60;return 'The altar is empty. You find 60 gold in the cracks.'}},
  {l:'Leave it to its whispers',f:()=>'You keep walking. The humming fades behind you.'}]},
-{n:'Wandering Smith',t:'A soot-black smith sits by a portable anvil and offers to rework one of your cards.',o:[
+{id:'wandering-smith',rarity:'common',n:'Wandering Smith',t:'A soot-black smith sits by a portable anvil and offers to rework one of your cards.',o:[
  {l:'Pay 35 gold: upgrade a card',ok:()=>G.gold>=35&&upgradable().length>0,f:()=>{openPick('Upgrade a card (35 gold)',upgradable(),c=>{G.gold-=35;c.up=1;EV.msg='The smith hands back '+name(c)+', still warm.';EV.done=1;render()});return null}},
  {l:'Decline',f:()=>'He shrugs and goes back to hammering.'}]},
-{n:'Golden Idol',t:'An idol of solid gold rests on a pedestal. Every instinct says this is a bad idea.',o:[
+{id:'golden-idol',rarity:'uncommon',n:'Golden Idol',t:'An idol of solid gold rests on a pedestal. Every instinct says this is a bad idea.',o:[
  {l:'Take it: gain 90 gold, add Doubt to your deck',f:()=>{G.gold+=90;G.deck.push(mk('doubt'));return 'Heavy in your pack, heavier in your head.'}},
  {l:'Leave it',f:()=>'Wise, probably.'}]},
-{n:'Mushroom Ring',t:'Pale mushrooms glow in a perfect circle. The air inside is warm and still.',o:[
+{id:'mushroom-ring',rarity:'common',n:'Mushroom Ring',t:'Pale mushrooms glow in a perfect circle. The air inside is warm and still.',o:[
  {l:'Sleep in the ring: heal 18 HP',f:()=>{heal(18);return 'You wake up rested, and slightly sparkly.'}},
  {l:'Harvest spores: gain Toxin Dart',f:()=>{G.deck.push(mk('toxin'));return 'You pocket a handful of spores. Toxin Dart added.'}}]},
-{n:'Burned Library',t:'Half the shelves are ash. A few pages still glow with stubborn ink.',o:[
+{id:'burned-library',rarity:'uncommon',n:'Burned Library',t:'Half the shelves are ash. A few pages still glow with stubborn ink.',o:[
  {l:'Study universal techniques: choose 1 of 3 colorless cards',f:()=>{openPick('Learn a colorless technique',colorlessChoices().map(id=>mk(id)),c=>{G.deck.push(c);EV.msg='You learn '+name(c)+'.';EV.done=1;render()});return null}},
  {l:'Study: choose 1 of 3 cards',f:()=>{openPick('Choose a card to add',cardChoices(0).map(id=>mk(id)),c=>{G.deck.push(c);EV.msg='You learn '+name(c)+'.';EV.done=1;render()});return null}},
- {l:'Burn a page: remove a card',ok:()=>G.deck.length>1,f:()=>{openPick('Remove a card',G.deck,c=>{G.deck.splice(G.deck.indexOf(c),1);EV.msg=name(c)+' goes up in smoke.';EV.done=1;render()});return null}}]}];
+ {l:'Burn a page: remove a card',ok:()=>G.deck.length>1,f:()=>{openPick('Remove a card',G.deck,c=>{G.deck.splice(G.deck.indexOf(c),1);EV.msg=name(c)+' goes up in smoke.';EV.done=1;render()});return null}}]},
+{id:'bellfounder',rarity:'common',n:'The Bellfounder’s Lung',t:'A bronze lung hangs beside the cracked bell. The founder fits a mouthpiece to its ribs. “A short breath for you,” she says, “or a long one from you.”',o:[
+ {l:'Breathe in · Recover up to 12 HP',ok:()=>G.hp<G.maxHp,f:()=>{const before=G.hp;heal(12);return 'The bellows fold. You recover '+(G.hp-before)+' HP.'}},
+ {l:'Breathe out · Lose 7 HP and gain 5 maximum HP',ok:()=>G.hp>7,f:()=>{G.hp-=7;G.maxHp+=5;G.bellBreath=true;return 'Far above, a second bell answers yours. You lose 7 HP. Your maximum HP rises to '+G.maxHp+'.'}},
+ {l:'Pass the mouthpiece back',f:()=>'She wipes the brass clean for the next climber.'}]},
+{id:'carbon-choir',rarity:'uncommon',n:'The Carbon Choir',t:'A row of choristers holds black paper against the wall. Each time you move, their hands trace the gesture. The last chorister holds out an ink-stained palm.',o:[
+ {l:'Commission an echo · Pay 45 gold to copy a card',ok:()=>G.gold>=45&&G.deck.length>0,f:()=>{openPick('Copy a card for 45 gold',G.deck,c=>{G.gold-=45;G.deck.push({...c,u:uid++});EV.msg='The choir returns two identical impressions of '+name(c)+'.';EV.done=1;render()});return null}},
+ {l:'Sit for a portrait · Gain 12 gold',f:()=>{G.gold+=12;G.choirPortrait=true;return 'They pin your silhouette among the missing and press 12 gold into your hand.'}}]},
+{id:'last-tollkeeper',rarity:'rare',n:'The Last Tollkeeper',t:'A woman keeps the fare box of a lift whose cables have snapped. She still buys proof of passage. A practiced technique fetches a better price.',o:[
+ {l:'Sell a card · Gain 18 gold, or 40 for an upgraded card',ok:()=>G.deck.length>1,f:()=>{openPick('Sell a card · 18 gold (40 if upgraded)',G.deck,c=>{const price=c.up?40:18;G.deck.splice(G.deck.indexOf(c),1);G.gold+=price;EV.msg='The keeper files '+name(c)+' under your floor and counts out '+price+' gold.';EV.done=1;render()});return null}},
+ {l:'Keep your deck and take the stairs',f:()=>'She punches a hole in an empty ticket as you pass.'}]},
+{id:'victors-foundry',rarity:'legendary',unlock:()=>G.path.slice(0,-1).some(([f,l])=>G.map[f][l].t==='elite'),
+ n:'The Victors’ Foundry',t:'The lock opens at the smell of elite blood. A founder lays two things on her bench: a sealed reliquary and the hammer she used to close it.',o:[
+ {l:'Open the reliquary · Gain a relic (60 gold if none remain)',f:()=>{const relic=randRelic();if(relic){gainRelic(relic);return 'Inside lies '+RELICS[relic].n+'. '+RELICS[relic].d}G.gold+=60;return 'The reliquary holds 60 gold.'}},
+ {l:'Take the hammer · Upgrade up to two random eligible cards',ok:()=>upgradable().length>0,f:()=>{const cards=[...upgradable()],upgraded=[];const rng=seedRng(G.seed^0x464f5247^G.floor^activeSeat());while(cards.length&&upgraded.length<2){const [card]=cards.splice(Math.floor(rng()*cards.length),1);card.up=1;upgraded.push(name(card))}return 'Hammer marks bind the steel of '+upgraded.join(' and ')+'.'}}]},
+{id:'missing-procession',rarity:'unique',unlock:()=>G.choirPortrait,
+ n:'Procession of the Missing',t:'A column of paper figures climbs the stairs. At its head you recognize a silhouette from the Carbon Choir. The procession stops to let you choose who carries its weight.',o:[
+ {l:'Carry the frame · Gain 8 maximum HP and recover 8 HP',f:()=>{G.maxHp+=8;heal(8);return 'You shoulder the frame. Eight paper hands steady you.'}},
+ {l:'Cut a figure free · Remove a card and gain 25 gold',ok:()=>G.deck.length>1,f:()=>{openPick('Remove a card and gain 25 gold',G.deck,c=>{G.deck.splice(G.deck.indexOf(c),1);G.gold+=25;EV.msg=name(c)+' slips from the frame. Someone behind you takes a first breath.';EV.done=1;render()});return null}}]},
+{id:'borrowed-breath',rarity:'unique',unlock:()=>G.bellBreath,
+ n:'The Borrowed Breath',t:'The high bell rings once. Dust rises from its lip in the shape of a lung. The founder left two ropes: one leads to the bellows, the other to a rack of unfinished tools.',o:[
+ {l:'Draw the breath back · Recover half your missing HP, rounded up',ok:()=>G.hp<G.maxHp,f:()=>{const amount=Math.ceil((G.maxHp-G.hp)/2);heal(amount);return 'The bell exhales. You recover '+amount+' HP.'}},
+ {l:'Temper a technique · Upgrade a chosen card',ok:()=>upgradable().length>0,f:()=>{openPick('Choose a card to temper',upgradable(),c=>{c.up=1;EV.msg='The bell falls silent as you finish '+name(c)+'.';EV.done=1;render()});return null}},
+ {l:'Unhook the bronze clapper · Gain 20 gold',f:()=>{G.gold+=20;return 'The salvager weighs the bronze and counts out 20 gold.'}}]}];
 
 /* ---------- views ---------- */
 const hudIcon=(name,size)=>`<img class="hud-icon" alt="" src="assets/ui/hud/${name}.png" width="${size}" height="${size}">`;
@@ -1568,7 +1616,7 @@ function restV(){
  <header class="ember-title"><h2>The Ember Landing</h2><p>${RS.msg||'Choose one action before you climb.'}</p></header></div><div class="ember-controls">${actions}</div></section>`
 }
 
-function eventV(){const e=EV.e;return `<div class="panel"><svg class="pic" viewBox="0 0 200 120" aria-hidden="true"><ellipse cx="100" cy="114" rx="70" ry="6" fill="#000" opacity=".5"/><path d="M58 114V58C58 31 77 14 100 14S142 31 142 58V114Z" fill="#0d0807" stroke="#e8c86a" stroke-width="3"/><circle cx="100" cy="68" r="22" fill="#ff5a36" opacity=".25"/><circle cx="100" cy="68" r="9" fill="#ff5a36"/><text x="100" y="74" text-anchor="middle" font-family="Cinzel,serif" font-weight="800" font-size="16" fill="#1a0d09">?</text></svg><h2>${e.n}</h2><p class="sub">${EV.msg||e.t}</p>
+function eventV(){const e=EV.e;return `<div class="panel"><svg class="pic" viewBox="0 0 200 120" aria-hidden="true"><ellipse cx="100" cy="114" rx="70" ry="6" fill="#000" opacity=".5"/><path d="M58 114V58C58 31 77 14 100 14S142 31 142 58V114Z" fill="#0d0807" stroke="#e8c86a" stroke-width="3"/><circle cx="100" cy="68" r="22" fill="#ff5a36" opacity=".25"/><circle cx="100" cy="68" r="9" fill="#ff5a36"/><text x="100" y="74" text-anchor="middle" font-family="Cinzel,serif" font-weight="800" font-size="16" fill="#1a0d09">?</text></svg><div class="sub" style="text-transform:capitalize">${e.rarity} event</div><h2>${e.n}</h2><p class="sub">${EV.msg||e.t}</p>
  ${EV.done?`<button class="btn pri" data-a="map">Continue</button>`:`<div class="opts">${e.o.map((o,i)=>`<button class="btn opt" data-a="evo" data-v="${i}" ${o.ok&&!o.ok()?'disabled':''}>${o.l}</button>`).join('')}</div>`}</div>`}
 function endV(){const w=screen=='win';return `<div class="panel end"><svg class="pic" viewBox="0 0 200 120" aria-hidden="true">${w?`<g transform="translate(100 64) scale(4.2)">${NI.boss}</g>`:`<g transform="translate(100 62) scale(4.2)">${NI.elite}</g>`}</svg><h1>${w?'The King falls':'Your climb ends'}</h1><p class="sub">${G.party?(w?`Your ${partySize()} climbers defeated the Hollow King.`:`Your party fell on floor ${G.floor} of 13.`):w?`You toppled the Hollow King with a deck of ${G.deck.length} cards and ${G.relics.length} relics.`:`You fell on floor ${G.floor} of 13 with ${G.deck.length} cards in your deck.`}</p><button class="btn pri" data-a="${G.party?'title':'new'}">${G.party?'Return to title':'Start a new run'}</button></div>`}
 function thresholdV(){const t=G.threshold,p=t.pending,b=blessingById(t.selected);return `<section class="threshold" aria-label="The Threshold"><h1>The Threshold</h1><p class="sub">${G.party?`Player ${activeSeat()+1} of ${partySize()} · `:""}Choose what you carry into the ascent.</p>${p?`<h2>${b.n}</h2><p class="sub">${b.d}</p><div class="row">${p.choices.map(v=>{const c=p.type==='card'?{id:v,up:0}:G.deck.find(x=>x.u===v);return c?cardV(c,`data-a="blessresolve" data-v="${v}"`):''}).join('')}</div>`:`<div class="threshold-offers">${t.offers.map((id,i)=>{const a=blessingById(id);return `<button class="threshold-offer" style="--delay:${i*130}ms" data-a="bless" data-v="${id}"><span class="threshold-art">${ICO[a.icon]}</span><b>${a.n}</b><span>${a.d}</span><i>${a.flavor}</i><strong>Accept offering</strong></button>`}).join('')}</div>`}</section>`}
