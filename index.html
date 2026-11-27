@@ -909,10 +909,11 @@ mask:{n:'Veil Mask',hp:[26,30],col:'#8f86c8',s:'ghost',rig:'veilmask',actionPose
 warden:{n:'Stone Warden',hp:[82,86],col:'#a0a6ad',s:'golem',big:1,rig:'stonewarden',actionPoses:true,w:212,keep:1,pas:['Bulwark','Keeps half its Block between turns. Shield Slam adds its Block to the damage.'],ai:t=>[{n:'Fortify',b:16},{n:'Shield Slam',a:6,slam:1},{n:'Tremor',a:5,x:2,weak:1}][t%3]},
 jugg:{n:'Juggernaut',hp:[90,96],col:'#9a7fb0',s:'golem',big:1,rig:'juggernaut',actionPoses:true,paintedIdle:true,w:168,pas:['Overpressure','At half HP its canister vents: +2 Strength and 10 Block (once).'],ai:t=>[{n:'Crushing Fist',a:13},{n:'Hammerfall',a:6,x:2,vuln:1},{n:'Vent',str:2,b:8}][t%3]},
 hex:{n:'Hex Mother',pas:['Witch','Curses you, then strikes.'],hp:[68,72],col:'#d0607a',s:'ghost',big:1,img:'hexmother/idle',ar:940/590,w:178,fly:1,paintedIdle:true,actionPoses:true,ai:t=>[{n:'Hexblade',a:9,vuln:2},{n:'Thousand Cuts',a:6,x:3},{n:'Dark Rite',weak:2,str:3}][t%3]},
+knight:{n:'Fallen Cathedral Knight',hp:[78,82],col:'#cba96f',big:1,rig:'cathedralknight',actionPoses:true,w:176,ai:t=>[{n:'Spear Thrust',a:10},{n:'Twin Lances',a:7,x:2},{n:'Set Guard',b:12}][t%3]},
 king:{n:'The Hollow King',pas:['Hollow Crown','Builds Strength and Block over the fight.'],hp:[180,180],col:'#e8c86a',s:'king',big:1,boss:1,img:'hollowking/idle',ar:840/720,w:184,paintedIdle:true,actionPoses:true,ai:t=>[{n:'Crown of Thorns',b:10,str:2},{n:'Twin Edicts',a:8,x:2},{n:'Hollow Verdict',a:22},{n:'Decree',weak:2,vuln:2,b:8}][t%4]}};
 const EASY=[['spore'],['tick','tick'],['scrap']];
 const HARD=[['rustjaw'],['spore','tick'],['mask'],['scrap','spore'],['mask','tick'],['rustjaw','tick'],['spore','spore']];
-const ELITE=[['warden'],['hex'],['jugg']];
+const ELITE=[['warden'],['hex'],['jugg'],['knight']];
 const RELICS={heart:{n:'Ember Heart',d:'Heal 6 HP after each combat.'},fang:{n:'Iron Fang',d:'Start each combat with 1 Strength.'},lantern:{n:'Lantern',d:'Gain 1 extra Energy on your first turn.'},anchor:{n:'Anchor',d:'Start each combat with 10 Block.'},satchel:{n:'Satchel',d:'Draw 2 extra cards on your first turn.'},bell:{n:'Bronze Bell',d:'Enemies start combat with 1 Vulnerable.'},moss:{n:'Mending Moss',d:'Raise Max HP by 8.'},unbroken:{n:'Unbroken Vow',d:'Gain 5 Block at the start of combat.',h:'oath',st:1},
 circlet:{n:"Saint's Circlet",d:'Begin combat with 1 Anointed.',h:'oath',r:'c'},
 bloodstone:{n:'Bloodstone',d:'The first Bloodlust consumed each turn deals 2 more damage.',h:'oath',r:'c'},

@@ -13,7 +13,7 @@ Serve the repository root and open **Enemy Animation Lab** from the title screen
 
 ## Fallen Cathedral Knight
 
-`python tools/rigs/extract_knight.py` regenerates the knight from the original separated sheet and painted reference. Both gripping gauntlets come from the portrait. The two forearms use the separated armor and stop at the wrist. The knight is available in the lab. An encounter definition and encounter balancing are separate game design work.
+`python tools/rigs/extract_knight.py` regenerates the knight from the original separated sheet and painted reference. Both gripping gauntlets come from the portrait. The two forearms use the separated armor and stop at the wrist. The knight is available in the lab and the solo elite encounter pool. Combat uses the assembled rig at idle and the painted attack and hurt poses during strikes and hit reactions.
 
 ## Verification
 
