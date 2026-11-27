@@ -103,6 +103,29 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 .spr{display:block;width:114px;height:95px;position:relative}
 .unit.big .spr{width:156px;height:130px}
 .spr>svg{width:100%;height:100%;overflow:visible;filter:drop-shadow(0 6px 8px #000b)}
+.foes .unit.pw{width:calc(var(--w)*1px + 8px)}.foes .unit.pw .spr.paint{width:calc(var(--w)*1px);height:calc(var(--h)*1px)}
+.rg{position:absolute;inset:0;display:block;transform-origin:50% 100%;filter:drop-shadow(0 6px 8px #000b)}
+.rp{position:absolute;display:block;height:auto;max-width:none;pointer-events:none;user-select:none;-webkit-user-drag:none}.rgp{position:absolute;inset:0;display:block;pointer-events:none}
+.rp,.rgp{animation-timing-function:ease-in-out;animation-iteration-count:infinite;animation-direction:alternate}.a-breathe{animation-name:rBreathe;animation-duration:2.4s}@keyframes rBreathe{from{translate:0 0}to{translate:0 1.3%}}
+.a-sway{animation-name:rSway;animation-duration:2.9s}.a-sway2{animation-name:rSway2;animation-duration:3.4s}
+.a-nod{animation-name:rNod;animation-duration:2.6s}.a-claw{animation-name:rClaw;animation-duration:2.2s}.a-claw2{animation-name:rClaw2;animation-duration:2.5s}
+.a-leg{animation-name:rLeg;animation-duration:1.9s}.a-leg2{animation-name:rLeg2;animation-duration:2.1s}.a-chew{animation-name:rChew;animation-duration:.9s}
+.a-cap{animation-name:rCap;animation-duration:2.6s}.a-glow{animation-name:rGlow;animation-duration:1.4s}.a-pulse{animation-name:rPulse;animation-duration:1.8s}
+.a-hover{animation-name:rHover;animation-duration:3.2s}.a-flick{animation-name:rFlick;animation-duration:1.1s}.a-flick2{animation-name:rFlick;animation-duration:1.4s}
+.a-drift{animation-name:rDrift;animation-duration:3.6s}.a-drift2{animation-name:rDrift2;animation-duration:4.2s}.a-drift3{animation-name:rDrift;animation-duration:5s}
+@keyframes rSway{from{rotate:-3deg}to{rotate:3deg}}@keyframes rSway2{from{rotate:2.5deg}to{rotate:-3.5deg}}
+@keyframes rNod{from{rotate:-2deg}to{rotate:2.5deg}}@keyframes rClaw{from{rotate:-3deg}to{rotate:4deg}}@keyframes rClaw2{from{rotate:3deg}to{rotate:-3deg}}
+@keyframes rLeg{from{rotate:-2deg}to{rotate:2deg}}@keyframes rLeg2{from{rotate:2deg}to{rotate:-2deg}}@keyframes rChew{from{rotate:-6deg}to{rotate:5deg}}
+@keyframes rCap{from{rotate:-2deg;filter:brightness(.95)}to{rotate:2.5deg;filter:brightness(1.2)}}@keyframes rGlow{from{filter:brightness(.95)}to{filter:brightness(1.3) saturate(1.2)}}
+@keyframes rPulse{from{scale:1;filter:brightness(.95)}to{scale:1.025;filter:brightness(1.25)}}
+@keyframes rHover{from{translate:0 2%;rotate:-2deg}to{translate:0 -3%;rotate:2deg}}
+@keyframes rFlick{from{scale:.92 1;opacity:.75}to{scale:1.06 1.1;opacity:1}}
+@keyframes rDrift{from{translate:0 0;rotate:-8deg}to{translate:0 -18%;rotate:10deg}}@keyframes rDrift2{from{translate:0 -12%;rotate:6deg}to{translate:0 6%;rotate:-9deg}}
+.spr.outL .a-claw,.spr.outL .a-claw2{animation:rStrike .3s ease-out}.spr.outL .a-chew{animation:rChomp .25s ease-out}.spr.outL .a-flick,.spr.outL .a-flick2{animation:rFlare .4s}
+@keyframes rStrike{0%{rotate:0deg}45%{rotate:9deg}100%{rotate:-7deg}}@keyframes rChomp{0%,100%{rotate:0deg}50%{rotate:-18deg}}
+.spr.oc .a-cap,.spr.oc .a-glow,.spr.oc .a-pulse,.spr.oc .a-flick,.spr.oc .a-flick2,.spr.oc .a-hover{animation:rFlare .45s}
+@keyframes rFlare{0%{filter:none}40%{filter:brightness(2.2) saturate(1.4) drop-shadow(0 0 12px #ffd27a)}100%{filter:none}}
+.spr.paint>img{display:block;width:100%;height:100%;object-fit:contain;object-position:50% 100%;transform-origin:50% 100%;filter:drop-shadow(0 6px 8px #000b);-webkit-user-drag:none;user-select:none}
 .bob{animation:bob 2.6s ease-in-out infinite}.bob.fly{animation-name:fly}
 @keyframes bob{50%{transform:translateY(-3px) scaleY(1.02)}}
 @keyframes fly{50%{transform:translateY(-10px)}}
@@ -121,7 +144,7 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 .unit.dead{visibility:hidden;pointer-events:none}
 .info{width:100%;display:flex;flex-direction:column;align-items:center;gap:2px;background:#000000a0;border-radius:9px;padding:3px 6px 4px}
 .fn{font:800 12.5px Cinzel,serif;text-align:center;line-height:1.1}
-.ints{display:flex;gap:4px;min-height:26px}
+.ints{display:flex;flex-direction:column;align-items:center;gap:2px;min-height:26px}.irow{display:flex;gap:4px}.iname{font:700 11px Cinzel,serif;letter-spacing:.04em;color:#f3e2c0;text-shadow:0 1px 2px #000,0 0 6px #000;white-space:nowrap}
 .it{display:inline-flex;gap:3px;align-items:center;font-weight:800;padding:2px 8px;border-radius:8px;font-size:15px;white-space:nowrap;background:#000a}
 .it.a{color:#ff9a80;box-shadow:inset 0 0 0 1.5px #ff5a3699}.it.b{color:#8fe0cf;box-shadow:inset 0 0 0 1.5px #5fb3a199}.it.u{color:var(--gold);box-shadow:inset 0 0 0 1.5px #e8c86a99}.it.d{color:#d2b6f2;box-shadow:inset 0 0 0 1.5px #b58ae099}
 .bar{display:block;width:100%;height:9px;border-radius:6px;background:#0009;overflow:hidden;position:relative}
@@ -203,12 +226,12 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 .mhead h2{font-size:24px}
 .grid{display:flex;flex-wrap:wrap;gap:16px 12px;justify-content:center;padding-top:22px;max-width:900px;margin:0 auto}
 .pop{position:fixed;pointer-events:none;font:800 24px Cinzel,serif;color:#ff7a58;text-shadow:0 2px 0 #000,0 0 8px #000;animation:pop .9s forwards;z-index:50;transform:translateX(-50%)}
-.pop.b{color:#8fe0cf}.pop.p{color:var(--tox)}
+.pop.b{color:#8fe0cf}.pop.p{color:var(--tox)}.pop.h{color:#8fe08f}.pop.i{color:#f3e2c0;font-size:17px;letter-spacing:.04em}.fn .pas{font-style:normal;color:var(--gold);font-size:9px;margin-left:4px;vertical-align:2px}
 @keyframes pop{0%{opacity:0;margin-top:8px}15%{opacity:1}100%{opacity:0;margin-top:-46px}}
 .shake{animation:sh .32s}
 @keyframes sh{20%{transform:translateX(-7px)}45%{transform:translateX(6px)}70%{transform:translateX(-3px)}}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#2d1b17;border:1px solid var(--gold);padding:10px 16px;border-radius:12px;z-index:60;max-width:90vw;font-weight:700;box-shadow:0 10px 24px #000a}
-@media(max-width:600px){.card{width:98px;height:146px}.unit{width:110px}.spr{width:104px;height:87px}.unit.big{width:150px}.unit.big .spr{width:144px;height:120px}.hero{width:128px}.hero .spr{width:128px;height:198px}}
+@media(max-width:600px){.card{width:98px;height:146px}.foes .unit.pw{width:calc(var(--w)*.78px + 6px)}.foes .unit.pw .spr.paint{width:calc(var(--w)*.78px);height:calc(var(--h)*.78px)}.unit{width:110px}.spr{width:104px;height:87px}.unit.big{width:150px}.unit.big .spr{width:144px;height:120px}.hero{width:128px}.hero .spr{width:128px;height:198px}}
 .rig.tall{top:-50%;height:150%}
 .pop.o{font-size:19px;color:var(--gold)}.pop.o-varran{color:#ff7563}.pop.o-orun{color:#8cc4ff}.pop.o-mora{color:#c9a2ff}
 .chip.oath{border:0;font:inherit;font-size:13px;font-weight:800;cursor:pointer;color:#1a0d09;box-shadow:0 0 10px currentColor}
@@ -239,7 +262,7 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 .btn.god.o-aurel{--gc:#ffc853}.btn.god.o-varran{--gc:#ff5040}.btn.god.o-orun{--gc:#6fb4ff}.btn.god.o-mora{--gc:#b98aff}
 .modal.ask{max-width:520px;margin:auto}
 .sarc{position:fixed;pointer-events:none;z-index:44;mix-blend-mode:screen}
-@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(prefers-reduced-motion:reduce){.rp,.rgp{animation:none!important}*{animation:none!important;transition:none!important}}
 .card.t-atk{--face:url(assets/ui/cards/attack-face.png)}
 .card.t-skl{--face:url(assets/ui/cards/skill-face.png)}
 .card.t-pow{--face:url(assets/ui/cards/power-face.png)}
@@ -340,6 +363,10 @@ body:has(#app>.stage){overflow:hidden}
  #app>.hand{height:190px}
 }
 #app>.stage .gshadow{left:4%;right:4%;height:16px;bottom:-5px;background:radial-gradient(closest-side,#080706b0,transparent)}
+/* The painted idle and action rig share one target box and ground line. */
+.spr.paint>.enemy-idle ~ .rg{visibility:hidden}
+.spr.paint:is(.outL,.retL,.hitR)>.enemy-idle{visibility:hidden}
+.spr.paint:is(.outL,.retL,.hitR)>.enemy-idle ~ .rg{visibility:visible}
 </style></head><body>
 <div id="app"></div><div id="modal"></div><svg id="aim" aria-hidden="true"><path id="aimP" fill="none" stroke="none"/><g id="aimG"></g></svg>
 <script>
@@ -683,17 +710,21 @@ let SIM=false;
 
 const TN={atk:'Attack',skl:'Skill',pow:'Power',curse:'Curse',status:'Status'};
 const EN={
-slime:{n:'Bog Slime',hp:[18,22],col:'#7bbf5a',s:'blob',ai:t=>t%2?{a:4,weak:1}:{a:7}},
-moth:{n:'Cult Moth',hp:[44,48],col:'#c9a36b',s:'moth',ai:t=>t==0?{str:3}:{a:6}},
-beetle:{n:'Thorn Beetle',hp:[38,42],col:'#6b8fbf',s:'beetle',ai:t=>t%2?{b:9,a:5}:{a:11}},
-lurker:{n:'Lurker',hp:[12,15],col:'#b05a7a',s:'blob',ai:t=>t%2?{a:3,x:2}:{a:5}},
-shade:{n:'Shade',hp:[26,30],col:'#8f86c8',s:'ghost',ai:t=>[{a:6,vuln:1},{a:9},{b:8,str:2}][t%3]},
-warden:{n:'Iron Warden',hp:[82,86],col:'#a0a6ad',s:'golem',big:1,ai:t=>[{b:12,str:2},{a:14},{a:6,x:2}][t%3]},
-hex:{n:'Hex Mother',hp:[68,72],col:'#d0607a',s:'ghost',big:1,ai:t=>[{a:9,vuln:2},{a:6,x:3},{weak:2,str:3}][t%3]},
-king:{n:'The Hollow King',hp:[180,180],col:'#e8c86a',s:'king',big:1,boss:1,ai:t=>[{b:10,str:2},{a:8,x:2},{a:22},{weak:2,vuln:2,b:8}][t%4]}};
-const EASY=[['slime'],['lurker','lurker'],['moth']];
-const HARD=[['beetle'],['slime','lurker'],['shade'],['moth','slime'],['shade','lurker'],['beetle','lurker']];
-const ELITE=[['warden'],['hex']];
+spore:{n:'Sporeling',hp:[20,24],col:'#7bbf5a',s:'blob',rig:'sporeling',w:88,pas:['Burst Spores','When it dies, applies 2 Poison to you.'],ai:t=>[{n:'Spore Cloud',poison:3},{n:'Headbutt',a:6},{n:'Headbutt',a:6}][t%3]},
+tick:{n:'Aether Tick',hp:[11,14],col:'#b05a7a',s:'blob',rig:'aethertick',w:112,pas:['Charged Crystal','Charges up, then lunges. Siphon heals it for the damage it deals.'],ai:t=>[{n:'Charge',b:4},{n:'Lunge',a:10},{n:'Siphon',a:4,sip:1}][t%3]},
+scrap:{n:'Scrapclaw',hp:[42,46],col:'#c9a36b',s:'moth',rig:'scrapclaw',w:172,pas:['Overclock','Its canister vents to grant Strength and Block.'],ai:t=>t==0?{n:'Overclock',str:2,b:6}:[{n:'Twin Claws',a:4,x:2},{n:'Scrap Grab',a:6,weak:1}][(t-1)%2]},
+rustjaw:{n:'Rustjaw',hp:[38,42],col:'#6b8fbf',s:'beetle',rig:'rustjaw',w:150,pas:['Bloodscent','Gains 3 Strength the first time it drops below half HP.'],ai:t=>[{n:'Gnash',a:6,vuln:1},{n:'Maul',a:11},{n:'Hunker',b:9,a:4}][t%3]},
+mask:{n:'Veil Mask',hp:[26,30],col:'#8f86c8',s:'ghost',rig:'veilmask',w:150,fly:1,pas:['Hollow Veil','Its Phase grants Block that lasts until its next turn.'],ai:t=>[{n:'Hex Gaze',weak:1,vuln:1},{n:'Wail',a:8},{n:'Phase',b:10,a:3}][t%3]},
+warden:{n:'Stone Warden',hp:[82,86],col:'#a0a6ad',s:'golem',big:1,rig:'stonewarden',w:212,keep:1,pas:['Bulwark','Keeps half its Block between turns. Shield Slam adds its Block to the damage.'],ai:t=>[{n:'Fortify',b:16},{n:'Shield Slam',a:6,slam:1},{n:'Tremor',a:5,x:2,weak:1}][t%3]},
+jugg:{n:'Juggernaut',hp:[90,96],col:'#9a7fb0',s:'golem',big:1,rig:'juggernaut',idle:'juggernaut/idle',w:168,pas:['Overpressure','At half HP its canister vents: +2 Strength and 10 Block (once).'],ai:t=>[{n:'Crushing Fist',a:13},{n:'Hammerfall',a:6,x:2,vuln:1},{n:'Vent',str:2,b:8}][t%3]},
+hex:{n:'Hex Mother',pas:['Witch','Curses you, then strikes.'],hp:[68,72],col:'#d0607a',s:'ghost',big:1,ai:t=>[{n:'Hexblade',a:9,vuln:2},{n:'Thousand Cuts',a:6,x:3},{n:'Dark Rite',weak:2,str:3}][t%3]},
+king:{n:'The Hollow King',pas:['Hollow Crown','Builds Strength and Block over the fight.'],hp:[180,180],col:'#e8c86a',s:'king',big:1,boss:1,ai:t=>[{n:'Crown of Thorns',b:10,str:2},{n:'Twin Edicts',a:8,x:2},{n:'Hollow Verdict',a:22},{n:'Decree',weak:2,vuln:2,b:8}][t%4]}};
+/* cut-out rigs, built from the parts sheets, facing left. A part is [file, left %, top %, width %, idle animation, pivot];
+   a group {g,a,o,p} moves its parts together (a limb swinging from its shoulder, a body breathing over planted legs) */
+const RIGS={"scrapclaw":{"ar":1.131,"p":[["canister",57.45,0.0,29.15,"glow","50% 60%"],["cloak",39.36,9.03,40.96,"sway","15% 4%"],["leg_b",59.57,54.15,25.32,"","50% 50%"],["arm_back",47.87,34.9,52.13,"claw2","8% 9%"],["pelvis",43.62,54.15,22.77,"","50% 50%"],["torso",40.43,18.05,32.66,"","50% 50%"],["leg_a",28.72,54.39,28.3,"","50% 50%"],["arm_front",0.0,36.1,47.23,"claw","92% 8%"],["head",18.09,19.25,38.09,"nod","75% 70%"]]},"aethertick":{"ar":1.139,"p":[{"g":"lb","a":"leg","o":"66.4% 58.0%","p":[["p14",73.12,60.42,16.57,"","50% 50%"],["p09",64.08,50.79,25.61,"","50% 50%"]]},["p00",32.79,0.0,67.21,"pulse","45% 85%"],{"g":"lm","a":"leg2","o":"55.4% 62.7%","p":[["p15",57.36,64.38,15.87,"","50% 50%"],["p11",54.11,56.07,19.93,"","50% 50%"]]},["p01",25.84,33.91,48.78,"","50% 50%"],{"g":"lf","a":"leg","o":"49.0% 64.0%","p":[["p12",29.78,63.59,15.3,"","50% 50%"],["p10",28.62,57.12,22.25,"","50% 50%"]]},["p08",0.0,49.47,30.82,"claw","85% 12%"],["p02",14.48,33.25,29.66,"nod","85% 55%"],["p03",17.73,62.93,6.95,"chew","60% 8%"]]},"veilmask":{"ar":1.159,"p":[["p01",1.74,6.32,40.68,"sway","90% 70%"],["p03",62.16,11.76,37.84,"sway2","5% 20%"],["p05",13.85,61.19,44.93,"sway","90% 10%"],["p00",71.1,0.0,28.57,"flick","30% 90%"],["p00_2",0.0,53.35,22.46,"flick2","50% 90%"],["p02",31.19,9.36,38.5,"hover","50% 50%"],["p04",58.12,54.74,21.81,"sway2","10% 10%"],["p06",51.15,77.37,5.23,"drift","50% 50%"],["p08",86.7,68.27,6.11,"drift2","50% 50%"],["p09",38.5,85.46,4.36,"drift3","50% 50%"]]},"rustjaw":{"ar":1.079,"p":[["p07",71.89,40.49,26.9,"","50% 50%"],["p11",76.96,81.9,23.04,"","50% 50%"],{"g":"body","a":"breathe","o":"54.0% 52.7%","p":[["p06",42.94,38.67,19.78,"","50% 50%"]]},["p09",44.39,62.89,14.48,"","50% 50%"],["p13",42.22,82.42,22.44,"","50% 50%"],{"g":"body","a":"breathe","o":"54.0% 52.7%","p":[["p00",21.95,0.0,64.05,"","50% 50%"],["p04",58.02,6.38,25.81,"sway","20% 3%"]]},["p08",64.17,42.45,23.28,"","50% 50%"],["p12",67.55,83.59,21.11,"","50% 50%"],{"g":"body","a":"breathe","o":"54.0% 52.7%","p":[["p03",21.11,8.2,22.44,"sway2","80% 50%"],["p05",31.85,38.41,20.14,"","50% 50%"]]},["p10",33.05,65.36,14.35,"","50% 50%"],["p14",29.67,83.72,22.07,"","50% 50%"],{"g":"body","a":"breathe","o":"54.0% 52.7%","p":[["p02",0.0,14.19,38.12,"claw","85% 45%"]]}]},"sporeling":{"ar":0.795,"p":[["p06",15.71,71.32,21.7,"","50% 50%"],["p05",63.12,71.32,25.43,"","50% 50%"],["p00",8.92,0.0,91.08,"cap","60% 95%"],["p02",76.7,39.79,22.1,"sway","40% 95%"],["p01",0.0,39.47,18.38,"sway2","60% 95%"],["p04",21.57,49.84,55.26,"nod","50% 80%"],["p03",6.92,29.21,84.29,"sway2","50% 20%"],["p07",53.13,79.47,23.97,"","50% 50%"],["p08",24.77,81.27,19.44,"","50% 50%"]]},"stonewarden":{"ar":1.27,"p":[["p11",46.94,51.21,27.58,"","50% 50%"],["p12",24.07,52.36,27.08,"","50% 50%"],["p10",37.71,50.19,22.77,"","50% 50%"],{"g":"core","a":"breathe","o":"49.6% 56.6%","p":[["p00",30.49,0.0,38.31,"","50% 50%"],["p04",31.09,12.74,37.11,"pulse","50% 90%"]]},{"g":"armL","a":"claw","o":"69.7% 27.3%","p":[["p05",59.68,18.09,18.05,"","50% 50%"],["p06",66.2,35.67,15.95,"","50% 50%"],["p08",70.21,48.92,14.94,"","50% 50%"],["p01",72.62,8.15,27.38,"","50% 50%"]]},{"g":"armR","a":"claw2","o":"29.1% 27.3%","p":[["p03",20.56,16.18,19.06,"","50% 50%"],["p07",17.15,35.67,15.85,"","50% 50%"],["p09",14.44,48.92,14.34,"","50% 50%"],["p02",0.0,12.99,24.97,"","50% 50%"]]}]},"juggernaut":{"ar":0.748,"p":[{"g":"body","a":"breathe","o":"48.4% 47.2%","p":[["p00",48.85,0.0,45.28,"glow","50% 60%"]]},{"g":"armB","a":"claw2","o":"69.1% 23.9%","p":[["p04",64.52,19.64,28.34,"","50% 50%"],["p07",79.72,38.59,20.28,"","50% 50%"]]},["p14",47.24,72.87,29.95,"","50% 50%"],["p10",50.69,63.22,18.43,"","50% 50%"],["p13",21.2,72.78,29.03,"","50% 50%"],["p09",28.0,63.48,20.05,"","50% 50%"],["p06",30.88,40.31,35.14,"sway","50% 5%"],{"g":"body","a":"breathe","o":"48.4% 47.2%","p":[["p01",22.93,13.61,50.92,"","50% 50%"],["p02",36.64,6.72,21.2,"nod","60% 90%"]]},{"g":"armF","a":"claw","o":"27.6% 23.1%","p":[["p03",0.0,19.64,36.64,"","50% 50%"]]}]}};
+const EASY=[['spore'],['tick','tick'],['scrap']];
+const HARD=[['rustjaw'],['spore','tick'],['mask'],['scrap','spore'],['mask','tick'],['rustjaw','tick'],['spore','spore']];
+const ELITE=[['warden'],['hex'],['jugg']];
 const RELICS={heart:{n:'Ember Heart',d:'Heal 6 HP after each combat.'},fang:{n:'Iron Fang',d:'Start each combat with 1 Strength.'},lantern:{n:'Lantern',d:'Gain 1 extra Energy on your first turn.'},anchor:{n:'Anchor',d:'Start each combat with 10 Block.'},satchel:{n:'Satchel',d:'Draw 2 extra cards on your first turn.'},bell:{n:'Bronze Bell',d:'Enemies start combat with 1 Vulnerable.'},moss:{n:'Mending Moss',d:'Raise Max HP by 8.'},unbroken:{n:'Unbroken Vow',d:'Gain 5 Block at the start of combat.',h:'oath',st:1},
 circlet:{n:"Saint's Circlet",d:'Begin combat with 1 Anointed.',h:'oath',r:'c'},
 bloodstone:{n:'Bloodstone',d:'The first Bloodlust consumed each turn deals 2 more damage.',h:'oath',r:'c'},
@@ -739,7 +770,9 @@ function flush(){const q=Q;Q=[];q.forEach(([sel,txt,cls,an])=>{const el=$(sel);i
 
 /* ---------- combat ---------- */
 const alive=()=>C.foes.filter(e=>e.hp>0);
-const fell=e=>{if(e.hp<=0&&!e.dieAt){e.dieAt=performance.now();fx('#f'+e.i+' .spr','','','burst');fx('#f'+e.i+' .spr','','','vfx:shards')}};
+const rage=e=>{if(e.k=='rustjaw'&&!e.rg&&e.hp>0&&e.hp*2<e.max){e.rg=1;e.st.str=(e.st.str||0)+3;fx('#f'+e.i,'Bloodscent +3 Str','')}
+ if(e.k=='jugg'&&!e.rg&&e.hp>0&&e.hp*2<e.max){e.rg=1;e.st.str=(e.st.str||0)+2;e.block+=10;fx('#f'+e.i,'Overpressure!','i');fx('#f'+e.i+' .spr','','','oc')}};
+const fell=e=>{rage(e);if(e.hp<=0&&!e.dieAt){e.dieAt=performance.now();if(e.k=='spore')meDebuff(null,'poison',2);fx('#f'+e.i+' .spr','','','burst');fx('#f'+e.i+' .spr','','','vfx:shards')}};
 function atk(e,b,m=1){if(!e||e.hp<=0)return;let d=b+S()*m+(C.bl||0);if(C.p.st.weak)d*=.75;if(e.st.vuln)d*=1.5;if(priceOn('orun'))d*=.8;d=Math.max(0,Math.floor(d));const ab=Math.min(e.block,d);e.block-=ab;const n=d-ab;e.hp=Math.max(0,e.hp-n);fx('#f'+e.i,n?'-'+n:'Blocked',n?'':'b');fx('#f'+e.i+' .spr','','','hitR');fx('#f'+e.i+' .spr','','','vfx:slash');if(n>=15)fx('.stage','','','quake');fell(e)}
 const blk=(n,raw)=>{if(!raw)n=Math.max(0,n+X());C.p.block+=n;fx('#hero','+'+n+' Block','b');fx('#hero .spr','','','vfx:ripple')};
 const debuff=(e,k,n)=>{if(e&&e.hp>0){e.st[k]=(e.st[k]||0)+n;if(k=='poison')fx('#f'+e.i+' .spr','','','vfx:poison')}};
@@ -760,7 +793,9 @@ function startCombat(keys,kind){
  if(has('fang'))C.p.st.str=1;
  RIG.oath=(G.oaths&&G.oaths[0])||null;screen='combat';window.scrollTo(0,0);startTurn();
  if(kind=='boss')banner('Floor 13','The Hollow King');else if(kind=='elite')banner('Elite',EN[keys[0]].n)}
-function startTurn(){C.turn++;const keep=Math.min(C.p.block,C.keep||0);C.keep=0;C.p.block=keep+(C.turn==1?(has('anchor')?10:0)+(has('unbroken')?5:0):0);C.lostPrev=C.turn>1&&!!C.hurt;C.hurt=false;C.energy=3+(C.turn==1&&has('lantern')?1:0);
+function startTurn(){C.turn++;
+ if(C.p.st.poison){const n=C.p.st.poison;G.hp=Math.max(0,G.hp-n);C.p.st.poison--;fx('#hero','-'+n,'p');fx('#hero .spr','','','hitL');fx('#hero .spr','','','vfx:poison');if(G.hp<=0)return die()}
+ const keep=Math.min(C.p.block,C.keep||0);C.keep=0;C.p.block=keep+(C.turn==1?(has('anchor')?10:0)+(has('unbroken')?5:0):0);C.lostPrev=C.turn>1&&!!C.hurt;C.hurt=false;C.energy=3+(C.turn==1&&has('lantern')?1:0);
  if(C.p.st.demon)buff('str',C.p.st.demon);
  if(C.p.st.cloud){alive().forEach(e=>{debuff(e,'poison',C.p.st.cloud)})}
  const nd=5+(C.turn==1&&has('satchel')?2:0);if(G.hero=='oath'&&SWN()&&actSanc().some(x=>x.dturn!==C.turn)){draw(nd-1);ddraw(1)}else draw(nd);
@@ -788,18 +823,18 @@ function checkWin(){if(C&&!C.won&&!alive().length){C.won=true;C.busy=true;render
 function hitMe(e,a){let d=a+(e.st.str||0);if(e.st.weak)d*=.75;if(C.p.st.vuln)d*=1.5;d=Math.floor(d);const ab=Math.min(C.p.block,d);C.p.block-=ab;let n=d-ab;
  if(n>0&&C.p.st.resolve>0){const r=Math.min(n,3+(has('granite')?1:0));n-=r;C.p.st.resolve--;fx('#hero','Resolve -'+r,'o o-orun');if(C.p.st.fort&&C.lfT!=C.turn){C.lfT=C.turn;blk(C.p.st.fort,1)}}
  if(n)C.hurt=true;if(ab&&ACT('orun')&&e.hp>0){const t=Math.min(Math.floor(ab*.3),8-(e.th||0));if(t>0){e.th=(e.th||0)+t;ddmg(e,t)}}
- G.hp=Math.max(0,G.hp-n);fx('#hero',n?'-'+n:'Blocked',n?'':'b');fx('#hero .spr','','','hitL');fx('#hero .spr','','',n?'vfx:slashL':'vfx:ring');if(n){rigPose('hurt',430);RIG.flash=.85;RIG.whip=Math.max(RIG.whip,.7)}fx('#f'+e.i+' .spr','','','retL');if(n>=15)fx('.stage','','','quake')}
+ G.hp=Math.max(0,G.hp-n);fx('#hero',n?'-'+n:'Blocked',n?'':'b');fx('#hero .spr','','','hitL');fx('#hero .spr','','',n?'vfx:slashL':'vfx:ring');if(n){rigPose('hurt',430);RIG.flash=.85;RIG.whip=Math.max(RIG.whip,.7)}fx('#f'+e.i+' .spr','','','retL');if(n>=15)fx('.stage','','','quake');return n}
 async function endTurn(){if(!C||C.busy||C.lock)return;C.busy=true;C.sel=-1;
  if(C.p.st.metal)blk(C.p.st.metal,1);
  C.hand.forEach(x=>{const g=retS(x);(g?C.sanc[g]:C.disc).push(x)});C.hand=[];delete C.p.st.tstr;delete C.p.st.tdex;dec(C.p.st);render();await sleep(400);
  for(const e of C.foes){if(e.hp<=0)continue;
   if(e.st.poison){e.hp=Math.max(0,e.hp-e.st.poison);fx('#f'+e.i,'-'+e.st.poison,'p');fx('#f'+e.i+' .spr','','','hitR');fx('#f'+e.i+' .spr','','','vfx:poison');e.st.poison--;fell(e);render();await sleep(380);if(e.hp<=0)continue}
-  e.block=0;e.th=0;const n=e.int;
+  const d=EN[e.k];e.block=d.keep?Math.floor(e.block/2):0;e.th=0;const n=e.int;if(n.n)fx('#f'+e.i,n.n,'i');if(n.str||n.poison||n.b>=12||n.n=='Charge'||n.n=='Phase')fx('#f'+e.i+' .spr','','','oc');
   if(n.str){e.st.str=(e.st.str||0)+n.str;fx('#f'+e.i,'+'+n.str+' Str','')}
   if(n.b){e.block+=n.b;fx('#f'+e.i,'+'+n.b+' Block','b')}
-  if(n.a)for(let h=0;h<(n.x||1);h++){if(!RM){fx('#f'+e.i+' .spr','','','outL');render();await sleep(110)}hitMe(e,n.a);render();await sleep(300);if(G.hp<=0||e.hp<=0)break}
+  if(n.a)for(let h=0;h<(n.x||1);h++){if(!RM){fx('#f'+e.i+' .spr','','','outL');render();await sleep(110)}const dealt=hitMe(e,n.a+(n.slam?e.block:0));if(n.sip&&dealt&&e.hp>0){e.hp=Math.min(e.max,e.hp+dealt);fx('#f'+e.i,'+'+dealt,'h')}render();await sleep(300);if(G.hp<=0||e.hp<=0)break}
   if(e.hp<=0)continue;
-  if(n.weak)meDebuff(e,'weak',n.weak);if(n.vuln)meDebuff(e,'vuln',n.vuln);
+  if(n.weak)meDebuff(e,'weak',n.weak);if(n.vuln)meDebuff(e,'vuln',n.vuln);if(n.poison)meDebuff(e,'poison',n.poison);
   dec(e.st);e.t++;e.int=EN[e.k].ai(e.t);render();await sleep(300);
   if(G.hp<=0)return die()}
  if(!alive().length)return checkWin();
@@ -854,8 +889,8 @@ const statusArt={str:'strength',vuln:'vulnerable',weak:'weak',poison:'poison'};
 const oathArt={aurel:'radiance',varran:'conquest',orun:'protection',mora:'twilight'};
 const stV=st=>Object.keys(st).filter(k=>st[k]&&STN[k]).map(k=>`<span class="chip ${STN[k][1]}" title="${STN[k][2]}">${statusArt[k]?hudIcon("status-"+statusArt[k],16):""}${STN[k][0]} ${st[k]}</span>`).join('');
 function cardV(c,attrs='',cls=''){const k=KD(c),co=cost(c),g=godOf(c),dorm=g&&G&&G.hero=='oath'&&!ACT(g)&&!c.seal&&!c.tmpS;return `<button class="card t-${k.t} r${k.r}${c.up?' up':''}${g?' g-'+g:''}${c.tier?' tr'+c.tier:''}${dorm?' dorm':''}${K[c.id].m&&!c.tier?' mal':''} ${cls}" ${attrs}>${co>=0?`<span class="cost">${co}</span>`:''}${c.tier?`<span class="tier" title="${TIERN[c.tier]}">T${c.tier}</span>`:''}<span class="nm">${name(c)}</span><span class="art">${c.id==="strike"?`<img alt="" src="assets/ui/cards/${G?.hero==="oath"?"dawn":"aetherwright"}-strike.png">`:ART[k.t]}</span><span class="ds"><span>${k.d(c.up,c)}</span></span><span class="ty">${TN[k.t]}${g?' · '+GODS[g].n:K[c.id].m?' · Malleable':''}${dorm?' · Dormant':''}</span></button>`}
-function intV(e){const n=e.int,o=[];if(n.a){let d=n.a+(e.st.str||0);if(e.st.weak)d*=.75;if(C.p.st.vuln)d*=1.5;o.push(`<span class="it a" title="Attack">${hudIcon("intent-attack",14)}${Math.floor(d)}${n.x>1?'×'+n.x:''}</span>`)}
- if(n.b)o.push(`<span class="it b" title="Block">${hudIcon("intent-block",14)}${n.b}</span>`);if(n.str)o.push(`<span class="it u" title="Buff">${hudIcon("intent-buff",14)}</span>`);if(n.weak||n.vuln)o.push(`<span class="it d" title="Debuff">${hudIcon("intent-debuff",14)}</span>`);return o.join('')}
+function intV(e){const n=e.int,o=[],d0=EN[e.k];if(n.a){const bl=n.slam&&d0.keep?Math.floor(e.block/2):0;let d=n.a+bl+(e.st.str||0);if(e.st.weak)d*=.75;if(C.p.st.vuln)d*=1.5;o.push(`<span class="it a" title="Attack">${hudIcon("intent-attack",14)}${Math.floor(d)}${n.x>1?'×'+n.x:''}</span>`)}
+ if(n.b)o.push(`<span class="it b" title="Block">${hudIcon("intent-block",14)}${n.b}</span>`);if(n.str)o.push(`<span class="it u" title="Buff">${hudIcon("intent-buff",14)}</span>`);if(n.weak||n.vuln||n.poison)o.push(`<span class="it d" title="Debuff">${hudIcon("intent-debuff",14)}${n.poison||''}</span>`);return (n.n?`<span class="iname">${n.n}</span>`:'')+`<span class="irow">${o.join('')}</span>`}
 const relicArtwork={
  heart:'ember-heart',fang:'iron-fang',lantern:'lantern',anchor:'anchor',
  satchel:'satchel',bell:'bronze-bell',moss:'mending-moss',unbroken:'pilgrim-star'
@@ -881,8 +916,11 @@ function mapV(){const m=G.map,F=m.length,H=(F-1)*64+92;
   nd+=`<g class="node${can?' can':''}${v?' vis':''}${dim?' dim':''}${b?' boss':''}" transform="translate(${x} ${y})"${can?` data-a="go" data-v="${k}" role="button" aria-label="${TL[n.t]}"`:''}><circle class="hit" r="${r+9}"/><circle class="c" r="${r}"/>${b?`<g transform="scale(1.7)">${NI.boss}</g>`:NI[n.t]}</g>`}));
  return `<div class="mapv"><div class="maphead"><h2>${G.pos?'Choose your path':'Begin the ascent'}</h2><p>${G.pos?'Tap a glowing node to move up a floor.':'Pick any starting room on the bottom floor.'}</p></div><div class="legend">${Object.keys(TL).filter(t=>t!='shrine'||G.hero=='oath').map(t=>`<span><svg viewBox="-12 -12 24 24" width="22" height="22" aria-hidden="true">${NI[t]}</svg>${TL[t]}</span>`).join('')}</div><svg class="map" viewBox="0 0 360 ${H}">${ln}${nd}</svg></div>`}
 function heroV(now){const p=C.p;return `<div class="unit hero${p.block?' guard':''}" id="hero"><span class="spr"><i class="gshadow"></i></span><span class="info"><span class="fn">${HEROES[G.hero||'aether'].s}</span><span class="bar"><i style="width:${G.hp/G.maxHp*100}%"></i></span><span class="hpt">${G.hp}/${G.maxHp}${p.block?` <span class="chip blk">${hudIcon("intent-block",14)}${p.block}</span>`:''}</span><span class="chips">${(G.oaths||[]).map(g=>`<button class="chip oath o-${g}" data-a="oinfo" data-v="${g}" title="${GODS[g].law}">${hudIcon("oath-"+oathArt[g],20)}${GODS[g].oath}</button>`).join('')}${stV(p.st)}</span></span></div>`}
+function rigV(d,e,now){const R0=RIGS[d.rig],dl=(now+e.i*900)%2600|0,P=(q,j)=>Array.isArray(q)?`<img class="rp${q[4]?' a-'+q[4]:''}" src="assets/enemies/${d.rig}/${q[0]}.webp" alt="" draggable="false" style="left:${q[1]}%;top:${q[2]}%;width:${q[3]}%;transform-origin:${q[5]};animation-delay:-${(dl+j*370+e.i*610)%4000}ms">`:`<span class="rgp a-${q.a}" style="transform-origin:${q.o};animation-delay:-${(dl+q.g.length*530+e.i*610)%4000}ms">${q.p.map((c,k)=>P(c,j*7+k)).join('')}</span>`;
+ const idle=d.idle?`<img class="enemy-idle bob" src="assets/enemies/${d.idle}.webp" alt="" draggable="false">`:'';
+ return `<span class="spr paint">${idle}<span class="rg bob${d.fly?' fly':''}" style="animation-delay:-${dl}ms">${R0.p.map(P).join('')}</span></span>`}
 function foeV(e,tg,now){const d=EN[e.k],dead=e.hp<=0,el=dead?now-(e.dieAt||0):0,st=dead?(el<800?' dying':' dead'):'';
- return `<button class="unit${d.big?' big':''}${tg&&!dead?' tgt':''}${st}" id="f${e.i}" data-a="foe" data-v="${e.i}" aria-label="${d.n}"${st==' dying'?` style="animation-delay:-${el|0}ms"`:''}><span class="ints">${dead?'':intV(e)}</span><span class="spr"><svg class="bob${d.s=='moth'||d.s=='ghost'?' fly':''}" viewBox="0 0 120 100" style="animation-delay:-${(now+e.i*900)%2600|0}ms" aria-hidden="true">${SPR[d.s](d.col)}</svg></span><span class="info"><span class="fn">${d.n}</span><span class="bar"><i style="width:${e.hp/e.max*100}%"></i></span><span class="hpt">${e.hp}/${e.max}${e.block?` <span class="chip blk">${hudIcon("intent-block",14)}${e.block}</span>`:''}</span><span class="chips">${stV(e.st)}</span></span></button>`}
+ return `<button class="unit${d.big?' big':''}${d.img||d.rig?' pw':''}${tg&&!dead?' tgt':''}${st}" id="f${e.i}" data-a="foe" data-v="${e.i}" aria-label="${d.n}" style="${d.img||d.rig?`--w:${d.w};--h:${(d.w/(d.rig?RIGS[d.rig].ar:d.ar)).toFixed(1)};`:''}${st==' dying'?`animation-delay:-${el|0}ms`:''}"><span class="ints">${dead?'':intV(e)}</span>${d.rig?rigV(d,e,now):d.img?`<span class="spr paint"><img class="bob${d.fly?' fly':''}" src="assets/enemies/${d.img}.webp" alt="" draggable="false" style="animation-delay:-${(now+e.i*900)%2600|0}ms"></span>`:`<span class="spr"><svg class="bob${d.s=='moth'||d.s=='ghost'?' fly':''}" viewBox="0 0 120 100" style="animation-delay:-${(now+e.i*900)%2600|0}ms" aria-hidden="true">${d.mir?`<g transform="matrix(-1 0 0 1 120 0)">${SPR[d.s](d.col)}</g>`:SPR[d.s](d.col)}</svg></span>`}<span class="info"><span class="fn"${d.pas?` title="${d.pas[0]}: ${d.pas[1]}"`:''}>${d.n}${d.pas?'<i class="pas">◆</i>':''}</span><span class="bar"><i style="width:${e.hp/e.max*100}%"></i></span><span class="hpt">${e.hp}/${e.max}${e.block?` <span class="chip blk">${hudIcon("intent-block",14)}${e.block}</span>`:''}</span><span class="chips">${stV(e.st)}</span></span></button>`}
 function handV(){const n=C.hand.length;if(!n)return '<p class="empty">No cards in hand</p>';const W=Math.min(innerWidth,1120)-24,cw=W<580?98:128,mid=(n-1)/2,step=n>1?Math.min(cw+10,(W-cw-90)/(n-1)):0,now=performance.now();
  return C.hand.map((c,i)=>{const o=i-mid,x=W/2+o*step-cw/2+12,rot=n>1?o*Math.min(5,26/n):0,y=o*o*Math.min(3.2,16/n),dl=c.dt?c.dt-now:-999,an=dl>-420&&!RM?`;animation:deal .42s ease-out ${dl|0}ms backwards`:'';
   return cardV(c,`data-a="card" data-v="${i}" style="left:${x.toFixed(1)}px;--r:${rot.toFixed(2)}deg;--y:${y.toFixed(1)}px;z-index:${i+1}${an}"`,(i==C.sel?'sel ':'')+(playable(c)?'':'no'))}).join('')}
