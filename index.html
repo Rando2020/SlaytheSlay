@@ -268,7 +268,7 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 .relic-art{width:100%;height:100%;object-fit:contain}
 .sanctum-art{width:32px;height:32px;vertical-align:middle}
 .rest-art{width:min(100%,520px);height:auto;border-radius:10px}
-</style></head><body>
+</style><link rel="stylesheet" href="map.css"><script src="js/map-assets.js"></script><script src="js/act-map.js"></script></head><body>
 <div id="app"></div><div id="modal"></div><svg id="aim" aria-hidden="true"><path id="aimP" fill="none" stroke="none"/><g id="aimG"></g></svg>
 <script>
 (()=>{
@@ -278,7 +278,14 @@ const pick=a=>a[R(a.length)];
 const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=R(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const SAVE='hollow-ascent-v1';
-const save=()=>{try{localStorage.setItem(SAVE,JSON.stringify(G))}catch(e){}};
+let saveError=false;
+function save(){try{if(G&&['combat','reward','shop','rest','shrine','event'].includes(screen)&&(!C||(!C.busy&&!C.lock))){G.encounter={screen,C,RW,SH,RS,SR,EV:EV?{index:EVENTS.indexOf(EV.e),done:EV.done,msg:EV.msg}:null,uid};}localStorage.setItem(SAVE,JSON.stringify(G));saveError=false;return true}catch(e){saveError=true;return false}}
+function showSaveError(){if(!document.querySelector('.map-save-error')){const e=document.createElement('p');e.className='map-save-error';e.setAttribute('role','alert');e.textContent='Your progress could not be saved. Free browser storage before confirming travel.';document.body.append(e)}}
+let mapSelected='',mapEffects=true,mapScroll=null,travelBusy=false;
+function restoreEncounter(){const e=G.encounter;if(!e)return false;({C,RW,SH,RS,SR}=e);EV=e.EV?{...e.EV,e:EVENTS[e.EV.index]}:null;uid=e.uid||uid;if(C){C.busy=false;C.lock=false;C.sel=-1;}screen=e.screen;render();return true}
+async function confirmMapTravel(){if(travelBusy||screen!=='map'||!mapSelected)return;const [f,l]=mapSelected.split(',').map(Number);if(!ActMap.prepareTravel(G,f,l))return;travelBusy=true;if(!save()){delete G.travel;travelBusy=false;showSaveError();return;}const marker=$('.journey-marker'),geo=ActMap.geometry(G.map),[x,y]=geo.xy(f,l);if(marker){marker.style.left=x/geo.width*100+'%';marker.style.top=y+'px';}document.querySelectorAll('[data-map-node],[data-map-action="travel"]').forEach(b=>b.disabled=true);if(!RM)await sleep(700);finishMapTravel()}
+function finishMapTravel(){if(!ActMap.commitTravel(G)){travelBusy=false;return;}const {f,l}=G.pos;mapSelected='';mapScroll=null;try{enterEncounter(f,l);save()}finally{travelBusy=false}}
+function mountMap(){ActMap.bind($('#app'),G,{scroll:mapScroll,select:k=>{mapScroll=$('.map-scroll').scrollTop;mapSelected=k;render();document.querySelector(`[data-map-node="${k}"]`)?.focus({preventScroll:true});},action:a=>{if(a==='travel')confirmMapTravel();else{mapScroll=$('.map-scroll').scrollTop;mapEffects=!mapEffects;render();}}});}
 const load=()=>{try{return JSON.parse(localStorage.getItem(SAVE))}catch(e){return null}};
 const wipe=()=>{try{localStorage.removeItem(SAVE)}catch(e){}};
 let G=null,C=null,RW=null,SH=null,RS=null,SR=null,EV=null,MD=null,screen='title',uid=1,Q=[];
@@ -739,17 +746,14 @@ function winCombat(){if(!C)return;const kind=C.kind;C=null;if(has('heart'))heal(
 function die(){wipe();C=null;screen='dead';render()}
 
 /* ---------- run and map ---------- */
-function roll(f,h){const r=Math.random();if(h=='oath'&&f>=4&&r<.1)return 'shrine';if(f<4)return r<.68?'fight':r<.88?'event':'shop';return r<.44?'fight':r<.6?'event':r<.73?'elite':r<.85?'rest':'shop'}
-function genMap(h){const F=13,m=[];
- for(let f=0;f<F-1;f++)m.push([0,1,2,3].map(()=>({t:f==0?'fight':f==F-2?'rest':f==6?'chest':h=='oath'&&f==2?'shrine':roll(f,h),next:[],jx:R(17)-8,jy:R(13)-6})));
- for(let f=0;f<F-2;f++)m[f].forEach((n,l)=>{n.next=[l];if(Math.random()<.55){const o=l+(Math.random()<.5?-1:1);if(o>=0&&o<4&&!(o==l-1&&m[f][o].next.includes(l)))n.next.push(o)}});
- m[F-2].forEach(n=>n.next=[0]);m.push([{t:'boss',next:[],jx:0,jy:0}]);return m}
-function avail(){const m=G.map;if(!G.pos)return m[0].map((n,l)=>[0,l]);const{f,l}=G.pos;return f>=m.length-1?[]:m[f][l].next.map(nl=>[f+1,nl])}
-function newRun(h){if(!HEROES[h]){screen='pick';return render()}uid=1;const H=HEROES[h];G={hero:h,hp:H.hp,maxHp:H.hp,gold:99,deck:H.deck(),relics:[H.relic],oaths:[],map:genMap(h),pos:null,path:[],floor:0};goMap()}
-function goMap(){closeModal();C=null;screen='map';save();render()}
+function genMap(h,seed,region='verdant'){return ActMap.generate(h,seed,MapAssets.regions[region].generation)}
+function avail(){return ActMap.available(G)}
+function newRun(h){if(!HEROES[h]){screen='pick';return render()}uid=1;const H=HEROES[h];G={hero:h,hp:H.hp,maxHp:H.hp,gold:99,deck:H.deck(),relics:[H.relic],oaths:[],seed:String(Date.now())+'-'+R(1000000),region:'verdant',map:null,pos:null,path:[],floor:0};G.map=genMap(h,G.seed);mapSelected='';mapScroll=null;goMap()}
+function goMap(){closeModal();C=null;delete G.encounter;delete G.travel;mapSelected='';travelBusy=false;screen='map';save();render()}
 function mkShop(){const ids=[];[1,1,2,2,3].forEach(t=>{let id,g=0;do{id=pick(POOL[t])}while(ids.includes(id)&&g++<20);ids.push(id)});
  const r=randRelic();return{cards:ids.map(id=>({id,p:{1:50,2:75,3:145}[K[id].r]+R(11)-5,sold:0})),relic:r?{k:r,p:140+R(21),sold:0}:null,removed:0}}
-function enter(f,l){if(!avail().some(([a,b])=>a==f&&b==l))return;G.pos={f,l};G.path.push([f,l]);G.floor=f+1;const t=G.map[f][l].t;
+function enter(f,l){if(screen!=='map'||travelBusy)return;mapSelected=f+','+l;return confirmMapTravel()}
+function enterEncounter(f,l){const t=G.map[f][l].t;
  if(t=='fight')startCombat(pick(f<4?EASY:HARD),'fight');
  else if(t=='elite')startCombat(pick(ELITE),'elite');
  else if(t=='boss')startCombat(['king'],'boss');
@@ -792,22 +796,14 @@ function relicIcon(key){
  const art=relicArtwork[key];
  return art?`<img class="relic-art" src="assets/ui/relics/${art}.png" alt="">`:RELICS[key].n[0];
 }
-function topV(){return `<div class="top"><span class="stat hp">${ICO.heart}${G.hp}/${G.maxHp}</span><span class="stat gd">${ICO.coin}${G.gold}</span><span class="stat">Floor ${G.floor}/13</span><span class="relics">${G.relics.map(k=>`<button class="rel" data-a="rel" data-v="${k}" aria-label="${RELICS[k].n}">${relicIcon(k)}</button>`).join('')}</span><button class="btn sm" data-a="deck"><img class="deck-back" alt="" src="assets/ui/cards/${({aether:"aetherwright",oath:"oathbound"})[G.hero]||"universal"}-back.png">Deck ${G.deck.length}</button></div>`}
+function topV(){return `<div class="top"><span class="stat hp">${ICO.heart}${G.hp}/${G.maxHp}</span><span class="stat gd">${ICO.coin}${G.gold}</span><span class="stat">Floor ${G.floor}/${G.map.length}</span><span class="relics">${G.relics.map(k=>`<button class="rel" data-a="rel" data-v="${k}" aria-label="${RELICS[k].n}">${relicIcon(k)}</button>`).join('')}</span><button class="btn sm" data-a="deck"><img class="deck-back" alt="" src="assets/ui/cards/${({aether:"aetherwright",oath:"oathbound"})[G.hero]||"universal"}-back.png">Deck ${G.deck.length}</button></div>`}
 function pickV(){return `<div class="panel pick"><h2>Choose your climber</h2><p class="sub">Each hero has their own starting deck, relic and cards to find on the way up.</p><div class="heroes">${Object.entries(HEROES).map(([k,h])=>`<button class="hcard" data-a="hero" data-v="${k}"><span class="hp"><img src="${PSET[k].idle}" alt=""></span><b>${h.n}</b><span class="hb">${h.b}</span><span class="hs">${h.hp} HP · ${RELICS[h.relic].n}</span>${k=='oath'?`<span class="oaths">${Object.entries(GODS).map(([o,v])=>`<i class="o-${o}">${v.oath}</i>`).join('')}</span>`:''}</button>`).join('')}</div><button class="btn sm" data-a="title">Back</button></div>`}
 function oathPreviewV(){const h=HEROES.oath;return `<section class="oath-preview" aria-label="Selected character: The Oathbound"><div class="oath-art" role="img" aria-label="The Oathbound kneels before the four gods"></div><div class="oath-summary"><h1>${h.n}</h1><p class="sub">${h.b}</p><span class="hs">${h.hp} HP · ${RELICS[h.relic].n}</span><div class="oaths">${Object.entries(GODS).map(([o,v])=>`<i class="o-${o}">${v.oath}</i>`).join('')}</div><div class="row"><button class="btn" data-a="pickback">Back to characters</button><button class="btn pri" data-a="oathstart">Begin ascent</button></div></div></section>`}
 function titleV(){const s=load();let emb='';for(let i=0;i<14;i++)emb+=`<circle class="emb" cx="${(i*67)%400}" cy="${200+(i*37)%40}" r="${1+(i%3)*.6}" fill="#ff5a36" style="animation-delay:${-(i*.53).toFixed(2)}s"/>`;
  return `<div class="title"><div class="hero" role="img" aria-label="A sealed aether gate in overgrown ruins"><div class="tmark"><h1>Hollow Ascent</h1><p class="kick">A roguelike deckbuilder</p></div></div>
  <div class="tbody"><p class="lede">Climb thirteen floors, shape your deck one card at a time, and topple the Hollow King at the top.</p><div class="row"><button class="btn pri" data-a="new">Begin ascent</button>${s?`<button class="btn" data-a="cont">Continue from floor ${s.floor}</button>`:''}</div>
  <details class="how"><summary>How to play</summary><ul><li>Tap a card to play it. If several enemies are alive, attacks ask you to tap a target.</li><li>Each turn you get 3 energy and draw 5 cards. Block fades at the start of your turn.</li><li>Enemy intents show their next move: red attacks, teal blocks, gold buffs, violet debuffs.</li><li>Vulnerable takes 50% more damage, Weak deals 25% less, Poison ticks every turn.</li><li>After fights, add a card or skip. A lean deck is often stronger. Rest sites heal or upgrade.</li><li>On a keyboard: 1 to 9 plays cards, E ends your turn.</li></ul></details></div></div>`}
-function mapV(){const m=G.map,F=m.length,H=(F-1)*64+92;
- const xy=(f,l)=>f==F-1?[180,48]:[60+l*80+m[f][l].jx,H-38-f*64+m[f][l].jy];
- const av=new Set(avail().map(a=>a.join())),vis=new Set(G.path.map(a=>a.join())),ed=new Set(G.path.map((p,k)=>k?G.path[k-1].join()+'>'+p.join():''));
- const cf=G.pos?G.pos.f:-1;let ln='',nd='';
- m.forEach((row,f)=>row.forEach((n,l)=>{const[x,y]=xy(f,l);
-  n.next.forEach(nl=>{const[x2,y2]=xy(f+1,nl);ln+=`<line x1="${x}" y1="${y}" x2="${x2}" y2="${y2}" class="${ed.has(f+','+l+'>'+(f+1)+','+nl)?'on':''}"/>`});
-  const k=f+','+l,can=av.has(k),v=vis.has(k),dim=f<=cf&&!v,b=n.t=='boss',r=b?30:19;
-  nd+=`<g class="node${can?' can':''}${v?' vis':''}${dim?' dim':''}${b?' boss':''}" transform="translate(${x} ${y})"${can?` data-a="go" data-v="${k}" role="button" aria-label="${TL[n.t]}"`:''}><circle class="hit" r="${r+9}"/><circle class="c" r="${r}"/>${b?`<g transform="scale(1.7)">${NI.boss}</g>`:NI[n.t]}</g>`}));
- return `<div class="mapv"><div class="maphead"><h2>${G.pos?'Choose your path':'Begin the ascent'}</h2><p>${G.pos?'Tap a glowing node to move up a floor.':'Pick any starting room on the bottom floor.'}</p></div><div class="legend">${Object.keys(TL).filter(t=>t!='shrine'||G.hero=='oath').map(t=>`<span><svg viewBox="-12 -12 24 24" width="22" height="22" aria-hidden="true">${NI[t]}</svg>${TL[t]}</span>`).join('')}</div><svg class="map" viewBox="0 0 360 ${H}">${ln}${nd}</svg></div>`}
+function mapV(){return ActMap.render(G,{selected:mapSelected,effects:mapEffects,icons:NI})}
 function heroV(now){const p=C.p;return `<div class="unit hero${p.block?' guard':''}" id="hero"><span class="spr"><i class="gshadow"></i></span><span class="info"><span class="fn">${HEROES[G.hero||'aether'].s}</span><span class="bar"><i style="width:${G.hp/G.maxHp*100}%"></i></span><span class="hpt">${G.hp}/${G.maxHp}${p.block?` <span class="chip blk">${hudIcon("intent-block",14)}${p.block}</span>`:''}</span><span class="chips">${(G.oaths||[]).map(g=>`<button class="chip oath o-${g}" data-a="oinfo" data-v="${g}" title="${GODS[g].law}">${hudIcon("oath-"+oathArt[g],20)}${GODS[g].oath}</button>`).join('')}${stV(p.st)}</span></span></div>`}
 function foeV(e,tg,now){const d=EN[e.k],dead=e.hp<=0,el=dead?now-(e.dieAt||0):0,st=dead?(el<800?' dying':' dead'):'';
  return `<button class="unit${d.big?' big':''}${tg&&!dead?' tgt':''}${st}" id="f${e.i}" data-a="foe" data-v="${e.i}" aria-label="${d.n}"${st==' dying'?` style="animation-delay:-${el|0}ms"`:''}><span class="ints">${dead?'':intV(e)}</span><span class="spr"><svg class="bob${d.s=='moth'||d.s=='ghost'?' fly':''}" viewBox="0 0 120 100" style="animation-delay:-${(now+e.i*900)%2600|0}ms" aria-hidden="true">${SPR[d.s](d.col)}</svg></span><span class="info"><span class="fn">${d.n}</span><span class="bar"><i style="width:${e.hp/e.max*100}%"></i></span><span class="hpt">${e.hp}/${e.max}${e.block?` <span class="chip blk">${hudIcon("intent-block",14)}${e.block}</span>`:''}</span><span class="chips">${stV(e.st)}</span></span></button>`}
@@ -838,8 +834,8 @@ function eventV(){const e=EV.e;return `<div class="panel"><svg class="pic" viewB
  ${EV.done?`<button class="btn pri" data-a="map">Continue</button>`:`<div class="opts">${e.o.map((o,i)=>`<button class="btn opt" data-a="evo" data-v="${i}" ${o.ok&&!o.ok()?'disabled':''}>${o.l}</button>`).join('')}</div>`}</div>`}
 function endV(){const w=screen=='win';return `<div class="panel end"><svg class="pic" viewBox="0 0 200 120" aria-hidden="true">${w?`<g transform="translate(100 64) scale(4.2)">${NI.boss}</g>`:`<g transform="translate(100 62) scale(4.2)">${NI.elite}</g>`}</svg><h1>${w?'The King falls':'Your climb ends'}</h1><p class="sub">${w?`You toppled the Hollow King with a deck of ${G.deck.length} cards and ${G.relics.length} relics.`:`You fell on floor ${G.floor} of 13 with ${G.deck.length} cards in your deck.`}</p><button class="btn pri" data-a="new">Start a new run</button></div>`}
 const VIEWS={map:mapV,combat:combatV,reward:rewardV,shop:shopV,rest:restV,shrine:shrineV,event:eventV,dead:endV,win:endV};
-function render(){PT=null;PV.key='';$('#app').innerHTML=screen=='title'?titleV():screen=='pick'?pickV():screen=='oathpreview'?oathPreviewV():topV()+VIEWS[screen]();
- if(screen=='map'){const n=$('.node.can');if(n)try{n.scrollIntoView({block:'center'})}catch(e){}}else if(screen!='combat')window.scrollTo(0,0);
+function render(){if(G&&['combat','reward','shop','rest','shrine','event'].includes(screen))save();PT=null;PV.key='';$('#app').innerHTML=screen=='title'?titleV():screen=='pick'?pickV():screen=='oathpreview'?oathPreviewV():topV()+VIEWS[screen]();
+ if(screen=='map')mountMap();else if(screen!='combat')window.scrollTo(0,0);
  if(screen=='combat'){const st=$('.stage');if(st){bgMount(st);ptMount(st)}const hs=$('#hero .spr');if(hs)rigMount(hs)}
  flush();if(screen=='combat'&&C&&C.sel>=0&&!aimOn){aimOn=true;requestAnimationFrame(aimTick)}}
 function openPick(title,cards,cb,cancel){const list=cb?cards:[...cards].sort((a,b)=>KD(a).t.localeCompare(KD(b).t)||KD(a).n.localeCompare(KD(b).n));MD={cards:list,cb};
@@ -849,7 +845,7 @@ function closeModal(){const m=MD;MD=null;$('#modal').innerHTML='';if(m&&m.onClos
 /* ---------- input ---------- */
 const A={
 new:()=>newRun(),hero:v=>{if(v==='oath'){screen='oathpreview';render()}else newRun(v)},pickback:()=>{screen='pick';render()},oathstart:()=>newRun('oath'),title:()=>{screen='title';render()},oinfo:v=>toast(GODS[v].oath+' ('+GODS[v].full+'). Law: '+GODS[v].law+' Price: '+(halo(v)?'lifted.':GODS[v].price)),
-cont:()=>{G=load();if(!G)return;G.hero=G.hero||'aether';G.oaths=G.oaths||[];G.deck=G.deck.filter(c=>K[c.id]&&(!c.tier||FK[c.id]));G.relics=G.relics.filter(k=>RELICS[k]);uid=Math.max(0,...G.deck.map(c=>c.u||0))+1;goMap()},
+cont:()=>{G=load();if(!G)return;G.hero=G.hero||'aether';G.oaths=G.oaths||[];G.deck=G.deck.filter(c=>K[c.id]&&(!c.tier||FK[c.id]));G.relics=G.relics.filter(k=>RELICS[k]);uid=Math.max(0,...G.deck.map(c=>c.u||0))+1;if(G.travel?.status==='pending'){screen='map';render();return finishMapTravel()}if(restoreEncounter())return;goMap()},
 deck:()=>openPick('Your deck ('+G.deck.length+' cards)',G.deck,null),
 rel:v=>toast(RELICS[v].n+': '+RELICS[v].d),
 go:v=>{const[f,l]=v.split(',').map(Number);enter(f,l)},
