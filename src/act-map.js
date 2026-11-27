@@ -24,7 +24,9 @@ const ActMap = (() => {
   }
   // Each consecutive room multiplies its base weight again. Combat is the backbone
   // of a run, so it tolerates repeats more readily than service rooms.
-  const repeatFactor = {fight: .82, event: .52, elite: .48, rest: .45, shop: .45, shrine: .5};
+  const repeatFactor = {fight: .82, event: .52, elite: .48, rest: .076, shop: .45, shrine: .5};
+  const spacedCampFactor = .215;
+  const eliteCampFactor = 2;
   const early = {fight: 68, event: 20, shop: 12};
   const late = {fight: 44, event: 16, elite: 13, rest: 12, shop: 15};
   const swornPool = {...late, fight: 34, shrine: 10};
@@ -37,7 +39,13 @@ const ActMap = (() => {
     const choices = Object.entries(pool).map(([type, base]) => {
       const adjacentCamp = type === 'rest' && floor + 1 === act.restFloor ? 1 : 0;
       const streak = (incoming[type] || 0) + adjacentCamp;
-      return [type, base * repeatFactor[type] ** streak];
+      let weight = base * repeatFactor[type] ** streak;
+      if (type === 'rest') {
+        if (incoming.campAcrossRoom || floor + 2 === act.restFloor) weight *= spacedCampFactor;
+        if (incoming.elite) weight *= eliteCampFactor;
+      }
+      if (type === 'elite' && (incoming.rest || floor + 1 === act.restFloor)) weight *= eliteCampFactor;
+      return [type, weight];
     });
     let roll = random() * choices.reduce((sum, [,weight]) => sum + weight, 0);
     for (const [type, weight] of choices) {
@@ -70,6 +78,7 @@ const ActMap = (() => {
         // At a merge, protect even the route with the longest matching streak.
         if (following.length) for (const dest of node.next) {
           const history = following[dest];
+          if (node.t !== 'rest' && incoming.rest) history.campAcrossRoom = true;
           history[node.t] = Math.max(history[node.t] || 0, length);
         }
       });
