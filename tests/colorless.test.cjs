@@ -44,7 +44,7 @@ test('merchant has five class slots and two distinct colorless slots; rewards re
 });
 test('simple attacks, defenses, Weak, mark and HP sacrifices at both upgrade levels',()=>{
  for(const up of [0,1]){
-  const cases=[['exploit_opening',up?12:9,0],['counterweight',up?7:5,up?5:4],['cheap_shot',up?7:4,0],['diversion',0,up?6:3],['feint',0,up?8:5],['follow_through',up?8:6,0],['improvised_defense',0,up?6:4],['final_word',up?16:12,0]];
+  const cases=[['exploit_opening',up?12:9,0],['counterweight',up?7:5,up?5:4],['cheap_shot',up?7:4,0],['diversion',0,up?6:3],['feint',0,up?8:5],['follow_through',up?10:7,0],['improvised_defense',0,up?6:4],['final_word',up?16:12,0]];
   for(const [id,dmg,block]of cases){const g=game();stock(g);g.run('C.foes[0].int={a:9}');resolve(g,id,up);assert.equal(g.run('9999-C.foes[0].hp'),dmg,id);assert.equal(g.run('C.p.block'),block,id);if(id==='diversion')assert.equal(g.run('C.foes[0].st.weak'),1);if(id==='feint')assert.equal(g.run('C.hand.length'),1)}
   const g=game();stock(g);resolve(g,'calculated_risk',up);assert.equal(g.run('G.hp'),67);assert.equal(g.run('C.hand.length'),up?3:2);
   resolve(g,'mark_for_death',up);resolve(g,'counterweight',up);assert.equal(g.run('9999-C.foes[0].hp'),up?16:11);assert.equal(g.run('C.foes[0].neutralMark||0'),0);
@@ -52,7 +52,7 @@ test('simple attacks, defenses, Weak, mark and HP sacrifices at both upgrade lev
  }
 });
 test('conditional histories include class cards and require the immediate ordered pattern',()=>{
- for(const up of [0,1]){const g=game();g.run("runCard(mk('strike'),C.foes[0])");resolve(g,'follow_through',up);assert.equal(g.run('9999-C.foes[0].hp'),6+(up?13:10));
+ for(const up of [0,1]){const g=game();g.run("runCard(mk('strike'),C.foes[0])");resolve(g,'follow_through',up);assert.equal(g.run('9999-C.foes[0].hp'),6+(up?10:7));
  g.run("neutralState().history=['atk','skl','pow'];C.foes[0].hp=9999");resolve(g,'broken_pattern',up);assert.equal(g.run('9999-C.foes[0].hp'),up?20:15);
  g.run("neutralState().history=['atk','pow','skl'];C.foes[0].hp=9999");resolve(g,'broken_pattern',up);assert.equal(g.run('9999-C.foes[0].hp'),up?7:5);
  g.run("neutralState().history=Array(20).fill('skl');C.foes[0].hp=9999");resolve(g,'final_word',up);assert.equal(g.run('9999-C.foes[0].hp'),up?34:30);
@@ -182,4 +182,32 @@ test('party previews cannot mutate other members or their combat states, and Thr
  const g=game();nativeParty(g);vm.runInContext(html.match(/function simCard\(c,ti\)\{[^\n]+/)[0],g.ctx);
  for(const id of ['cover','rally','supply_cache','reinforcements']){g.run(`globalThis.before=JSON.stringify([G,combatParty]);simCard(mk('${id}'),0)`);assert.equal(g.run('JSON.stringify([G,combatParty])===before'),true,id)}
  g.run("newRunSeed('oath',1234);globalThis.a=JSON.stringify([G.map,G.threshold.offers]);newRunSeed('oath',1234)");assert.equal(g.run('JSON.stringify([G.map,G.threshold.offers])===a'),true);
+});
+
+test('cartridge shots, optional discards, and Split Breech share combat resolution',()=>{
+ const g=game();
+ resolve(g,'demon',0,[],false);
+ resolve(g,'bash');
+ assert.equal(g.run('C.foes[0].hp'),9993);
+ g.run("C.hand=[mk('defend'),mk('strike')]");
+ resolve(g,'bash',0,[g.run('C.hand[0].u'),0]);
+ assert.equal(g.run('C.foes[0].hp'),9978);
+ resolve(g,'catalyst',0,[g.run('C.hand[0].u'),0]);
+ assert.equal(g.run('C.foes[0].hp'),9971);
+ assert.equal(g.run('C.foes[0].st.vuln'),2);
+ assert.equal(g.run('C.disc.length'),2);
+});
+test('changing targets weakens the second foe and stone remembers absorbed hits by foe',()=>{
+ const g=game('oath');
+ g.run("C.foes.push({...C.foes[0],i:1,st:{}});runCard(mk('strike'),C.foes[0]);runCard(mk('follow_through'),C.foes[1])");
+ assert.equal(g.run('C.foes[1].st.weak'),1);
+ g.run("C.p.block=10;hitMe(C.foes[0],4);hitMe(C.foes[0],9)");
+ assert.equal(g.run('stoneBonus(C.foes[0])'),8);
+ assert.equal(g.run('stoneBonus(C.foes[1])'),0);
+});
+test('Sporeling still inflicts Poison and the next turn consumes a stack',()=>{
+ const g=game();
+ g.run("C.foes[0].k='sporeling';C.foes[0].hp=0;fell(C.foes[0]);globalThis.prePoison=G.hp;startTurn()");
+ assert.equal(g.run('prePoison-G.hp'),2);
+ assert.equal(g.run('C.p.st.poison'),1);
 });

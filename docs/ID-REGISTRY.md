@@ -93,8 +93,8 @@ Enemy art lives in `assets/enemies/<id>/` and faces **left**.
 | `weak` | Weak | ✓ |
 | `poison` | Poison | ✓ |
 | `metal` | Metal | (text chip) |
-| `cloud` | Cloud | (text chip) |
-| `demon` | Demon | (text chip) |
+| `brass` | Brass | (text chip) |
+| `breech` | Breech | (text chip) |
 
 ## Cards
 
@@ -104,28 +104,28 @@ Card art is looked up in order: `assets/ui/cards/art/<heroId>/<cardId>.png`, the
 
 | ID | Name | Type | Rarity | Art path |  |
 | --- | --- | --- | --- | --- | --- |
-| `strike` | Strike | Attack | starter | `ui/cards/art/aether/strike.png` | ✓ |
-| `defend` | Defend | Skill | starter | `ui/cards/art/aether/defend.png` | missing |
-| `bash` | Bash | Attack | starter | `ui/cards/art/aether/bash.png` | missing |
-| `cleave` | Cleave | Attack | common | `ui/cards/art/aether/cleave.png` | missing |
+| `strike` | Sidearm | Attack | starter | `ui/cards/art/aether/strike.png` | ✓ |
+| `defend` | Take Cover | Skill | starter | `ui/cards/art/aether/defend.png` | missing |
+| `bash` | Vent Shot | Attack | starter | `ui/cards/art/aether/bash.png` | missing |
+| `cleave` | Scatterglass | Attack | common | `ui/cards/art/aether/cleave.png` | missing |
 | `iron` | Iron Wave | Attack | common | `ui/cards/art/aether/iron.png` | missing |
-| `pommel` | Pommel Strike | Attack | common | `ui/cards/art/aether/pommel.png` | missing |
+| `pommel` | Cycle the Breech | Attack | common | `ui/cards/art/aether/pommel.png` | missing |
 | `shrug` | Shrug Off | Skill | common | `ui/cards/art/aether/shrug.png` | missing |
 | `twin` | Twin Slash | Attack | common | `ui/cards/art/aether/twin.png` | missing |
-| `stab` | Venom Stab | Attack | common | `ui/cards/art/aether/stab.png` | missing |
-| `toxin` | Toxin Dart | Skill | common | `ui/cards/art/aether/toxin.png` | missing |
+| `stab` | Burring Round | Attack | common | `ui/cards/art/aether/stab.png` | missing |
+| `toxin` | Loose Cartridge | Attack | common | `ui/cards/art/aether/toxin.png` | missing |
 | `thunder` | Thunderclap | Attack | common | `ui/cards/art/aether/thunder.png` | missing |
 | `slam` | Body Slam | Attack | common | `ui/cards/art/aether/slam.png` | missing |
 | `inflame` | Inflame | Power | uncommon | `ui/cards/art/aether/inflame.png` | missing |
 | `upper` | Uppercut | Attack | uncommon | `ui/cards/art/aether/upper.png` | missing |
 | `heavy` | Heavy Blade | Attack | uncommon | `ui/cards/art/aether/heavy.png` | missing |
-| `catalyst` | Catalyst | Skill | uncommon | `ui/cards/art/aether/catalyst.png` | missing |
+| `catalyst` | Crack the Ampoule | Attack | uncommon | `ui/cards/art/aether/catalyst.png` | missing |
 | `blood` | Bloodletting | Skill | uncommon | `ui/cards/art/aether/blood.png` | missing |
 | `trance` | Battle Trance | Skill | uncommon | `ui/cards/art/aether/trance.png` | missing |
 | `metal` | Metallicize | Power | uncommon | `ui/cards/art/aether/metal.png` | missing |
-| `cloud` | Toxic Cloud | Power | uncommon | `ui/cards/art/aether/cloud.png` | missing |
+| `cloud` | Brass Catcher | Power | uncommon | `ui/cards/art/aether/cloud.png` | missing |
 | `imperv` | Impervious | Skill | rare | `ui/cards/art/aether/imperv.png` | missing |
-| `demon` | Demon Form | Power | rare | `ui/cards/art/aether/demon.png` | missing |
+| `demon` | Split Breech | Power | rare | `ui/cards/art/aether/demon.png` | missing |
 | `bludgeon` | Bludgeon | Attack | rare | `ui/cards/art/aether/bludgeon.png` | missing |
 | `adren` | Adrenaline | Skill | rare | `ui/cards/art/aether/adren.png` | missing |
 
@@ -134,22 +134,22 @@ Card art is looked up in order: `assets/ui/cards/art/<heroId>/<cardId>.png`, the
 | ID | Name | Type | Rarity | Art path |  |
 | --- | --- | --- | --- | --- | --- |
 | `guard` | Guard | Skill | starter | `ui/cards/art/oath/guard.png` | missing |
-| `invoke` | Invoke | Skill | starter | `ui/cards/art/oath/invoke.png` | missing |
+| `invoke` | Petition the Shrine | Skill | starter | `ui/cards/art/oath/invoke.png` | missing |
 | `lay` | Lay on Hands | Skill | starter | `ui/cards/art/oath/lay.png` | missing |
-| `judgment` | Judgment | Attack | starter | `ui/cards/art/oath/judgment.png` | missing |
+| `judgment` | Pronounce Sentence | Attack | starter | `ui/cards/art/oath/judgment.png` | missing |
 | `penance` | Penance | Skill | common | `ui/cards/art/oath/penance.png` | missing |
 | `reprisal` | Reprisal | Attack | common | `ui/cards/art/oath/reprisal.png` | missing |
 | `prayer` | Prayer | Skill | uncommon | `ui/cards/art/oath/prayer.png` | missing |
 | `offering` | Offering | Skill | uncommon | `ui/cards/art/oath/offering.png` | missing |
-| `ocleave` | Cleave | Attack | common | `ui/cards/art/oath/ocleave.png` | missing |
+| `ocleave` | Reap the Line | Attack | common | `ui/cards/art/oath/ocleave.png` | missing |
 | `reckon` | Reckoning | Attack | common | `ui/cards/art/oath/reckon.png` | missing |
 | `spommel` | Sword Pommel | Attack | common | `ui/cards/art/oath/spommel.png` | missing |
 | `sfaith` | Shield of Faith | Skill | common | `ui/cards/art/oath/sfaith.png` | missing |
 | `standfirm` | Stand Firm | Skill | common | `ui/cards/art/oath/standfirm.png` | missing |
-| `vigil` | Vigilance | Skill | common | `ui/cards/art/oath/vigil.png` | missing |
+| `vigil` | Night Watch | Skill | common | `ui/cards/art/oath/vigil.png` | missing |
 | `bastion` | Last Bastion | Skill | uncommon | `ui/cards/art/oath/bastion.png` | missing |
-| `sacret` | Sacred Retribution | Attack | uncommon | `ui/cards/art/oath/sacret.png` | missing |
-| `convict` | Conviction | Power | uncommon | `ui/cards/art/oath/convict.png` | missing |
+| `sacret` | The Stone Remembers | Attack | uncommon | `ui/cards/art/oath/sacret.png` | missing |
+| `convict` | Keep My Word | Power | uncommon | `ui/cards/art/oath/convict.png` | missing |
 | `condemn` | Condemnation | Skill | uncommon | `ui/cards/art/oath/condemn.png` | missing |
 | `laststand` | Last Stand | Attack | rare | `ui/cards/art/oath/laststand.png` | missing |
 | `forbid` | Forbidden Invocation | Skill | rare | `ui/cards/art/oath/forbid.png` | missing |
@@ -179,7 +179,7 @@ Card art is looked up in order: `assets/ui/cards/art/<heroId>/<cardId>.png`, the
 | ID | Name | Type | Rarity | Art path |  |
 | --- | --- | --- | --- | --- | --- |
 | `burden` | Burden | Status | special | `ui/cards/art/shared/burden.png` | missing |
-| `doubt` | Doubt | Curse | special | `ui/cards/art/shared/doubt.png` | missing |
+| `doubt` | Unfinished Vow | Curse | special | `ui/cards/art/shared/doubt.png` | missing |
 | `exploit_opening` | Exploit Opening | Attack | colorless common | `ui/cards/art/shared/exploit_opening.png` | missing |
 | `counterweight` | Counterweight | Attack | colorless common | `ui/cards/art/shared/counterweight.png` | missing |
 | `cheap_shot` | Cheap Shot | Attack | colorless common | `ui/cards/art/shared/cheap_shot.png` | missing |
@@ -189,7 +189,7 @@ Card art is looked up in order: `assets/ui/cards/art/<heroId>/<cardId>.png`, the
 | `diversion` | Diversion | Skill | colorless common | `ui/cards/art/shared/diversion.png` | missing |
 | `recover` | Recover | Skill | colorless common | `ui/cards/art/shared/recover.png` | missing |
 | `feint` | Feint | Skill | colorless common | `ui/cards/art/shared/feint.png` | missing |
-| `follow_through` | Follow Through | Attack | colorless common | `ui/cards/art/shared/follow_through.png` | missing |
+| `follow_through` | Split Their Ranks | Attack | colorless common | `ui/cards/art/shared/follow_through.png` | missing |
 | `improvised_defense` | Improvised Defense | Skill | colorless common | `ui/cards/art/shared/improvised_defense.png` | missing |
 | `hesitation` | Hesitation | Skill | colorless common | `ui/cards/art/shared/hesitation.png` | missing |
 | `calculated_risk` | Calculated Risk | Skill | colorless uncommon | `ui/cards/art/shared/calculated_risk.png` | missing |
@@ -213,7 +213,7 @@ Card art is looked up in order: `assets/ui/cards/art/<heroId>/<cardId>.png`, the
 | `reinvention` | Reinvention | Skill | colorless rare | `ui/cards/art/shared/reinvention.png` | missing |
 | `final_word` | Final Word | Attack | colorless rare | `ui/cards/art/shared/final_word.png` | missing |
 | `accept_the_cost` | Accept the Cost | Skill | colorless rare | `ui/cards/art/shared/accept_the_cost.png` | missing |
-| `second_wind` | Second Wind | Power | colorless rare | `ui/cards/art/shared/second_wind.png` | missing |
+| `second_wind` | Travel Light | Power | colorless rare | `ui/cards/art/shared/second_wind.png` | missing |
 | `cover` | Cover | Skill | colorless common | `ui/cards/art/shared/cover.png` | missing |
 | `rally` | Rally | Skill | colorless uncommon | `ui/cards/art/shared/rally.png` | missing |
 | `intercept` | Intercept | Skill | colorless uncommon | `ui/cards/art/shared/intercept.png` | missing |

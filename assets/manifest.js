@@ -240,6 +240,7 @@ window.ASSET_FILES = [
  "scenes/ember/mist.webp",
  "scenes/ember/press.webp",
  "scenes/rest-site.webp",
+ "scenes/wayside-bindery.webp",
  "ui/cards/art/aether/strike.png",
  "ui/cards/art/oath/strike.png",
  "ui/cards/backs/aether.png",

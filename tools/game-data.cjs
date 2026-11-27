@@ -54,7 +54,18 @@ function skipTemplate(s, i) {
 function loadGameData(html = fs.readFileSync(path.join(root, 'index.html'), 'utf8')) {
   const names = ['HEROES', 'EN', 'EASY', 'HARD', 'ELITE', 'RELICS', 'GODS', 'STN', 'K', 'COLORLESS', 'LEGACY_ENEMY_IDS', 'HERO_POSES'];
   const ctx = vm.createContext({});
-  for (const name of names) vm.runInContext(literalSource(html, name).replace(/^const /, 'var '), ctx);
+  for (const name of names) {
+    const code = literalSource(html, name).replace(/^const /, 'var ');
+    // Tables may reference engine helpers by name (ch:discardShotChoices). Tools only need
+    // IDs and display names, so any missing helper becomes a harmless stub.
+    for (let tries = 0; ; tries++) {
+      try { vm.runInContext(code, ctx); break; } catch (error) {
+        const missing = error && error.name === 'ReferenceError' && /^(\w+) is not defined/.exec(error.message);
+        if (!missing || tries > 50) throw error;
+        ctx[missing[1]] = () => {};
+      }
+    }
+  }
   const data = Object.fromEntries(names.map(n => [n, vm.runInContext(n, ctx)]));
   // index.html merges colorless cards into K at startup; mirror that here.
   for (const [id, card] of Object.entries(data.COLORLESS)) data.K[id] = {...card, colorless: 1};
