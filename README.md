@@ -28,8 +28,8 @@ then visit `http://localhost:8000`.
 - Branching 13-floor map: fights, elites, rest sites, shops, events, treasure and a boss
 - 25 cards with upgrades, 7 relics, Strength, Vulnerable, Weak and Poison
 - Side-view combat stage with a painted backdrop for each third of the climb: sunlit ruins (floors 1 to 4), the great aether tree (5 to 9) and the storm-sealed gate (10 to 13, also the title art)
-- Diorama depth: the backdrop, a midground prop layer and a blurred foreground layer sit at different depths and slide past each other as the camera slowly sways (and follows the mouse on desktop)
-- Ambient effects per area (screen-blended): drifting fog, light rays, motes, glowing moths and falling leaves in the ruins; green motes, glowing mushrooms and petals at the tree; violet rain, an energy pillar and lightning flashes at the gate
+- Diorama depth: the backdrop, a midground prop layer and a blurred foreground layer sit at different depths and slide past each other as the camera slowly sways
+- Ambient effects per area (screen-blended): drifting fog and light rays, plus a particle system of twinkling motes, wandering fireflies and leaves that tumble in 3D (gold in the ruins, green at the tree, violet embers at the gate), glowing mushrooms at the tree, and violet rain, an energy pillar and lightning at the gate
 - Combat bursts: slash on hits, ripple on Block, rune circle and pillar on powers, vortex on targeted skills, green puff on Poison, shard burst on kills
 - Damage preview: aiming a card at an enemy recolors its numbers for Strength, Weak and Vulnerable (green up, red down), flashes the HP the target would lose and flags lethal hits; dragging a skill shows the Block you'd gain
 - Scales up on large screens (QHD and 4K) and renders the hero at up to 3x pixel density; art is exported at full source resolution, and large or high-density screens load 4K backgrounds upscaled with Real-ESRGAN

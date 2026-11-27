@@ -14,7 +14,8 @@ A record of how SlaytheSlay (working title Hollow Ascent) was built, the decisio
 8. **Ambient and combat effects.** Fog, light rays, motes, moths, leaves, petals, mushrooms, violet rain, an energy pillar and lightning. Combat bursts: slash, ripple, rune circle, pillar, vortex, poison puff, shard burst.
 9. **Damage preview.** Aiming a card recolors its numbers for Strength, Weak and the target's Vulnerable (green up, red down), flashes the HP the target would lose, flags lethal, and shows Block gained. The card is simulated on a copy of the fight, so previews always match the result.
 10. **Resolution.** The UI scales up on screens over 1300 px wide (QHD, 4K). The hero renders at up to 3x pixel density. Art is exported at full source resolution, and large screens load 4K backgrounds upscaled with Real-ESRGAN.
-11. **The Oathbound.** A second playable hero (separate session): hero pick on New run, his own deck, the Pilgrim Star relic and four Oath stances.
+11. **Particle ambience.** Motes, fireflies and leaves moved from sliding pictures to a canvas particle system that runs continuously (the image effects used to restart and jump on every screen update). The camera no longer follows the mouse, and its idle sway is much smaller.
+12. **The Oathbound.** A second playable hero (separate session): hero pick on New run, his own deck, the Pilgrim Star relic and four Oath stances.
 
 ## Art pipeline
 

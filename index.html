@@ -84,6 +84,7 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 .amb[style*="flutter"]{animation-duration:9s}
 .bolt{position:absolute;inset:0;z-index:-1;pointer-events:none;mix-blend-mode:screen;background:radial-gradient(80% 60% at 60% 10%,#d8c8ff,#6b4aa8 40%,transparent 75%);opacity:0;animation:bolt 11s linear infinite}
 @keyframes bolt{0%,91%,100%{opacity:0}92%{opacity:.55}93%{opacity:.08}94.5%{opacity:.4}96%{opacity:0}}
+.pt{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}.pt-g{z-index:-1;mix-blend-mode:screen}.pt-l{z-index:2}
 .vfx{position:fixed;pointer-events:none;z-index:44;translate:-50% -50%;mix-blend-mode:screen;opacity:0}
 .prop{position:absolute;width:auto;transform:translateX(-50%)}
 .midL .prop{filter:brightness(.78) saturate(.85) drop-shadow(0 6px 6px #0008)}
@@ -273,15 +274,42 @@ const PROPS={
 1:{mid:[['b07',9,37,26],['b06',89,37,28],['a12',71,38,12]],fg:[['b21',2,-5,22],['b24',97,-4,22],['b26',8,'t',38],['a14',92,'t',32]]},
 2:{mid:[['b00',6,36,40],['b05',90,37,28],['b11',73,38,18]],fg:[['b15',4,-6,20],['b24',96,-4,22],['a13',8,'t',38],['a03',93,'t',44]]}};
 const AMB={
-all:[['smoke',24,56,72,'drift',.42],['smoke_b',80,60,60,'drift2',.32]],
-0:[['rays',4,6,58,'pulse',.8],['motes_gold',62,34,30,'float',.85],['moths',84,40,16,'flutter',.9],['dapple',48,80,54,'pulse2',.3],['leaf_a',22,-8,5,'fall',1,1],['leaf_b',60,-8,4,'fall2',1,1],['leaf_a',86,-8,4,'fall3',1,1]],
-1:[['rays',96,6,52,'pulse',.6,0,1],['motes_green',30,30,36,'float',.85],['shrooms',9,62,15,'pulse2',.85],['petals',70,24,26,'float2',.8],['leaf_b',40,-8,4,'fall',1,1],['leaf_a',78,-8,5,'fall2',1,1]],
-2:[['rain',50,8,100,'rain',.5],['pillar',89,24,13,'pulse',.9],['shards',28,32,26,'float',.7],['smoke',52,46,90,'drift2',.35]]};
-const ambV=(f,now)=>[...AMB.all,...AMB[biome(f)]].map(([n,x,y,w,a,o,leaf,flip],i)=>`<img class="amb${leaf?' leaf':''}" src="assets/fx/${n}.webp" alt="" style="left:${x}%;top:${y}%;width:${w}%;--o:${o};opacity:${o};${flip?'scale:-1 1;':''}animation-name:${a};animation-delay:-${((now/1000)+i*3.7)%40}s">`).join('')+(biome(f)==2?`<div class="bolt" style="animation-delay:-${(now/1000)%11}s"></div>`:'');
+all:[['smoke',24,56,72,'drift',.42,30],['smoke_b',80,60,60,'drift2',.32,38]],
+0:[['rays',4,6,58,'pulse',.8,9],['dapple',48,80,54,'pulse2',.3,14]],
+1:[['rays',96,6,52,'pulse',.6,11,1],['shrooms',9,62,15,'pulse2',.85,6]],
+2:[['rain',50,8,100,'rain',.5,1.4],['pillar',89,24,13,'pulse',.9,2.6],['smoke',52,46,90,'drift2',.35,34]]};
+const ambV=(f,now)=>[...AMB.all,...AMB[biome(f)]].map(([n,x,y,w,a,o,d,flip])=>{const alt=!['rain','pulse2'].includes(a),cyc=alt?d*2:d;return `<img class="amb" src="assets/fx/${n}.webp" alt="" style="left:${x}%;top:${y}%;width:${w}%;--o:${o};opacity:${o};${flip?'scale:-1 1;':''}animation:${a} ${d}s ${a=='rain'?'linear':'ease-in-out'} -${((now/1000)%cyc).toFixed(2)}s infinite ${alt?'alternate':'normal'}">`}).join('')+(biome(f)==2?`<div class="bolt" style="animation-delay:-${((now/1000)%11).toFixed(2)}s"></div>`:'');
 const propV=([n,x,b,h])=>`<img class="prop" src="assets/props/${n}.webp" alt="" style="left:${x}%;${b=='t'?'top:-4%':'bottom:'+b+'%'};height:${h}%">`;
 function scene(f){const P=PROPS[biome(f)];let emb='';for(let i=0;i<14;i++)emb+=`<circle class="emb" cx="${(i*83+20)%400}" cy="${200+(i*29)%50}" r="${1+(i%3)*.6}" fill="${i%3?'#c9a2ff':'#ffd98a'}" style="animation-delay:-${(i*.61).toFixed(2)}s"/>`;
- return `<div class="L bgL"></div><div class="L midL">${P.mid.map(propV).join('')}</div>${ambV(f,performance.now())}<svg class="bg fx" viewBox="0 0 400 260" preserveAspectRatio="xMidYMax slice" aria-hidden="true">${emb}</svg><div class="bg shade"></div>`}
+ return `<div class="L bgL"></div><div class="L midL">${P.mid.map(propV).join('')}</div>${ambV(f,performance.now())}<div class="bg shade"></div>`}
 const fgV=f=>`<div class="L fgL">${PROPS[biome(f)].fg.map(propV).join('')}</div>`;
+/* ---------- particles: motes, fireflies, tumbling leaves ---------- */
+const PT_CFG={0:{mote:'#ffc45e',fly:'#fff1b8',nm:30,nf:6,nl:7,rise:.012},1:{mote:'#c8f07a',fly:'#c4ff9e',nm:30,nf:7,nl:6,rise:.01},2:{mote:'#c9a2ff',fly:'#f0e4ff',nm:34,nf:4,nl:0,rise:.03}};
+const PS={g:null,l:null,b:-1,parts:[],leaves:[],spr:{},img:[],loop:false,last:0};
+['leaf_a','leaf_b'].forEach(n=>{const im=new Image();im.src=`assets/fx/${n}.webp`;PS.img.push(im)});
+const rnd=(a,b)=>a+Math.random()*(b-a);
+function glowSprite(col){if(PS.spr[col])return PS.spr[col];const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),g=x.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'#fff');g.addColorStop(.18,col);g.addColorStop(.5,col+'55');g.addColorStop(1,col+'00');x.fillStyle=g;x.fillRect(0,0,64,64);return PS.spr[col]=c}
+function ptSeed(b){const C2=PT_CFG[b];PS.b=b;PS.parts=[];PS.leaves=[];
+ for(let i=0;i<C2.nm;i++)PS.parts.push({k:'m',x:Math.random(),y:rnd(.15,1),s:rnd(1.2,3.4),vy:-C2.rise*rnd(.5,1.5),ph:rnd(0,6.28),tw:rnd(.6,1.8),wob:rnd(.004,.012)});
+ for(let i=0;i<C2.nf;i++)PS.parts.push({k:'f',x:rnd(.08,.92),y:rnd(.3,.85),s:rnd(3.5,5.5),a:rnd(0,6.28),sp:rnd(.015,.03),ph:rnd(0,6.28),tw:rnd(.8,1.6)});
+ for(let i=0;i<C2.nl;i++)PS.leaves.push(newLeaf(true))}
+function newLeaf(spread){return{x:rnd(-.05,1.05),y:spread?rnd(-.2,1):rnd(-.25,-.05),z:rnd(.55,1.15),vy:rnd(.035,.06),sw:rnd(.03,.07),sf:rnd(.5,1),ph:rnd(0,6.28),fl:rnd(1.6,3.2),rot:rnd(0,6.28),vr:rnd(-.6,.6),im:Math.random()<.5?0:1}}
+function ptMount(st){if(RM)return;if(!PS.g){PS.g=document.createElement('canvas');PS.g.className='pt pt-g';PS.l=document.createElement('canvas');PS.l.className='pt pt-l'}
+ const b=biome(G.floor);if(b!==PS.b)ptSeed(b);st.appendChild(PS.g);st.appendChild(PS.l);if(!PS.loop){PS.loop=true;PS.last=performance.now();requestAnimationFrame(ptTick)}}
+function ptTick(now){if(screen!='combat'||!PS.g.isConnected){PS.loop=false;return}requestAnimationFrame(ptTick);
+ const dt=Math.min(.05,(now-PS.last)/1000);PS.last=now;const t=now/1000,dpr=Math.min(2,devicePixelRatio||1),r=PS.g.getBoundingClientRect(),W=Math.round(r.width*dpr),H=Math.round(r.height*dpr);if(!W||!H)return;
+ [PS.g,PS.l].forEach(c=>{if(c.width!=W||c.height!=H){c.width=W;c.height=H}});
+ const g=PS.g.getContext('2d'),l=PS.l.getContext('2d'),C2=PT_CFG[PS.b],u=H/300;g.clearRect(0,0,W,H);l.clearRect(0,0,W,H);g.globalCompositeOperation='lighter';
+ for(const p of PS.parts){if(p.k=='m'){p.y+=p.vy*dt;p.x+=Math.sin(t*.7+p.ph)*p.wob*dt;if(p.y<-.05){p.y=1.05;p.x=Math.random()}
+   const a=(.35+.65*(.5+.5*Math.sin(t*p.tw+p.ph)))*Math.min(1,(1.05-p.y)*4,p.y*6+.2),sz=p.s*u*5.5;g.globalAlpha=Math.min(1,Math.max(0,a)*1.1);g.drawImage(glowSprite(C2.mote),p.x*W-sz/2,p.y*H-sz/2,sz,sz)}
+  else{p.a+=(Math.sin(t*.5+p.ph)*1.6)*dt;p.x+=Math.cos(p.a)*p.sp*dt;p.y+=Math.sin(p.a)*p.sp*.6*dt;if(p.x<.04||p.x>.96)p.a=Math.PI-p.a;if(p.y<.25||p.y>.9)p.a=-p.a;
+   const pulse=Math.pow(.5+.5*Math.sin(t*p.tw*2+p.ph),2),sz=p.s*u*(5+3*pulse);g.globalAlpha=.25+.75*pulse;g.drawImage(glowSprite(C2.fly),p.x*W-sz/2,p.y*H-sz/2,sz,sz)}}
+ g.globalAlpha=1;
+ for(let i=0;i<PS.leaves.length;i++){const f=PS.leaves[i],im=PS.img[f.im];f.y+=f.vy*f.z*dt;f.ph+=dt*f.sf;f.rot+=f.vr*dt;if(f.y>1.1){PS.leaves[i]=newLeaf(false);continue}
+  if(!im.complete||!im.naturalWidth)continue;const x=(f.x+Math.sin(f.ph*1.3)*f.sw)*W,y=f.y*H,flip=Math.cos(f.ph*f.fl),tilt=Math.sin(f.ph*1.3)*.5,sz=22*u*f.z;
+  l.save();l.translate(x,y);l.rotate(f.rot+tilt);l.scale(Math.max(.12,Math.abs(flip))*(flip<0?-1:1),1);
+  l.globalAlpha=Math.min(1,(f.y+.15)*5,(1.1-f.y)*5)*(.55+.45*f.z);l.filter=f.z<.75?'blur(1px) brightness(.8)':'brightness('+(.8+.25*Math.abs(flip))+')';
+  l.drawImage(im,-sz/2,-sz/2*im.height/im.width,sz,sz*im.height/im.width);l.restore()}}
 function bgMount(st){const im=BGI[biome(G.floor)],L=st.querySelector('.bgL');if(!im||!L)return;im.style.animationDelay=`-${(performance.now()/1000)%60}s`;L.appendChild(im)}
 function banner(sub,title){if(RM)return;const d=document.createElement('div');d.className='banner';d.style.zoom=Z;d.innerHTML=`${sub?`<small>${sub}</small>`:''}<b></b>`;d.querySelector('b').textContent=title;document.body.appendChild(d);setTimeout(()=>d.remove(),2200)}
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -530,7 +558,7 @@ function endV(){const w=screen=='win';return `<div class="panel end"><svg class=
 const VIEWS={map:mapV,combat:combatV,reward:rewardV,shop:shopV,rest:restV,event:eventV,dead:endV,win:endV};
 function render(){PT=null;PV.key='';$('#app').innerHTML=screen=='title'?titleV():screen=='pick'?pickV():topV()+VIEWS[screen]();
  if(screen=='map'){const n=$('.node.can');if(n)try{n.scrollIntoView({block:'center'})}catch(e){}}else if(screen!='combat')window.scrollTo(0,0);
- if(screen=='combat'){const st=$('.stage');if(st)bgMount(st);const hs=$('#hero .spr');if(hs)rigMount(hs)}
+ if(screen=='combat'){const st=$('.stage');if(st){bgMount(st);ptMount(st)}const hs=$('#hero .spr');if(hs)rigMount(hs)}
  flush();if(screen=='combat'&&C&&C.sel>=0&&!aimOn){aimOn=true;requestAnimationFrame(aimTick)}}
 function openPick(title,cards,cb){const list=cb?cards:[...cards].sort((a,b)=>K[a.id].t.localeCompare(K[b.id].t)||K[a.id].n.localeCompare(K[b.id].n));MD={cards:list,cb};
  $('#modal').innerHTML=`<div class="modal" role="dialog" aria-label="${title}"><div class="mhead"><h2>${title}</h2><button class="btn" data-a="mclose">${cb?'Cancel':'Close'}</button></div><div class="grid">${list.map((c,i)=>cardV(c,cb?`data-a="mpick" data-v="${i}"`:'')).join('')||'<p class="sub">No cards to choose.</p>'}</div></div>`}
@@ -638,7 +666,7 @@ function swingArc(){if(RM||!RIG.cv||!RIG.cv.isConnected)return;const r=RIG.cv.ge
 function rigMount(spr){if(!RIG.cv&&!RIG.fail)rigInit();if(RIG.fail||!RIG.cv){if(!spr.querySelector('.rigimg'))spr.insertAdjacentHTML('beforeend',`<img class="rigimg" src="${PIMG.idle}" alt="">`);return}
  RIG.cv.classList.toggle('tall',HK()=='oath');spr.appendChild(RIG.cv);if(!RIG.loop){RIG.loop=true;RIG.last=performance.now();requestAnimationFrame(rigTick)}}
 function rigTick(now){const cv=RIG.cv,gl=RIG.gl;if(screen!='combat'||!cv.isConnected||RIG.fail){RIG.loop=false;return}requestAnimationFrame(rigTick);
- const stg=$('.stage');if(stg&&!RM){const t=now/1000,px=matchMedia('(hover:hover)').matches?(AP.x/innerWidth-.5):0;stg.style.perspectiveOrigin=`${(50+Math.sin(t*.23)*7+px*10).toFixed(2)}% ${(45+Math.sin(t*.17)*3).toFixed(2)}%`}
+ const stg=$('.stage');if(stg&&!RM){const t=now/1000;stg.style.perspectiveOrigin=`${(50+Math.sin(t*.16)*2.5).toFixed(2)}% ${(45+Math.sin(t*.11)*1).toFixed(2)}%`}
  const dt=Math.min(.05,(now-RIG.last)/1000);RIG.last=now;RIG.whip*=Math.pow(.12,dt);RIG.flash*=Math.pow(.004,dt);
  const dpr=Math.min(3,devicePixelRatio||1),cr=cv.getBoundingClientRect(),W=Math.round(cr.width*dpr),H=Math.round(cr.height*dpr);if(!W||!H)return;if(cv.width!=W||cv.height!=H){cv.width=W;cv.height=H}
  if(now>RIG.until)RIG.pose='idle';let pk=RIG.pose,k=RK(pk);if(!RIG.img[k]||!RIG.wt[k]){pk='idle';k=RK(pk)}if(!RIG.img[k]||!RIG.wt[k])return;
