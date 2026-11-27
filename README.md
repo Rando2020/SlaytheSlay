@@ -106,3 +106,8 @@ console.log(next.turn, next.energy, next.enemies);
 Read the returned actions after each decision. Concurrent commands, stale
 revisions and invalid indices are rejected. The state report includes the most
 recent 200 agent actions. The API is available only in Combat Lab.
+
+Open **Reference gallery** on the title screen or in Combat Lab to browse registered
+cards (including oath forms), relics, statuses, oaths and Sanctums. Search by rule
+text, name or ID. The artwork filter separates loaded illustrations, shared icons,
+text placeholders and failed image loads. The gallery also shows each mapped file.

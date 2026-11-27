@@ -14,6 +14,7 @@ export function mountLab({heroes, gods, enemies, encounters, start, snapshot, me
       <button type="submit">Launch fresh encounter</button>
     </form>
     <button type="button" id="lab-report">Download state report</button>
+    <a href="?gallery=1" target="_blank" rel="noopener">Reference gallery</a>
     <a href="./tests/combat-interactions.html" target="_blank" rel="noopener">Run interaction tests</a>
     <a href="./index.html">Exit to game</a>`;
   const style = document.createElement('style');
