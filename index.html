@@ -300,9 +300,9 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 <script>
 (()=>{
 const $=s=>document.querySelector(s);
-const R=n=>Math.floor(Math.random()*n);
+const R=n=>SIM?0:Math.floor(Math.random()*n);
 const pick=a=>a[R(a.length)];
-const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=R(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
+const shuf=a=>{if(SIM)return a;for(let i=a.length-1;i>0;i--){const j=R(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const SAVE='hollow-ascent-v1';
 const save=()=>{try{localStorage.setItem(SAVE,JSON.stringify(G))}catch(e){}};
@@ -462,7 +462,95 @@ echo:{h:'oath',g:'mora',n:'Echo of Death',c:[1,0],t:'skl',r:2,x:1,rs:1,ch:()=>[{
 queen:{h:'oath',g:'mora',n:"Queen's Embrace",c:[2,1],t:'pow',r:3,d:()=>`The first time you Offer a card each turn, gain 1 Soulbound.`,f:()=>buff('queen',1)},
 burden:{h:'oath',n:'Burden',c:-1,t:'status',r:-1,d:()=>`Unplayable. A weight laid on you by Mora.`,f:()=>{}},
 doubt:{n:'Doubt',c:-1,t:'curse',r:-1,d:()=>`Unplayable. Clogs your hand.`,f:()=>{}}};
-const POOLS={aether:{1:[],2:[],3:[]},oath:{1:[],2:[],3:[]}};for(const id in K)if(K[id].r>0)POOLS[K[id].h||'aether'][K[id].r].push(id);
+/* ---------- universal techniques: ordinary cards, never Divine Draw ---------- */
+const COLORLESS={
+exploit_opening:{n:'Exploit Opening',c:1,t:'atk',r:1,tg:1,d:u=>`Deal ${u?6:5} damage. If the enemy intends to attack, deal ${u?6:4} more.`,f:(u,e)=>atk(e,(u?6:5)+(intendsAttack(e)?u?6:4:0))},
+counterweight:{n:'Counterweight',c:1,t:'atk',r:1,tg:1,d:u=>`Deal ${u?7:5} damage. Gain ${u?5:4} Block.`,f:(u,e)=>{atk(e,u?7:5);blk(u?5:4)}},
+cheap_shot:{n:'Cheap Shot',c:0,t:'atk',r:1,tg:1,x:1,d:u=>`Deal ${u?7:4} damage. Play only on an enemy that has already taken Attack damage this turn. Exhaust.`,req:()=>alive().some(e=>e.neutralAttackTurn===C.turn)?null:'Damage an enemy with an Attack first this turn.',targetReq:(c,e)=>e.neutralAttackTurn===C.turn?null:'This enemy has not taken Attack damage this turn.',f:(u,e)=>atk(e,u?7:4)},
+brace:{n:'Brace',c:1,t:'skl',r:1,d:u=>`Gain ${u?6:5} Block. If you had no Block, gain ${u?4:3} additional Block.`,f:u=>blk((u?6:5)+(C.p.block===0?u?4:3:0))},
+reconsider:{n:'Reconsider',c:1,t:'skl',r:1,ch:()=>[{k:'neutralHand',q:'Discard another card',required:1}],req:(u,c)=>otherHand(c).length?null:'Needs another card in hand.',d:u=>`Discard another card. Draw ${u?3:2}.`,f:(u,e,c)=>{if(moveChosen(c,'discard'))draw(u?3:2)}},
+preparation:{n:'Preparation',c:1,t:'skl',r:1,x:1,d:u=>`Next turn, gain 1 Energy and draw ${u?2:1} extra card${u?'s':''}. Exhaust.`,f:u=>delayNeutral(1,{energy:1,draw:u?2:1})},
+diversion:{n:'Diversion',c:1,t:'skl',r:1,tg:1,d:u=>`Apply 1 Weak. Gain ${u?6:3} Block.`,f:(u,e)=>{debuff(e,'weak',1);blk(u?6:3)}},
+recover:{n:'Recover',c:0,t:'skl',r:1,x:1,ch:()=>[{k:'neutralDiscard',q:'Recover an ordinary discard',required:1}],req:()=>safeDiscards().length?null:'No eligible discard (Recover and divine cards excluded).',d:u=>`Choose an ordinary discard other than Recover. ${u?'Put it into your hand':'Put it on top of your draw pile'}. Exhaust.`,f:(u,e,c)=>retrieveNeutral(c._ch?.[0],u?'hand':'draw')},
+feint:{n:'Feint',c:1,t:'skl',r:1,tg:1,d:u=>`Gain ${u?8:5} Block. If the selected enemy intends to attack, draw 1.`,f:(u,e)=>{blk(u?8:5);if(intendsAttack(e))draw(1)}},
+follow_through:{n:'Follow Through',c:1,t:'atk',r:1,tg:1,d:u=>`Deal ${u?8:6} damage, plus ${u?5:4} if the preceding card was an Attack.`,f:(u,e)=>atk(e,(u?8:6)+(neutralState().history.at(-1)==='atk'?u?5:4:0))},
+improvised_defense:{n:'Improvised Defense',c:1,t:'skl',r:1,d:u=>`Gain ${u?6:4} Block plus 2 per unplayable card in hand (up to 6 extra).`,f:u=>blk((u?6:4)+Math.min(6,2*C.hand.filter(x=>cost(x)<0).length))},
+hesitation:{n:'Hesitation',c:0,t:'skl',r:1,x:1,ch:u=>[{k:'neutralHand',q:'Retain for this turn',n:u?2:1,optional:1}],d:u=>`Retain up to ${u?2:1} other card${u?'s':''} this turn. Exhaust.`,f:(u,e,c)=>{for(const id of c._ch?.[0]||[])neutralState().retained[id]=C.turn}},
+calculated_risk:{n:'Calculated Risk',c:0,t:'skl',r:2,x:1,d:u=>`Lose 3 HP. Draw ${u?3:2}. Exhaust.`,f:u=>{sac(3);draw(u?3:2)}},
+last_resort:{n:'Last Resort',c:1,t:'atk',r:2,tg:1,d:u=>`Deal ${u?10:7} damage, or ${u?20:14} while below 30% HP.`,f:(u,e)=>atk(e,(u?10:7)*(G.hp<G.maxHp*.3?2:1))},
+break_formation:{n:'Break Formation',c:2,t:'atk',r:2,tg:1,d:u=>`Deal ${u?11:8} damage to ALL enemies. Apply 1 Vulnerable to the selected enemy.`,f:(u,e)=>{alive().forEach(x=>atk(x,u?11:8));debuff(e,'vuln',1)}},
+delayed_gratification:{n:'Delayed Gratification',c:1,t:'skl',r:2,x:1,d:u=>`Two turns from now, gain 2 Energy${u?' and draw 2 extra cards':''}. Exhaust.`,f:u=>delayNeutral(2,{energy:2,draw:u?2:0})},
+second_opinion:{n:'Second Opinion',c:1,t:'skl',r:2,ch:u=>[{k:'neutralTop',n:u?2:1,q:'Choose from the top 5'}],d:u=>`Look at the top 5 cards. Put ${u?'2':'1'} into your hand; leave the rest in order.`,f:(u,e,c)=>{for(const id of c._ch?.[0]||[]){const i=C.draw.findIndex(x=>x.u===id);if(i>=0)neutralToHand(C.draw.splice(i,1)[0])}}},
+battle_rhythm:{n:'Battle Rhythm',c:1,t:'pow',r:2,d:u=>`The first time each turn you have played both an Attack and a Skill, gain ${u?5:3} Block.`,f:(u,e,c)=>addNeutralPower(c,{kind:'rhythm',block:u?5:3})},
+holdfast:{n:'Holdfast',c:1,t:'pow',r:2,d:u=>`At the end of your turn with unspent Energy, gain ${u?8:5} Block. Once per turn per copy.`,f:(u,e,c)=>addNeutralPower(c,{kind:'holdfast',block:u?8:5})},
+read_the_room:{n:'Read the Room',c:1,t:'skl',r:2,ch:u=>[{k:'neutralMode',q:'Choose one',opts:[`Gain ${u?12:9} Block`,`Draw ${u?3:2}`,`Apply ${u?3:2} Weak to an enemy`]}, {k:'neutralEnemy',mode:2}],d:u=>`Choose: gain ${u?12:9} Block; draw ${u?3:2}; or apply ${u?3:2} Weak to an enemy.`,f:(u,e,c)=>{const a=c._ch?.[0];if(a===0)blk(u?12:9);if(a===1)draw(u?3:2);if(a===2)debuff(C.foes.find(x=>x.i===c._ch[1]),'weak',u?3:2)}},
+salvage:{n:'Salvage',c:1,t:'skl',r:2,ch:()=>[{k:'neutralHand',unplayable:1,required:1,q:'Exhaust an unplayable card'}],req:(u,c)=>otherHand(c).some(x=>cost(x)<0)?null:'Needs an unplayable hand card.',d:u=>`Exhaust an unplayable card in hand. Gain 1 Energy. Draw ${u?2:1}.`,f:(u,e,c)=>{if(moveChosen(c,'exhaust',x=>cost(x)<0)){C.energy++;draw(u?2:1)}}},
+unfinished_business:{n:'Unfinished Business',c:1,t:'atk',r:2,tg:1,d:u=>`Deal ${u?11:7} damage. If the target survives, return this card from discard to hand next turn (once per combat per copy).`,f:(u,e,c)=>{atk(e,u?11:7);const n=neutralState();if(e?.hp>0&&!n.returnUsed.includes(c.u)){n.returnUsed.push(c.u);delayNeutral(1,{returnId:c.u})}}},
+broken_pattern:{n:'Broken Pattern',c:1,t:'atk',r:2,tg:1,d:u=>`Deal ${u?7:5} damage, plus ${u?13:10} if the three preceding cards this turn were Attack, Skill, Power, in that order.`,f:(u,e)=>atk(e,(u?7:5)+(neutralState().history.slice(-3).join(',')==='atk,skl,pow'?u?13:10:0))},
+patience:{n:'Patience',c:1,t:'pow',r:2,d:u=>`At the end of a turn in which you played no Attacks, gain ${u?4:2} Block next turn.`,f:(u,e,c)=>addNeutralPower(c,{kind:'patience',block:u?4:2})},
+the_long_game:{n:'The Long Game',c:1,t:'pow',r:2,d:u=>`Every third turn after playing this, gain 1 Energy and draw ${u?2:1} extra card${u?'s':''}.`,f:(u,e,c)=>addNeutralPower(c,{kind:'long',draw:u?2:1})},
+dead_weight:{n:'Dead Weight',c:1,t:'skl',r:3,ch:()=>[{k:'neutralHand',required:1,q:'Exhaust another hand card'}],req:(u,c)=>otherHand(c).length?null:'Needs another hand card.',d:u=>`Exhaust another card in hand. Gain ${u?12:8} Block.`,f:(u,e,c)=>{if(moveChosen(c,'exhaust'))blk(u?12:8)}},
+borrowed_tomorrow:{n:'Borrowed Tomorrow',c:0,t:'skl',r:3,x:1,d:u=>`Gain 2 Energy. Next turn, lose 1 Energy and draw ${u?1:2} fewer cards. Exhaust.`,f:u=>{C.energy+=2;delayNeutral(1,{energy:-1,draw:u?-1:-2})}},
+against_all_odds:{n:'Against All Odds',c:2,t:'skl',r:3,x:1,d:u=>`Gain ${u?8:5} Block per enemy intending to attack you. Draw 2. Exhaust.`,f:u=>{const n=alive().filter(e=>intendsAttack(e)&&neutralAttackTarget(e)===neutralSelf()).length;if(n)blk(n*(u?8:5));draw(2)}},
+contingency:{n:'Contingency',c:1,t:'pow',r:3,d:u=>`The first time your HP crosses below 50% after playing this, gain ${u?18:12} Block and draw 2 extra cards next turn.`,f:(u,e,c)=>addNeutralPower(c,{kind:'contingency',block:u?18:12})},
+burn_the_bridge:{n:'Burn the Bridge',c:1,t:'skl',r:3,x:1,d:u=>`Exhaust all other hand cards. Gain 1 Energy per 2 exhausted (max 2). Draw ${u?4:3}. Exhaust.`,f:u=>{const cards=C.hand.splice(0);cards.forEach(exhaust);C.energy+=Math.min(2,Math.floor(cards.length/2));draw(u?4:3)}},
+reinvention:{n:'Reinvention',c:1,t:'skl',r:3,x:1,d:u=>`Discard your remaining hand. Draw that many cards plus ${u?2:1}. Exhaust.`,f:u=>{const a=C.hand.splice(0);a.forEach(discardNeutral);draw(a.length+(u?2:1))}},
+final_word:{n:'Final Word',c:2,t:'atk',r:3,tg:1,d:u=>`Deal ${u?16:12} damage plus 3 per other card played this turn (up to 18 extra).`,f:(u,e)=>atk(e,(u?16:12)+Math.min(18,3*neutralState().history.length))},
+accept_the_cost:{n:'Accept the Cost',c:0,t:'skl',r:3,x:1,ch:()=>[{k:'neutralMode',q:'Choose one',opts:['Gain 2 Energy','Draw 3','Gain 15 Block']}],d:u=>`Lose ${u?3:5} HP. Choose: gain 2 Energy; draw 3; or gain 15 Block. Exhaust.`,f:(u,e,c)=>{sac(u?3:5);const a=c._ch?.[0];if(a===0)C.energy+=2;if(a===1)draw(3);if(a===2)blk(15)}},
+second_wind:{n:'Second Wind',c:[2,1],t:'pow',r:3,d:()=>`The first time you end a turn with an empty hand, draw 3 extra cards and gain 1 Energy next turn. Once per combat per player.`,f:(u,e,c)=>addNeutralPower(c,{kind:'wind'})},
+cover:{coop:1,n:'Cover',c:1,t:'skl',r:1,ch:()=>[{k:'neutralAlly'}],d:u=>`Give yourself or a living ally ${u?10:7} Block.`,f:(u,e,c)=>neutralBlock(c._ch?.[0]??neutralSelf(),u?10:7)},
+rally:{coop:1,n:'Rally',c:1,t:'skl',r:2,ch:()=>[{k:'neutralAlly'}],d:u=>`You or a living ally draws ${u?3:2} extra cards next turn.`,f:(u,e,c)=>delayNeutral(1,{draw:u?3:2},c._ch?.[0]??neutralSelf())},
+intercept:{coop:1,n:'Intercept',c:1,t:'skl',r:2,x:1,ch:()=>[{k:'neutralAlly',other:1}],d:u=>`Gain ${u?14:10} Block. Redirect the next single-target enemy attack on the selected ally to you. Solo: gain Block. Exhaust.`,f:(u,e,c)=>{blk(u?14:10);const id=c._ch?.[0];if(id!=null&&id!==neutralSelf())neutralState().redirects.push({from:id,to:neutralSelf(),turn:C.turn})}},
+mark_for_death:{coop:1,n:'Mark for Death',c:1,t:'skl',r:2,tg:1,d:u=>`The next Attack card hitting this enemy deals ${u?9:6} additional damage (first hit only).`,f:(u,e)=>{if(e?.hp>0)e.neutralMark=Math.max(e.neutralMark||0,u?9:6)}},
+supply_cache:{coop:1,n:'Supply Cache',c:1,t:'skl',r:2,x:1,ch:()=>[{k:'neutralAlly',supply:1}],req:()=>neutralMembers().some(m=>!m.state.neutralSupplyReceived)?null:'Every living recipient has received Supply Cache this combat.',d:u=>`You or a living ally gains ${u?3:2} Energy next turn. Once per recipient per combat. Exhaust.`,f:(u,e,c)=>{const id=c._ch?.[0]??neutralSelf(),n=neutralState();if(neutralMember(id)&&!neutralMember(id).state.neutralSupplyReceived){n.supplied.push(id);neutralMember(id).state.neutralSupplyReceived=true;delayNeutral(1,{energy:u?3:2},id)}}},
+reinforcements:{coop:1,n:'Reinforcements',c:2,t:'skl',r:2,x:1,d:u=>`All living party members gain ${u?11:8} Block. Exhaust.`,f:u=>neutralMembers().forEach(m=>neutralBlock(m.id,u?11:8))}
+};
+for(const [id,k] of Object.entries(COLORLESS)){k.colorless=1;K[id]=k}
+const COLORLESS_POOL={1:[],2:[],3:[]};for(const id in COLORLESS)COLORLESS_POOL[K[id].r].push(id);
+const intendsAttack=e=>!!(e&&e.hp>0&&e.int?.a>0);
+const otherHand=c=>C.hand.filter(x=>x.u!==c?.u);
+const neutralSelf=()=>C.playerId??'self';
+// Future party adapters provide stable IDs and combat state per living recipient.
+const neutralMembers=()=>[{id:neutralSelf(),n:HEROES[G.hero].s,state:C,hp:G.hp},...(C.party||[]).filter(m=>m.id!==neutralSelf())].filter(m=>m.hp>0);
+const neutralMember=id=>neutralMembers().find(m=>m.id===id);
+function neutralState(){return C.neutral??=( {history:[],powers:[],retained:{},returnUsed:[],supplied:[],redirects:[],windUsed:false} )}
+function addNeutralPower(c,p){const n=neutralState();if(!n.powers.some(x=>x.u===c.u))n.powers.push({...p,u:c.u,played:C.turn,last:-1})}
+function delayNeutral(turns,effect,recipient=neutralSelf()){const m=neutralMember(recipient);if(!m)return;const s=m.state;s.neutralIncoming??=[];s.neutralIncoming.push({due:s.turn+turns,...effect})}
+function neutralBlock(id,n){const m=neutralMember(id);if(!m)return;if(id===neutralSelf())blk(n);else m.state.p.block+=Math.max(0,n+X())}
+function discardNeutral(c){const g=retS(c);(g?C.sanc[g]:C.disc).push(c)}
+const safeOrdinary=c=>!godOf(c)&&!c.tier&&!c.tmpS&&!K[c.id].rs;
+const safeDiscards=()=>C.disc.filter(c=>c.id!=='recover'&&safeOrdinary(c));
+function neutralToHand(c){if(C.hand.length<10){c.dt=performance.now();C.hand.push(c)}else discardNeutral(c)}
+function retrieveNeutral(id,to,allowReturn=false){const i=C.disc.findIndex(c=>c.u===id&&safeOrdinary(c)&&(allowReturn||c.id!=='recover'));if(i<0)return;const c=C.disc.splice(i,1)[0];if(to==='draw')C.draw.push(c);else neutralToHand(c)}
+function moveChosen(c,action,eligible=()=>true){const id=c._ch?.[0],i=C.hand.findIndex(x=>x.u===id&&x.u!==c.u&&eligible(x));if(i<0)return false;const x=C.hand.splice(i,1)[0];if(action==='exhaust')exhaust(x);else discardNeutral(x);return true}
+async function resolveNeutralChoice(s,c){
+ if(s.k==='neutralMode'){const i=await chooseP(name(c),s.q,s.opts);return i==null?CANCEL:i}
+ if(s.k==='neutralEnemy'){if(c._ch[0]!==s.mode)return null;const a=alive();const i=await chooseP(name(c),'Choose an enemy',a.map(e=>EN[e.k].n));return i==null?CANCEL:a[i].i}
+ if(s.k==='neutralAlly'){const a=neutralMembers().filter(m=>(!s.other||m.id!==neutralSelf())&&(!s.supply||!m.state.neutralSupplyReceived));if(!a.length)return s.other?null:CANCEL;if(a.length===1)return a[0].id;const i=await chooseP(name(c),'Choose a living recipient',a.map(m=>m.n||m.id));return i==null?CANCEL:a[i].id}
+ let list=s.k==='neutralDiscard'?safeDiscards():s.k==='neutralTop'?C.draw.slice(-5).reverse():otherHand(c).filter(x=>!s.unplayable||cost(x)<0);
+ if(!list.length)return s.required?CANCEL:[];
+ const out=[],n=Math.min(s.n||1,list.length);
+ for(let i=0;i<n;i++){const x=await pickP(s.q+(n>1?` (${i+1}/${n})`:''),list.filter(x=>!out.includes(x.u)),s.optional?'Done':'Cancel');if(!x)return s.optional?out:CANCEL;out.push(x.u)}
+ return s.n||s.optional?out:out[0]
+}
+function neutralAfterCard(c){const n=neutralState();n.history.push(KD(c).t);for(const p of n.powers)if(p.kind==='rhythm'&&p.last!==C.turn&&n.history.includes('atk')&&n.history.includes('skl')){p.last=C.turn;blk(p.block)}}
+function neutralHpChanged(before,attack=false){const n=neutralState();if(before>=G.maxHp*.5&&G.hp<G.maxHp*.5)for(const p of n.powers)if(p.kind==='contingency'&&!p.used){p.used=true;blk(p.block);delayNeutral(1,{draw:2})}}
+function neutralStartTurn(){const n=neutralState();n.history=[];let extra=0;const due=C.neutralIncoming||[];C.neutralIncoming=due.filter(x=>x.due>C.turn);for(const x of due.filter(x=>x.due<=C.turn)){C.energy+=x.energy||0;extra+=x.draw||0;if(x.block)blk(x.block);if(x.returnId!=null)retrieveNeutral(x.returnId,'hand',true)}for(const p of n.powers)if(p.kind==='long'&&C.turn>p.played&&(C.turn-p.played)%3===0){C.energy++;extra+=p.draw}C.energy=Math.max(0,C.energy);return extra}
+function neutralEndTurn(){const n=neutralState();for(const p of n.powers){if(p.last===C.turn)continue;p.last=C.turn;if(p.kind==='holdfast'&&C.energy>0)blk(p.block);if(p.kind==='patience'&&!n.history.includes('atk'))delayNeutral(1,{block:p.block});if(p.kind==='wind'&&!n.windUsed&&C.hand.length===0){n.windUsed=true;delayNeutral(1,{draw:3,energy:1})}}}
+function neutralDiscardHand(){const n=neutralState(),a=C.hand.splice(0);for(const c of a){if(n.retained[c.u]===C.turn)C.hand.push(c);else discardNeutral(c)}n.retained={}}
+// Resolve a whole single-target attack action once, so multi-hit attacks stay together.
+function neutralAttackTarget(e){return e.int?.target??neutralSelf()}
+function routeNeutralAttack(e){let id=neutralAttackTarget(e);if(!e.int?.all){const n=neutralState(),i=n.redirects.findIndex(x=>x.from===id&&neutralMember(x.to));if(i>=0)id=n.redirects.splice(i,1)[0].to}return id}
+function hitNeutralRecipient(id,e,a){
+ if(id===neutralSelf())return hitMe(e,a);
+ const m=neutralMember(id);if(!m)return 0;
+ // A party integration may provide the recipient's full class-aware damage pipeline.
+ if(m.receiveAttack)return m.receiveAttack(e,a);
+ const p=m.state.p;let d=a+(e.st.str||0);if(e.st.weak)d*=.75;if(p.st.vuln)d*=1.5;d=Math.max(0,Math.floor(d));const ab=Math.min(p.block,d);p.block-=ab;const loss=d-ab;m.hp=Math.max(0,m.hp-loss);return loss
+}
+function colorlessChoices(){const a=Object.keys(COLORLESS),out=[];while(out.length<3){const i=R(a.length);out.push(a.splice(i,1)[0])}return out}
+
+const POOLS={aether:{1:[],2:[],3:[]},oath:{1:[],2:[],3:[]}};for(const id in K)if(K[id].r>0&&!K[id].colorless)POOLS[K[id].h||'aether'][K[id].r].push(id);
 const POOL=new Proxy({},{get:(_,t)=>POOLS[(G&&G.hero)||'aether'][t].filter(id=>!K[id].g||ACT(K[id].g))});
 /* ---------- the Oathbound: gods, evolved forms and the divine engine ---------- */
 const GODS={aurel:{n:'Aurel',full:'Aurel, God of the Sun',oath:'Radiance',sanc:'Sanctuary',col:[1,.76,.3],hex:'#ffc853',law:'Excess healing becomes twice its value in Block.',price:'Sacrificing HP costs 1 Strength and 1 Dexterity for the turn.'},
@@ -609,7 +697,7 @@ function meDebuff(e,k,n){if(C.p.st.anoint>0){C.p.st.anoint--;fx('#hero','Anointe
   if(C.p.st.crownl&&C.clT!=C.turn){C.clT=C.turn;blk(C.p.st.crownl,1)}if(has('thorns')&&e)ddmg(e,4);return}buff(k,n)}
 function reqMsg(c){const k=KD(c);if(k.once&&C.once.includes(c.u))return 'Already used this combat.';return k.req?k.req(c.up,c):null}
 const playable=c=>{const co=cost(c);return co>=0&&co<=C.energy&&!reqMsg(c)};
-function runCard(c,e){const k=KD(c);if(k.t=='atk'&&C.p.st.blust>0){C.bl=blB();C.bsT=C.turn;C.p.st.blust--}try{k.f(c.up,e,c)}finally{C.bl=0}if(k.once)C.once.push(c.u)}
+function runCard(c,e){const k=KD(c);if(k.t=='atk'&&C.p.st.blust>0){C.bl=blB();C.bsT=C.turn;C.p.st.blust--}C.resolvingType=k.t;try{k.f(c.up,e,c)}finally{C.bl=0;delete C.resolvingType}if(k.once)C.once.push(c.u);neutralAfterCard(c)}
 async function sanctify(c){if(G.hero!='oath'||!K[c.id].m||c.tier||!SWN())return false;const dc=G.deck.find(d=>d.u==c.u);if(!dc)return false;
  if(ordinaryCount(G.oaths,G.deck.filter(d=>d!==dc))<8){if(!C.thin){C.thin=1;toast('Your deck is too thin to Sanctify (keep 8 ordinary cards).')}return false}
  let g=G.oaths[0];if(G.oaths.length>1)g=G.oaths[await chooseP('Sanctify '+K[c.id].n,'Which god claims this card?',G.oaths.map(x=>GODS[x].n))||0];
@@ -619,6 +707,7 @@ function ascend(c){c.tier++;toast(KD(c).n+' rises to T'+c.tier+', '+TIERN[c.tier
 /* player choices are made before a card resolves, so previews and the card itself stay synchronous */
 const CANCEL={};
 async function resolveCh(s,c){
+ if(s.k.startsWith('neutral'))return resolveNeutralChoice(s,c);
  if(s.k=='yes'){if(s.ok&&!s.ok())return false;return (await chooseP(name(c),s.q,['Yes','No']))===0}
  let list=[],title=s.q||'';
  if(s.k=='offer')list=offerable();
@@ -701,11 +790,11 @@ const alive=()=>C.foes.filter(e=>e.hp>0);
 const rage=e=>{if(e.k=='rustjaw'&&!e.rg&&e.hp>0&&e.hp*2<e.max){e.rg=1;e.st.str=(e.st.str||0)+3;fx('#f'+e.i,'Bloodscent +3 Str','')}
  if(e.k=='jugg'&&!e.rg&&e.hp>0&&e.hp*2<e.max){e.rg=1;e.st.str=(e.st.str||0)+2;e.block+=10;fx('#f'+e.i,'Overpressure!','i');fx('#f'+e.i+' .spr','','','oc')}};
 const fell=e=>{rage(e);if(e.hp<=0&&!e.dieAt){e.dieAt=performance.now();if(e.k=='spore')meDebuff(null,'poison',2);fx('#f'+e.i+' .spr','','','burst');fx('#f'+e.i+' .spr','','','vfx:shards')}};
-function atk(e,b,m=1){if(!e||e.hp<=0)return;let d=b+S()*m+(C.bl||0);if(C.p.st.weak)d*=.75;if(e.st.vuln)d*=1.5;if(priceOn('orun'))d*=.8;d=Math.max(0,Math.floor(d));const ab=Math.min(e.block,d);e.block-=ab;const n=d-ab;e.hp=Math.max(0,e.hp-n);fx('#f'+e.i,n?'-'+n:'Blocked',n?'':'b');fx('#f'+e.i+' .spr','','','hitR');fx('#f'+e.i+' .spr','','','vfx:slash');if(n>=15)fx('.stage','','','quake');fell(e)}
+function atk(e,b,m=1){if(!e||e.hp<=0)return;let d=b+S()*m+(C.bl||0);if(C.resolvingType==='atk'){d+=e.neutralMark||0;delete e.neutralMark;}if(C.p.st.weak)d*=.75;if(e.st.vuln)d*=1.5;if(priceOn('orun'))d*=.8;d=Math.max(0,Math.floor(d));const ab=Math.min(e.block,d);e.block-=ab;const n=d-ab;e.hp=Math.max(0,e.hp-n);if(n>0&&C.resolvingType==='atk')e.neutralAttackTurn=C.turn;fx('#f'+e.i,n?'-'+n:'Blocked',n?'':'b');fx('#f'+e.i+' .spr','','','hitR');fx('#f'+e.i+' .spr','','','vfx:slash');if(n>=15)fx('.stage','','','quake');fell(e)}
 const blk=(n,raw)=>{if(!raw)n=Math.max(0,n+X());C.p.block+=n;fx('#hero','+'+n+' Block','b');fx('#hero .spr','','','vfx:ripple')};
 const debuff=(e,k,n)=>{if(e&&e.hp>0){e.st[k]=(e.st[k]||0)+n;if(k=='poison')fx('#f'+e.i+' .spr','','','vfx:poison')}};
 const buff=(k,n)=>{C.p.st[k]=(C.p.st[k]||0)+n;if(C&&!C.busy&&['str','dex','metal','cloud','demon','crownl','conqw','fort','queen'].includes(k)){fx('#hero .spr','','','vfx:rune');fx('#hero .spr','','','vfx:pillar')}};
-const loseHp=n=>{G.hp=Math.max(1,G.hp-n);fx('#hero','-'+n,'');fx('#hero .spr','','','hitL')};
+const loseHp=n=>{const before=G.hp;G.hp=Math.max(1,G.hp-n);neutralHpChanged(before);fx('#hero','-'+n,'');fx('#hero .spr','','','hitL')};
 function draw(n){const t=performance.now();let k=0;for(let i=0;i<n;i++){if(C.hand.length>=10)break;if(!C.draw.length){if(!C.disc.length)break;C.draw=shuf(C.disc);C.disc=[]}const c=C.draw.pop();c.dt=t+k++*85;C.hand.push(c)}}
 const dec=s=>['weak','vuln'].forEach(k=>{if(s[k])s[k]--});
 function startCombat(keys,kind){
@@ -722,11 +811,12 @@ function startCombat(keys,kind){
  RIG.oath=(G.oaths&&G.oaths[0])||null;screen='combat';window.scrollTo(0,0);startTurn();
  if(kind=='boss')banner('Floor 13','The Hollow King');else if(kind=='elite')banner('Elite',EN[keys[0]].n)}
 function startTurn(){C.turn++;
- if(C.p.st.poison){const n=C.p.st.poison;G.hp=Math.max(0,G.hp-n);C.p.st.poison--;fx('#hero','-'+n,'p');fx('#hero .spr','','','hitL');fx('#hero .spr','','','vfx:poison');if(G.hp<=0)return die()}
+
  const keep=Math.min(C.p.block,C.keep||0);C.keep=0;C.p.block=keep+(C.turn==1?(has('anchor')?10:0)+(has('unbroken')?5:0):0);C.lostPrev=C.turn>1&&!!C.hurt;C.hurt=false;C.energy=3+(C.turn==1&&has('lantern')?1:0);
+ if(C.p.st.poison){const n=C.p.st.poison;const before=G.hp;G.hp=Math.max(0,G.hp-n);neutralHpChanged(before);C.p.st.poison--;fx('#hero','-'+n,'p');fx('#hero .spr','','','hitL');fx('#hero .spr','','','vfx:poison');if(G.hp<=0)return die()}
  if(C.p.st.demon)buff('str',C.p.st.demon);
  if(C.p.st.cloud){alive().forEach(e=>{debuff(e,'poison',C.p.st.cloud)})}
- const nd=5+(C.turn==1&&has('satchel')?2:0);if(G.hero=='oath'&&SWN()&&actSanc().some(x=>x.dturn!==C.turn)){draw(nd-1);ddraw(1)}else draw(nd);
+ const nd=Math.max(0,5+(C.turn==1&&has('satchel')?2:0)+neutralStartTurn());if(G.hero=='oath'&&SWN()&&actSanc().some(x=>x.dturn!==C.turn)){draw(Math.max(0,nd-1));if(nd>0)ddraw(1)}else draw(nd);
  if(C.turn==1&&has('testament'))ddFx(1);if(C.turn==3&&has('ring'))ddFx(1);
  C.busy=false;C.sel=-1;render()}
 function tapCard(i,quick){if(!C||C.busy||C.lock)return;const c=C.hand[i];if(!c)return;const k=KD(c),co=cost(c);
@@ -738,8 +828,8 @@ function tapCard(i,quick){if(!C||C.busy||C.lock)return;const c=C.hand[i];if(!c)r
 async function flyCard(el,tgt){if(!el||RM)return;const r=el.getBoundingClientRect(),g=el.cloneNode(true);g.removeAttribute('data-a');g.classList.add('ghost');g.classList.remove('sel');g.style.cssText=`zoom:${Z};left:${r.left/Z}px;top:${r.top/Z}px;width:${r.width/Z}px;height:${r.height/Z}px;transform:none;animation:none`;document.body.appendChild(g);
  const t=tgt&&tgt.getBoundingClientRect();const dx=t?(t.left+t.width/2-(r.left+r.width/2))/Z:0,dy=t?(t.top+t.height/2-(r.top+r.height/2))/Z:-120;
  try{await g.animate([{transform:'none',opacity:1},{transform:`translate(${dx*.5}px,${dy*.5-40}px) scale(.8) rotate(${dx>0?8:-8}deg)`,opacity:1,offset:.5},{transform:`translate(${dx}px,${dy}px) scale(.3) rotate(${dx>0?18:-18}deg)`,opacity:.15}],{duration:300,easing:'ease-in'}).finished}catch(e){}g.remove()}
-async function play(i,e,src){const c=C.hand[i],k=KD(c);if(!c)return;C.lock=true;
- c._ch=[];if(k.ch)for(const sp of k.ch(c.up,c)){const r=await resolveCh(sp,c);if(r===CANCEL){C.lock=false;C.sel=-1;return render()}c._ch.push(r)}
+async function play(i,e,src){if(!C||C.busy||C.lock)return;const c=C.hand[i];if(!c||!playable(c))return;const k=KD(c);if(k.tg&&(!e||e.hp<=0))return;if(k.targetReq){const rq=k.targetReq(c,e);if(rq)return toast(rq)}C.lock=true;
+ const previousChoices=c._ch;c._ch=[];if(k.ch)for(const sp of k.ch(c.up,c)){const r=await resolveCh(sp,c);if(r===CANCEL){if(previousChoices===undefined)delete c._ch;else c._ch=previousChoices;C.lock=false;C.sel=-1;return render()}c._ch.push(r)}
  const el=src&&src.isConnected?src:$(`.hand .card[data-v="${i}"]`);C.energy-=cost(c);C.hand.splice(C.hand.indexOf(c),1);C.sel=-1;
  const fly=flyCard(el,e?$('#f'+e.i+' .spr'):k.t=='atk'?$('.foes'):$('#hero .spr'));render();await fly;
  if(k.t=='atk'){rigPose('attack',700);setTimeout(G.hero=='oath'?swingArc:muzzle,G.hero=='oath'?40:90)}else rigPose(k.t=='pow'?'power':'cast',650);
@@ -751,16 +841,18 @@ function checkWin(){if(C&&!C.won&&!alive().length){C.won=true;C.busy=true;render
 function hitMe(e,a){let d=a+(e.st.str||0);if(e.st.weak)d*=.75;if(C.p.st.vuln)d*=1.5;d=Math.floor(d);const ab=Math.min(C.p.block,d);C.p.block-=ab;let n=d-ab;
  if(n>0&&C.p.st.resolve>0){const r=Math.min(n,3+(has('granite')?1:0));n-=r;C.p.st.resolve--;fx('#hero','Resolve -'+r,'o o-orun');if(C.p.st.fort&&C.lfT!=C.turn){C.lfT=C.turn;blk(C.p.st.fort,1)}}
  if(n)C.hurt=true;if(ab&&ACT('orun')&&e.hp>0){const t=Math.min(Math.floor(ab*.3),8-(e.th||0));if(t>0){e.th=(e.th||0)+t;ddmg(e,t)}}
- G.hp=Math.max(0,G.hp-n);fx('#hero',n?'-'+n:'Blocked',n?'':'b');fx('#hero .spr','','','hitL');fx('#hero .spr','','',n?'vfx:slashL':'vfx:ring');if(n){rigPose('hurt',430);RIG.flash=.85;RIG.whip=Math.max(RIG.whip,.7)}fx('#f'+e.i+' .spr','','','retL');if(n>=15)fx('.stage','','','quake');return n}
+ const before=G.hp;G.hp=Math.max(0,G.hp-n);neutralHpChanged(before,true);fx('#hero',n?'-'+n:'Blocked',n?'':'b');fx('#hero .spr','','','hitL');fx('#hero .spr','','',n?'vfx:slashL':'vfx:ring');if(n){rigPose('hurt',430);RIG.flash=.85;RIG.whip=Math.max(RIG.whip,.7)}fx('#f'+e.i+' .spr','','','retL');if(n>=15)fx('.stage','','','quake');return n}
 async function endTurn(){if(!C||C.busy||C.lock)return;C.busy=true;C.sel=-1;
+ neutralEndTurn();
  if(C.p.st.metal)blk(C.p.st.metal,1);
- C.hand.forEach(x=>{const g=retS(x);(g?C.sanc[g]:C.disc).push(x)});C.hand=[];delete C.p.st.tstr;delete C.p.st.tdex;dec(C.p.st);render();await sleep(400);
+ neutralDiscardHand();delete C.p.st.tstr;delete C.p.st.tdex;dec(C.p.st);render();await sleep(400);
  for(const e of C.foes){if(e.hp<=0)continue;
   if(e.st.poison){e.hp=Math.max(0,e.hp-e.st.poison);fx('#f'+e.i,'-'+e.st.poison,'p');fx('#f'+e.i+' .spr','','','hitR');fx('#f'+e.i+' .spr','','','vfx:poison');e.st.poison--;fell(e);render();await sleep(380);if(e.hp<=0)continue}
   const d=EN[e.k];e.block=d.keep?Math.floor(e.block/2):0;e.th=0;const n=e.int;if(n.n)fx('#f'+e.i,n.n,'i');if(n.str||n.poison||n.b>=12||n.n=='Charge'||n.n=='Phase')fx('#f'+e.i+' .spr','','','oc');
   if(n.str){e.st.str=(e.st.str||0)+n.str;fx('#f'+e.i,'+'+n.str+' Str','')}
   if(n.b){e.block+=n.b;fx('#f'+e.i,'+'+n.b+' Block','b')}
-  if(n.a)for(let h=0;h<(n.x||1);h++){if(!RM){fx('#f'+e.i+' .spr','','','outL');render();await sleep(110)}const dealt=hitMe(e,n.a+(n.slam?e.block:0));if(n.sip&&dealt&&e.hp>0){e.hp=Math.min(e.max,e.hp+dealt);fx('#f'+e.i,'+'+dealt,'h')}render();await sleep(300);if(G.hp<=0||e.hp<=0)break}
+  const recipient=n.a?routeNeutralAttack(e):null;
+  if(n.a)for(let h=0;h<(n.x||1);h++){if(!RM){fx('#f'+e.i+' .spr','','','outL');render();await sleep(110)}const dealt=hitNeutralRecipient(recipient,e,n.a+(n.slam?e.block:0));if(n.sip&&dealt&&e.hp>0){e.hp=Math.min(e.max,e.hp+dealt);fx('#f'+e.i,'+'+dealt,'h')}render();await sleep(300);if(G.hp<=0||e.hp<=0)break}
   if(e.hp<=0)continue;
   if(n.weak)meDebuff(e,'weak',n.weak);if(n.vuln)meDebuff(e,'vuln',n.vuln);if(n.poison)meDebuff(e,'poison',n.poison);
   dec(e.st);e.t++;e.int=EN[e.k].ai(e.t);render();await sleep(300);
@@ -783,6 +875,7 @@ function avail(){const m=G.map;if(!G.pos)return m[0].map((n,l)=>[0,l]);const{f,l
 function newRun(h){if(!HEROES[h]){screen='pick';return render()}uid=1;const H=HEROES[h];G={hero:h,hp:H.hp,maxHp:H.hp,gold:99,deck:H.deck(),relics:[H.relic],oaths:[],map:genMap(h),pos:null,path:[],floor:0};goMap()}
 function goMap(){closeModal();C=null;screen='map';save();render()}
 function mkShop(){const ids=[];[1,1,2,2,3].forEach(t=>{let id,g=0;do{id=pick(POOL[t])}while(ids.includes(id)&&g++<20);ids.push(id)});
+ const neutralOne=pick([...COLORLESS_POOL[1],...COLORLESS_POOL[2]]);ids.push(neutralOne,pick([...COLORLESS_POOL[2],...COLORLESS_POOL[3]].filter(id=>id!==neutralOne)));
  const r=randRelic();return{cards:ids.map(id=>({id,p:{1:50,2:75,3:145}[K[id].r]+R(11)-5,sold:0})),relic:r?{k:r,p:140+R(21),sold:0}:null,removed:0}}
 function enter(f,l){if(!avail().some(([a,b])=>a==f&&b==l))return;G.pos={f,l};G.path.push([f,l]);G.floor=f+1;const t=G.map[f][l].t;
  if(t=='fight')startCombat(pick(f<4?EASY:HARD),'fight');
@@ -808,6 +901,7 @@ const EVENTS=[
  {l:'Sleep in the ring: heal 18 HP',f:()=>{heal(18);return 'You wake up rested, and slightly sparkly.'}},
  {l:'Harvest spores: gain Toxin Dart',f:()=>{G.deck.push(mk('toxin'));return 'You pocket a handful of spores. Toxin Dart added.'}}]},
 {n:'Burned Library',t:'Half the shelves are ash. A few pages still glow with stubborn ink.',o:[
+ {l:'Study universal techniques: choose 1 of 3 colorless cards',f:()=>{openPick('Learn a colorless technique',colorlessChoices().map(id=>mk(id)),c=>{G.deck.push(c);EV.msg='You learn '+name(c)+'.';EV.done=1;render()});return null}},
  {l:'Study: choose 1 of 3 cards',f:()=>{openPick('Choose a card to add',cardChoices(0).map(id=>mk(id)),c=>{G.deck.push(c);EV.msg='You learn '+name(c)+'.';EV.done=1;render()});return null}},
  {l:'Burn a page: remove a card',ok:()=>G.deck.length>1,f:()=>{openPick('Remove a card',G.deck,c=>{G.deck.splice(G.deck.indexOf(c),1);EV.msg=name(c)+' goes up in smoke.';EV.done=1;render()});return null}}]}];
 
@@ -816,7 +910,7 @@ const hudIcon=(name,size)=>`<img class="hud-icon" alt="" src="assets/ui/hud/${na
 const statusArt={str:'strength',vuln:'vulnerable',weak:'weak',poison:'poison'};
 const oathArt={aurel:'radiance',varran:'conquest',orun:'protection',mora:'twilight'};
 const stV=st=>Object.keys(st).filter(k=>st[k]&&STN[k]).map(k=>`<span class="chip ${STN[k][1]}" title="${STN[k][2]}">${statusArt[k]?hudIcon("status-"+statusArt[k],16):""}${STN[k][0]} ${st[k]}</span>`).join('');
-function cardV(c,attrs='',cls=''){const k=KD(c),co=cost(c),g=godOf(c),dorm=g&&G&&G.hero=='oath'&&!ACT(g)&&!c.seal&&!c.tmpS;return `<button class="card t-${k.t} r${k.r}${c.up?' up':''}${g?' g-'+g:''}${c.tier?' tr'+c.tier:''}${dorm?' dorm':''}${K[c.id].m&&!c.tier?' mal':''} ${cls}" ${attrs}>${co>=0?`<span class="cost">${co}</span>`:''}${c.tier?`<span class="tier" title="${TIERN[c.tier]}">T${c.tier}</span>`:''}<span class="nm">${name(c)}</span><span class="art">${c.id==="strike"?`<img alt="" src="assets/ui/cards/${G?.hero==="oath"?"dawn":"aetherwright"}-strike.png">`:ART[k.t]}</span><span class="ds"><span>${k.d(c.up,c)}</span></span><span class="ty">${TN[k.t]}${g?' · '+GODS[g].n:K[c.id].m?' · Malleable':''}${dorm?' · Dormant':''}</span></button>`}
+function cardV(c,attrs='',cls=''){const k=KD(c),co=cost(c),g=godOf(c),dorm=g&&G&&G.hero=='oath'&&!ACT(g)&&!c.seal&&!c.tmpS;return `<button class="card t-${k.t} r${k.r}${c.up?' up':''}${g?' g-'+g:''}${c.tier?' tr'+c.tier:''}${dorm?' dorm':''}${K[c.id].m&&!c.tier?' mal':''} ${cls}" ${attrs}>${co>=0?`<span class="cost">${co}</span>`:''}${c.tier?`<span class="tier" title="${TIERN[c.tier]}">T${c.tier}</span>`:''}<span class="nm">${name(c)}</span><span class="art">${c.id==="strike"?`<img alt="" src="assets/ui/cards/${G?.hero==="oath"?"dawn":"aetherwright"}-strike.png">`:ART[k.t]}</span><span class="ds"><span>${k.d(c.up,c)}</span></span><span class="ty">${TN[k.t]}${k.colorless?' · Colorless':''}${g?' · '+GODS[g].n:K[c.id].m?' · Malleable':''}${dorm?' · Dormant':''}</span></button>`}
 function intV(e){const n=e.int,o=[],d0=EN[e.k];if(n.a){const bl=n.slam&&d0.keep?Math.floor(e.block/2):0;let d=n.a+bl+(e.st.str||0);if(e.st.weak)d*=.75;if(C.p.st.vuln)d*=1.5;o.push(`<span class="it a" title="Attack">${hudIcon("intent-attack",14)}${Math.floor(d)}${n.x>1?'×'+n.x:''}</span>`)}
  if(n.b)o.push(`<span class="it b" title="Block">${hudIcon("intent-block",14)}${n.b}</span>`);if(n.str)o.push(`<span class="it u" title="Buff">${hudIcon("intent-buff",14)}</span>`);if(n.weak||n.vuln||n.poison)o.push(`<span class="it d" title="Debuff">${hudIcon("intent-debuff",14)}${n.poison||''}</span>`);return (n.n?`<span class="iname">${n.n}</span>`:'')+`<span class="irow">${o.join('')}</span>`}
 const relicArtwork={
@@ -871,7 +965,7 @@ function shrineV(){const cur=G.oaths||[],mx=has('twin')?2:1,o=[];
   if(SR.ex&&ascList(2).length)o.push(`<button class="btn opt" data-a="sasc" data-v="2">Kneel: Exalt a card (T2 Ascended to T3 Exalted)</button>`)}
  return `<div class="panel shrine"><svg class="pic" viewBox="0 0 200 120" aria-hidden="true"><ellipse cx="100" cy="112" rx="70" ry="7" fill="#000" opacity=".5"/><path d="M70 112V60H130V112Z" fill="#1a1210" stroke="#e8c86a" stroke-width="3"/>${Object.values(GODS).map((v,i)=>`<circle cx="${64+i*24}" cy="34" r="8" fill="${v.hex}" opacity=".85"/>`).join('')}<path class="flame" d="M100 66C110 78 110 88 104 96H96C90 88 90 78 100 66Z" fill="#e8c86a"/></svg><h2>${SR.ex?'Exalted shrine':'Divine shrine'}</h2>
  <p class="sub">${SR.msg||(cur.length?'You are sworn to '+cur.map(g=>GODS[g].full).join(' and ')+'.':'You are Unsworn. Four altars wait, each lit by a different god.')+' There is time for one rite.'}</p>${SR.done?'':`<div class="opts">${o.join('')}</div>`}<button class="btn${SR.done?' pri':''}" data-a="map">${SR.done?'Continue':'Walk on'}</button></div>`}
-function shopV(){return `<div class="panel"><h2>The Merchant</h2><p class="sub">Everything has a price. You have ${G.gold} gold.</p><div class="row">${SH.cards.map((s,i)=>`<div class="ware">${cardV({id:s.id,up:0},s.sold?'disabled':`data-a="buy" data-v="${i}"`,s.sold?'no':'')}<span class="price${!s.sold&&G.gold<s.p?' poor':''}">${s.sold?'Sold':s.p+' gold'}</span></div>`).join('')}</div>
+function shopV(){return `<div class="panel"><h2>The Merchant</h2><p class="sub">Everything has a price. You have ${G.gold} gold. The last two slots offer colorless techniques for any class.</p><div class="row">${SH.cards.map((s,i)=>`<div class="ware">${cardV({id:s.id,up:0},s.sold?'disabled':`data-a="buy" data-v="${i}"`,s.sold?'no':'')}<span class="price${!s.sold&&G.gold<s.p?' poor':''}">${s.sold?'Sold':s.p+' gold'}</span></div>`).join('')}</div>
  <div class="opts">${SH.relic?`<button class="btn opt" data-a="buyrel" ${SH.relic.sold?'disabled':''}>${SH.relic.sold?'Relic sold':`Relic, ${SH.relic.p} gold: ${RELICS[SH.relic.k].n}. ${RELICS[SH.relic.k].d}`}</button>`:''}<button class="btn opt" data-a="remove" ${SH.removed?'disabled':''}>${SH.removed?'Card removed':'Remove a card from your deck: 75 gold'}</button></div><button class="btn pri" data-a="map">Leave the shop</button></div>`}
 function restV(){return `<div class="panel"><img class="rest-art" src="assets/scenes/rest-site.webp" alt=""><h2>Rest site</h2><p class="sub">${RS.msg||'The fire is warm. There is time for one thing before you climb on.'}</p>
  ${RS.done?'':`<div class="row"><button class="btn" data-a="rheal">Rest: heal ${Math.round(G.maxHp*.3)} HP</button><button class="btn" data-a="rsmith">Smith: upgrade a card</button></div>`}<button class="btn${RS.done?' pri':''}" data-a="map">${RS.done?'Continue':'Skip'}</button></div>`}
@@ -1018,7 +1112,7 @@ rigLoad();
 
 /* ---------- damage preview ---------- */
 const PV={key:''};
-function simCard(c,ti){const orig=C,gh=G.hp,ql=Q.length;let res=null;SIM=true;try{C=structuredClone(orig);const e=ti==null?null:C.foes[ti];const k=KD(c);c._ch=(k.ch?k.ch(c.up,c):[]).map(chDef);runCard(c,e);res={loss:C.foes.map((f,i)=>Math.max(0,orig.foes[i].hp-f.hp)),blk:C.p.block-orig.p.block}}catch(err){}SIM=false;C=orig;G.hp=gh;Q.length=ql;return res}
+function simCard(c,ti){c=structuredClone(c);const orig=C,gh=G.hp,ql=Q.length,oldUid=uid;let res=null;SIM=true;try{C=structuredClone(orig);const e=ti==null?null:C.foes[ti];const k=KD(c);c._ch=(k.ch?k.ch(c.up,c):[]).map(chDef);runCard(c,e);res={loss:C.foes.map((f,i)=>Math.max(0,orig.foes[i].hp-f.hp)),blk:C.p.block-orig.p.block}}catch(err){}SIM=false;C=orig;G.hp=gh;uid=oldUid;Q.length=ql;return res}
 function clearPreview(){document.querySelectorAll('.pv,.pvn').forEach(x=>x.remove());document.querySelectorAll('.unit.lethal').forEach(x=>x.classList.remove('lethal'))}
 function setPreview(ci,ti,cardEl){const key=ci<0?'':ci+':'+ti;if(key===PV.key)return;PV.key=key;clearPreview();const c=C&&C.hand[ci];
  PT=ti!=null&&ti!=='all'&&C?C.foes[ti]:null;

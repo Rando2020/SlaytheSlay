@@ -39,6 +39,7 @@ then visit `http://localhost:8000`.
 - Scales up on large screens (QHD and 4K) and renders the hero at up to 3x pixel density; art is exported at full source resolution, and large or high-density screens load 4K backgrounds upscaled with Real-ESRGAN
 - Fanned hand, drag-to-play, a targeting arrow for attacks, card flight, lunges, hit flashes, screen shake and death dissolves
 - The Aetherwright rendered as painted art on a WebGL mesh: breathing, cape and braid sway, pose swaps for attack, cast, power and hurt
+- 40 colorless cards (34 universal and six cooperative concepts) with upgrades, dedicated merchant slots and optional Forgotten Library rewards; see [rules, balance decisions and compatibility](docs/design/colorless-card-pool-v0.2.md)
 - Run saves to the browser's local storage when you're on the map
 
 ## Layout
