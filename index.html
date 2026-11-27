@@ -1235,12 +1235,13 @@ function winCombat(){
  if(!C)return;
  const kind=C.kind;
  const rewardTier=kind==='fight'?(C.foes.some(foe=>EN[foe.k].rewardTier==='uncommon')?'uncommon':'common'):kind;
+ const defeated=C.foes.filter(foe=>foe.hp<=0).map(foe=>foe.k);
  const originalSeat=activeSeat();for(let seat=0;seat<partySize();seat++){selectSeat(seat);thresholdCombatWon()}selectSeat(originalSeat);
- if(kind==='boss')forLivingHeroes(()=>{if(has('heart'))heal(6);if(has('pseal'))heal(1)});
+ if(kind==='boss')forLivingHeroes(()=>{if(has('heart'))heal(6);if(has('pseal'))heal(1);creditCombatReward('boss',defeated,0,[],null)});
  selectSeat(livingSeats()[0]);
  combatParty=[];combatEnemyPhase=false;C=null;
  if(kind==='boss'){wipe();screen='win';return render()}
- beginPartyRewards(rewardTier);
+ beginPartyRewards({tier:rewardTier,defeated});
 }
 function die(){wipe();combatParty=[];combatEnemyPhase=false;C=null;screen='dead';render()}
 
@@ -1398,10 +1399,25 @@ function advanceRoom(){
 function beginPartyRewards(kind){
  beginRoomVisits(livingSeats(),{reward:kind})
 }
-function openCombatReward(kind){
+function creditCombatReward(tier,defeated,bonus,cards,relic){
+ const killGold=defeated===null?null:defeated.length*5;
+ const gold=(killGold??0)+bonus;
+ G.gold+=gold;
+ const audit=G.rewardAudit??=[];
+ const index=audit.push({floor:G.floor,seat:activeSeat(),hero:G.hero,tier,defeated,killGold,bonus,gold,
+  cards:cards.map(id=>({id,rarity:K[id].r})),relic,chosenCard:null,claimedRelic:null})-1;
+ return {gold,auditIndex:index}
+}
+function currentRewardAudit(){return G.rewardAudit?.[RW.auditIndex]}
+function openCombatReward(reward){
+ // Older saves only stored the encounter kind for the remaining party seats.
+ const kind=reward.tier??reward;
+ const defeated=reward.defeated??null;
   if(has('heart'))heal(6);if(has('pseal'))heal(1);
-  const elite=kind==='elite',gold=elite?25+R(11):10+R(11);G.gold+=gold;
-  RW={gold,cards:cardChoices(kind==='fight'?'common':kind),relic:elite?randRelic():null,taken:false,asc:G.hero==='oath'&&(elite||Math.random()<.1)&&ascList(1).length?{from:1}:null};screen='reward'
+  const elite=kind==='elite';
+  const bonus=(defeated===null?(elite?25:10):(elite?20:2))+R(11);
+  const cards=cardChoices(kind==='fight'?'common':kind),relic=elite?randRelic():null;
+  RW={...creditCombatReward(kind,defeated,bonus,cards,relic),cards,relic,taken:false,asc:G.hero==='oath'&&(elite||Math.random()<.1)&&ascList(1).length?{from:1}:null};screen='reward'
 }
 function openRoom(t,sharedEvent){
  if(t==='rest'){RS={done:0,msg:''};screen='rest'}
@@ -1842,10 +1858,10 @@ inspectreward:inspectReward,
 rcard:()=>{
  const chosen=MD?.reward;
  if(screen!=='reward'||!chosen||chosen.offer!==RW||RW.taken||RW.cards[chosen.index]!==chosen.id)return;
- G.deck.push(mk(chosen.id));RW.taken=true;closeModal();render();
+ G.deck.push(mk(chosen.id));const audit=currentRewardAudit();if(audit)audit.chosenCard=chosen.id;RW.taken=true;closeModal();render();
  ($('[data-a="rrelic"]')||$('[data-a="rasc"]')||$('[data-a="map"]'))?.focus();
 },
-rrelic:()=>{if(!RW.relic)return;gainRelic(RW.relic);toast('Gained '+RELICS[RW.relic].n);RW.relic=null;render()},
+rrelic:()=>{if(!RW.relic)return;gainRelic(RW.relic);const audit=currentRewardAudit();if(audit)audit.claimedRelic=RW.relic;toast('Gained '+RELICS[RW.relic].n);RW.relic=null;render()},
 map:advanceRoom,
 inspectware:inspectWare,
 buy:()=>{
@@ -1886,7 +1902,7 @@ evo:v=>{if(EV.done)return;const o=EV.e.o[+v];if(o.ok&&!o.ok())return;const m=o.f
 mpick:v=>{const c=MD.cards[+v],cb=MD.cb;MD.onClose=null;closeModal();if(cb)cb(c)},
 mask:v=>{const r=MD&&MD.ask;MD=null;$('#modal').innerHTML='';if(r)r(+v)},
 key:()=>{if(!C||C.busy||C.lock||C.keyUsed)return;C.keyUsed=1;if(!ddraw(1,1))toast('The Dormant Sanctums are empty.');render()},
-rasc:()=>{if(!RW.asc||RW.ascDone)return;const f=RW.asc.from;openPick((f==1?'Ascend':'Exalt')+` a card (T${f} to T${f+1})`,ascList(f),c=>{ascend(c);RW.ascDone=1;if(!RW.asc.free)RW.taken=true;render()})},
+rasc:()=>{if(!RW.asc||RW.ascDone)return;const f=RW.asc.from;openPick((f==1?'Ascend':'Exalt')+` a card (T${f} to T${f+1})`,ascList(f),c=>{ascend(c);RW.ascDone=1;const audit=currentRewardAudit();if(audit)audit.ascendedCard=c.id;if(!RW.asc.free)RW.taken=true;render()})},
 swear:v=>{if(SR.done||!GODS[v])return;const cur=G.oaths,mx=has('twin')?2:1,no=cur.length>=mx?(mx==2?[cur[1],v]:[v]):[...cur,v];if(ordinaryCount(no,G.deck)<8)return;
  const drop=cur.filter(x=>!no.includes(x)),back=G.deck.some(c=>c.tier&&c.g==v);G.oaths=no;SR.done=1;
  SR.msg=`You swear the Oath of ${GODS[v].oath} to ${GODS[v].full}. ${GODS[v].law}${drop.length?' The cards of '+drop.map(x=>GODS[x].n).join(' and ')+' fall Dormant.':''}${back?' Your old '+GODS[v].sanc+' wakes at the tiers you left it.':''}`;
