@@ -295,6 +295,13 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 .spr.paint>.enemy-idle ~ .rg{visibility:hidden}
 .spr.paint:is(.outL,.retL,.hitR)>.enemy-idle{visibility:hidden}
 .spr.paint:is(.outL,.retL,.hitR)>.enemy-idle ~ .rg{visibility:visible}
+
+/* Threshold: existing painted gate, independent offering panels */
+.threshold{position:relative;isolation:isolate;min-height:75vh;padding:clamp(20px,4vw,60px) 12px;text-align:center;background:linear-gradient(180deg,#120e0cdc,#211812bc 35%,#100c0bf2),url(assets/bg_gate.webp) center/cover;border:1px solid #a88b5355;border-radius:12px;overflow:hidden}
+.threshold h1{font-size:clamp(32px,5vw,56px);color:#f1d99d;text-shadow:0 2px 20px #e8c86a55;margin:18px 0 8px}.threshold .sub{color:#e6d8c2}.threshold-offers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;max-width:820px;margin:36px auto}
+.threshold-offer{display:flex;flex-direction:column;align-items:center;gap:12px;min-height:270px;padding:24px 12px 16px;color:#f3e9d7;background:linear-gradient(150deg,#49382a,#211815 55%,#15100f);border:1px solid #9c8050;border-radius:9px;box-shadow:inset 0 0 0 4px #211815,0 12px 24px #0008;cursor:pointer;font:inherit;animation:threshold-reveal .45s both;animation-delay:var(--delay);transition:transform .2s,border-color .2s,box-shadow .2s}
+.threshold-offer:hover,.threshold-offer:focus-visible{transform:translateY(-4px);border-color:#ffe1a1;box-shadow:0 0 24px #e8c86a66;outline:2px solid #ffe1a1;outline-offset:3px}.threshold-offer:active{transform:scale(.97)}.threshold-art{display:grid;place-items:center;width:74px;height:74px;border:1px solid #a98a4c;border-radius:50%;background:radial-gradient(circle,#c59e4455,#271b16 70%);color:#f0d28b;box-shadow:0 0 24px #d3a94b33}.threshold-art svg{width:40px;height:40px}.threshold-offer b{font-size:1.15rem;color:#f1d99d}.threshold-offer i{font-size:.85rem;color:#c4b49c}.threshold-offer strong{margin-top:auto;color:#f1d99d;font-size:.83rem}.threshold .row{flex-wrap:wrap}
+@keyframes threshold-reveal{from{opacity:0;translate:0 16px}to{opacity:1;translate:0 0}}@media(max-width:600px){.threshold-offers{grid-template-columns:1fr;max-width:360px;margin:20px auto}.threshold-offer{min-height:180px;padding:14px}.threshold-art{width:50px;height:50px}.threshold-art svg{width:28px;height:28px}}@media(prefers-reduced-motion:reduce){.threshold-offer{animation:none;transition:none}}
 </style></head><body>
 <div id="app"></div><div id="modal"></div><svg id="aim" aria-hidden="true"><path id="aimP" fill="none" stroke="none"/><g id="aimG"></g></svg>
 <script>
@@ -723,7 +730,7 @@ function startCombat(keys,kind){
  if(kind=='boss')banner('Floor 13','The Hollow King');else if(kind=='elite')banner('Elite',EN[keys[0]].n)}
 function startTurn(){C.turn++;
  if(C.p.st.poison){const n=C.p.st.poison;G.hp=Math.max(0,G.hp-n);C.p.st.poison--;fx('#hero','-'+n,'p');fx('#hero .spr','','','hitL');fx('#hero .spr','','','vfx:poison');if(G.hp<=0)return die()}
- const keep=Math.min(C.p.block,C.keep||0);C.keep=0;C.p.block=keep+(C.turn==1?(has('anchor')?10:0)+(has('unbroken')?5:0):0);C.lostPrev=C.turn>1&&!!C.hurt;C.hurt=false;C.energy=3+(C.turn==1&&has('lantern')?1:0);
+ const boon=C.turn===1?thresholdCombat():{};const keep=Math.min(C.p.block,C.keep||0);C.keep=0;C.p.block=keep+(C.turn==1?(has('anchor')?10:0)+(has('unbroken')?5:0)+(boon.block||0):0);C.lostPrev=C.turn>1&&!!C.hurt;C.hurt=false;C.energy=3+(C.turn==1&&has('lantern')?1:0)+(boon.energy||0);
  if(C.p.st.demon)buff('str',C.p.st.demon);
  if(C.p.st.cloud){alive().forEach(e=>{debuff(e,'poison',C.p.st.cloud)})}
  const nd=5+(C.turn==1&&has('satchel')?2:0);if(G.hero=='oath'&&SWN()&&actSanc().some(x=>x.dturn!==C.turn)){draw(nd-1);ddraw(1)}else draw(nd);
@@ -767,24 +774,73 @@ async function endTurn(){if(!C||C.busy||C.lock)return;C.busy=true;C.sel=-1;
   if(G.hp<=0)return die()}
  if(!alive().length)return checkWin();
  startTurn()}
-function winCombat(){if(!C)return;const kind=C.kind;C=null;if(has('heart'))heal(6);if(has('pseal'))heal(1);
+function winCombat(){if(!C)return;const kind=C.kind;thresholdCombatWon();C=null;if(has('heart'))heal(6);if(has('pseal'))heal(1);
  if(kind=='boss'){wipe();screen='win';return render()}
  const gold=kind=='elite'?25+R(11):10+R(11);G.gold+=gold;
  RW={gold,cards:cardChoices(kind=='elite'?1:0),relic:kind=='elite'?randRelic():null,taken:false,asc:G.hero=='oath'&&(kind=='elite'||Math.random()<.1)&&ascList(1).length?{from:1}:null};screen='reward';render()}
 function die(){wipe();C=null;screen='dead';render()}
 
+
+/* ---------- The Threshold ---------- */
+const seedRng=seed=>{let x=seed>>>0;return()=>{x=(x+0x6D2B79F5)>>>0;let t=Math.imul(x^(x>>>15),1|x);t^=t+Math.imul(t^(t>>>7),61|t);return((t^(t>>>14))>>>0)/4294967296}};
+const newSeed=()=>Math.floor(Math.random()*4294967296)>>>0;
+const seededPick=(a,rng)=>a[Math.floor(rng()*a.length)];
+function sampleBlessings(a,n,rng){const p=a.slice(),out=[];while(p.length&&out.length<n){let r=rng()*p.reduce((sum,b)=>sum+b.weight,0),i=p.findIndex(b=>(r-=b.weight)<0);out.push(p.splice(i<0?p.length-1:i,1)[0])}return out}
+const blessing=(id,n,d,flavor,icon,benefit,extra={})=>Object.freeze({id,n,d,flavor,icon,rarity:'standard',benefit,sacrifice:null,unlock:'base',classes:null,weight:1,duration:null,eligible:()=>true,...extra});
+const commonRelics=()=>Object.keys(RELICS).filter(k=>!G.relics.includes(k)&&!RELICS[k].st&&!RELICS[k].h&&(RELICS[k].r||'c')==='c');
+const safeRemove=()=>G.deck.filter(c=>G.deck.length>1&&(G.hero!=='oath'||ordinaryCount(G.oaths,G.deck.filter(x=>x!==c))>=8));
+const transformPool=c=>[...POOL[1],...POOL[2]].filter(id=>id!==c.id&&!K[id].g&&!K[id].m);
+const BLESSINGS=Object.freeze([
+ blessing('second-breath','Second Breath','Gain 8 maximum HP.','A pulse beneath the stone.','heart',{type:'hp',amount:8}),
+ blessing('fortune','Fortune’s Favor','Gain 100 gold.','The forgotten still pay their debts.','coin',{type:'gold',amount:100}),
+ blessing('knowledge','Forgotten Knowledge','Choose one of three uncommon class cards.','Ink survives the ages.','hex',{type:'card'},{eligible:()=>POOL[2].length>=3}),
+ blessing('purification','Purification','Remove one starting card.','Leave a burden behind.','sword',{type:'remove'},{eligible:()=>safeRemove().length>0}),
+ blessing('tempered','Tempered Resolve','Upgrade one starting card.','The forge remembers.','up',{type:'upgrade'},{eligible:()=>upgradable().length>0}),
+ blessing('fallen','Relic of the Fallen','Gain a random common neutral relic.','Someone climbed before you.','hex',{type:'relic'},{eligible:()=>commonRelics().length>0}),
+ blessing('first-light','First Light','Gain 1 extra Energy on turn one of the next 3 combats.','Carry a spark into the dark.','up',{type:'combat',energy:1},{duration:3}),
+ blessing('traveler','Prepared Traveler','Gain two random potions.','The road favors the prepared.','heart',{type:'potions'},{eligible:()=>false}),
+ blessing('unwritten','Unwritten Fate','Choose one of three colorless cards.','Not all paths are written.','hex',{type:'colorless'},{eligible:()=>false}),
+ blessing('reforged','Reforged Purpose','Transform one starting card into a random common or uncommon class card.','Let the old shape fall away.','sword',{type:'transform'},{eligible:()=>safeRemove().some(c=>transformPool(c).length)}),
+ blessing('merchant','Merchant’s Pact','30% off at the first merchant, including removal.','A bargain made in silence.','coin',{type:'merchant',discount:.3},{duration:1}),
+ blessing('sheltered','Sheltered Soul','Start the next 3 combats with 8 extra Block.','Stone keeps its promise.','shield',{type:'combat',block:8},{duration:3})
+]);
+const blessingById=id=>BLESSINGS.find(b=>b.id===id);
+const unlockedBlessings=()=>BLESSINGS.filter(b=>(b.unlock==='base'||(G.unlockedBlessings||[]).includes(b.unlock))&&(!b.classes||b.classes.includes(G.hero))&&b.eligible());
+function initThreshold(){const rng=seedRng(G.seed^0x54485245),offers=sampleBlessings(unlockedBlessings(),3,rng).map(b=>b.id);if(offers.length!==3)throw Error('Not enough eligible starting blessings');G.threshold={version:1,offers,selected:null,applied:false,pending:null,combatRemaining:0,merchantRemaining:0}}
+function finishBlessing(){const t=G.threshold;t.applied=true;t.pending=null;goMap()}
+const BLESSING_HANDLERS={
+ hp:b=>{G.maxHp+=b.benefit.amount;G.hp+=b.benefit.amount},
+ gold:b=>{G.gold+=b.benefit.amount},
+ relic:(b,rng)=>{gainRelic(seededPick(commonRelics(),rng))},
+ combat:b=>{G.threshold.combatRemaining=b.duration},
+ merchant:b=>{G.threshold.merchantRemaining=b.duration},
+ card:(b,rng)=>{const p=POOL[2].slice(),choices=[];while(choices.length<3)choices.push(p.splice(Math.floor(rng()*p.length),1)[0]);return {type:'card',choices}},
+ remove:()=>({type:'remove',choices:safeRemove().map(c=>c.u)}),
+ upgrade:()=>({type:'upgrade',choices:upgradable().map(c=>c.u)}),
+ transform:(b,rng)=>{const a=safeRemove().filter(c=>transformPool(c).length);return {type:'transform',choices:a.map(c=>c.u),results:Object.fromEntries(a.map(c=>[c.u,seededPick(transformPool(c),rng)]))}}
+};
+function selectBlessing(id){const t=G&&G.threshold;if(screen!=='threshold'||!t||t.selected||t.applied||!t.offers.includes(id))return;const b=blessingById(id);if(!b||!b.eligible()||!BLESSING_HANDLERS[b.benefit.type])return;const rng=seedRng(G.seed^0x424c4553);t.selected=id;t.pending=BLESSING_HANDLERS[b.benefit.type](b,rng)||null;if(t.pending){save();render()}else finishBlessing()}
+function resolveBlessing(value){const t=G&&G.threshold,p=t&&t.pending;if(screen!=='threshold'||!t||t.applied||!p)return;const v=p.type==='card'?value:Number(value);if(!p.choices.includes(v))return;
+ if(p.type==='card'){if(!POOL[2].includes(v))return;G.deck.push(mk(v))}
+ else{const c=G.deck.find(x=>x.u===v);if(!c)return;if(p.type==='upgrade'){if(!upgradable().includes(c))return;c.up=1}else if(p.type==='remove'){if(!safeRemove().includes(c))return;G.deck.splice(G.deck.indexOf(c),1)}else if(p.type==='transform'){const id=p.results[v];if(!safeRemove().includes(c)||!transformPool(c).includes(id))return;G.deck[G.deck.indexOf(c)]=mk(id)}else return}
+ finishBlessing()}
+function thresholdCombat(){const t=G.threshold,b=t&&blessingById(t.selected);return t&&t.applied&&t.combatRemaining>0&&b&&b.benefit.type==='combat'?b.benefit:{}}
+function thresholdCombatWon(){if(G.threshold&&G.threshold.combatRemaining>0)G.threshold.combatRemaining--}
+function merchantPrice(n){const t=G.threshold,b=t&&blessingById(t.selected);return t&&t.applied&&t.merchantRemaining>0&&b&&b.benefit.type==='merchant'?Math.round(n*(1-b.benefit.discount)):n}
+
 /* ---------- run and map ---------- */
-function roll(f,h){const r=Math.random();if(h=='oath'&&f>=4&&r<.1)return 'shrine';if(f<4)return r<.68?'fight':r<.88?'event':'shop';return r<.44?'fight':r<.6?'event':r<.73?'elite':r<.85?'rest':'shop'}
-function genMap(h){const F=13,m=[];
- for(let f=0;f<F-1;f++)m.push([0,1,2,3].map(()=>({t:f==0?'fight':f==F-2?'rest':f==6?'chest':h=='oath'&&f==2?'shrine':roll(f,h),next:[],jx:R(17)-8,jy:R(13)-6})));
- for(let f=0;f<F-2;f++)m[f].forEach((n,l)=>{n.next=[l];if(Math.random()<.55){const o=l+(Math.random()<.5?-1:1);if(o>=0&&o<4&&!(o==l-1&&m[f][o].next.includes(l)))n.next.push(o)}});
+function roll(f,h,rng=Math.random){const r=rng();if(h=='oath'&&f>=4&&r<.1)return 'shrine';if(f<4)return r<.68?'fight':r<.88?'event':'shop';return r<.44?'fight':r<.6?'event':r<.73?'elite':r<.85?'rest':'shop'}
+function genMap(h,rng=Math.random){const F=13,m=[],r=n=>Math.floor(rng()*n);
+ for(let f=0;f<F-1;f++)m.push([0,1,2,3].map(()=>({t:f==0?'fight':f==F-2?'rest':f==6?'chest':h=='oath'&&f==2?'shrine':roll(f,h,rng),next:[],jx:r(17)-8,jy:r(13)-6})));
+ for(let f=0;f<F-2;f++)m[f].forEach((n,l)=>{n.next=[l];if(rng()<.55){const o=l+(rng()<.5?-1:1);if(o>=0&&o<4&&!(o==l-1&&m[f][o].next.includes(l)))n.next.push(o)}});
  m[F-2].forEach(n=>n.next=[0]);m.push([{t:'boss',next:[],jx:0,jy:0}]);return m}
 function avail(){const m=G.map;if(!G.pos)return m[0].map((n,l)=>[0,l]);const{f,l}=G.pos;return f>=m.length-1?[]:m[f][l].next.map(nl=>[f+1,nl])}
-function newRun(h){if(!HEROES[h]){screen='pick';return render()}uid=1;const H=HEROES[h];G={hero:h,hp:H.hp,maxHp:H.hp,gold:99,deck:H.deck(),relics:[H.relic],oaths:[],map:genMap(h),pos:null,path:[],floor:0};goMap()}
-function goMap(){closeModal();C=null;screen='map';save();render()}
+function newRun(h){return newRunSeed(h,newSeed())}
+function newRunSeed(h,seed){if(!HEROES[h]){screen='pick';return render()}uid=1;const H=HEROES[h];G={hero:h,seed:seed>>>0,hp:H.hp,maxHp:H.hp,gold:99,deck:H.deck(),relics:[H.relic],oaths:[],map:genMap(h,seedRng(seed^0x4d415000)),pos:null,path:[],floor:0};initThreshold();C=null;screen='threshold';save();render()}
+function goMap(){if(G.threshold&&!G.threshold.applied){screen='threshold';return render()}if(screen==='shop'&&G.threshold&&G.threshold.merchantRemaining>0)G.threshold.merchantRemaining--;closeModal();C=null;screen='map';save();render()}
 function mkShop(){const ids=[];[1,1,2,2,3].forEach(t=>{let id,g=0;do{id=pick(POOL[t])}while(ids.includes(id)&&g++<20);ids.push(id)});
- const r=randRelic();return{cards:ids.map(id=>({id,p:{1:50,2:75,3:145}[K[id].r]+R(11)-5,sold:0})),relic:r?{k:r,p:140+R(21),sold:0}:null,removed:0}}
-function enter(f,l){if(!avail().some(([a,b])=>a==f&&b==l))return;G.pos={f,l};G.path.push([f,l]);G.floor=f+1;const t=G.map[f][l].t;
+ const r=randRelic();return{cards:ids.map(id=>({id,p:merchantPrice({1:50,2:75,3:145}[K[id].r]+R(11)-5),sold:0})),relic:r?{k:r,p:merchantPrice(140+R(21)),sold:0}:null,removed:0}}
+function enter(f,l){if(screen!=='map'||(G.threshold&&!G.threshold.applied))return;if(!avail().some(([a,b])=>a==f&&b==l))return;G.pos={f,l};G.path.push([f,l]);G.floor=f+1;const t=G.map[f][l].t;
  if(t=='fight')startCombat(pick(f<4?EASY:HARD),'fight');
  else if(t=='elite')startCombat(pick(ELITE),'elite');
  else if(t=='boss')startCombat(['king'],'boss');
@@ -832,7 +888,7 @@ function pickV(){return `<div class="panel pick"><h2>Choose your climber</h2><p 
 function oathPreviewV(){const h=HEROES.oath;return `<section class="oath-preview" aria-label="Selected character: The Oathbound"><div class="oath-art" role="img" aria-label="The Oathbound kneels before the four gods"></div><div class="oath-summary"><h1>${h.n}</h1><p class="sub">${h.b}</p><span class="hs">${h.hp} HP · ${RELICS[h.relic].n}</span><div class="oaths">${Object.entries(GODS).map(([o,v])=>`<i class="o-${o}">${v.oath}</i>`).join('')}</div><div class="row"><button class="btn" data-a="pickback">Back to characters</button><button class="btn pri" data-a="oathstart">Begin ascent</button></div></div></section>`}
 function titleV(){const s=load();let emb='';for(let i=0;i<14;i++)emb+=`<circle class="emb" cx="${(i*67)%400}" cy="${200+(i*37)%40}" r="${1+(i%3)*.6}" fill="#ff5a36" style="animation-delay:${-(i*.53).toFixed(2)}s"/>`;
  return `<div class="title"><div class="hero" role="img" aria-label="A sealed aether gate in overgrown ruins"><div class="tmark"><h1>Hollow Ascent</h1><p class="kick">A roguelike deckbuilder</p></div></div>
- <div class="tbody"><p class="lede">Climb thirteen floors, shape your deck one card at a time, and topple the Hollow King at the top.</p><div class="row"><button class="btn pri" data-a="new">Begin ascent</button>${s?`<button class="btn" data-a="cont">Continue from floor ${s.floor}</button>`:''}</div>
+ <div class="tbody"><p class="lede">Climb thirteen floors, shape your deck one card at a time, and topple the Hollow King at the top.</p><div class="row"><button class="btn pri" data-a="new">Begin ascent</button>${s?`<button class="btn" data-a="cont">Continue ${s.threshold&&!s.threshold.applied?'at the Threshold':'from floor '+s.floor}</button>`:''}</div>
  <details class="how"><summary>How to play</summary><ul><li>Tap a card to play it. If several enemies are alive, attacks ask you to tap a target.</li><li>Each turn you get 3 energy and draw 5 cards. Block fades at the start of your turn.</li><li>Enemy intents show their next move: red attacks, teal blocks, gold buffs, violet debuffs.</li><li>Vulnerable takes 50% more damage, Weak deals 25% less, Poison ticks every turn.</li><li>After fights, add a card or skip. A lean deck is often stronger. Rest sites heal or upgrade.</li><li>On a keyboard: 1 to 9 plays cards, E ends your turn.</li></ul></details></div></div>`}
 function mapV(){const m=G.map,F=m.length,H=(F-1)*64+92;
  const xy=(f,l)=>f==F-1?[180,48]:[60+l*80+m[f][l].jx,H-38-f*64+m[f][l].jy];
@@ -869,13 +925,14 @@ function shrineV(){const cur=G.oaths||[],mx=has('twin')?2:1,o=[];
  return `<div class="panel shrine"><svg class="pic" viewBox="0 0 200 120" aria-hidden="true"><ellipse cx="100" cy="112" rx="70" ry="7" fill="#000" opacity=".5"/><path d="M70 112V60H130V112Z" fill="#1a1210" stroke="#e8c86a" stroke-width="3"/>${Object.values(GODS).map((v,i)=>`<circle cx="${64+i*24}" cy="34" r="8" fill="${v.hex}" opacity=".85"/>`).join('')}<path class="flame" d="M100 66C110 78 110 88 104 96H96C90 88 90 78 100 66Z" fill="#e8c86a"/></svg><h2>${SR.ex?'Exalted shrine':'Divine shrine'}</h2>
  <p class="sub">${SR.msg||(cur.length?'You are sworn to '+cur.map(g=>GODS[g].full).join(' and ')+'.':'You are Unsworn. Four altars wait, each lit by a different god.')+' There is time for one rite.'}</p>${SR.done?'':`<div class="opts">${o.join('')}</div>`}<button class="btn${SR.done?' pri':''}" data-a="map">${SR.done?'Continue':'Walk on'}</button></div>`}
 function shopV(){return `<div class="panel"><h2>The Merchant</h2><p class="sub">Everything has a price. You have ${G.gold} gold.</p><div class="row">${SH.cards.map((s,i)=>`<div class="ware">${cardV({id:s.id,up:0},s.sold?'disabled':`data-a="buy" data-v="${i}"`,s.sold?'no':'')}<span class="price${!s.sold&&G.gold<s.p?' poor':''}">${s.sold?'Sold':s.p+' gold'}</span></div>`).join('')}</div>
- <div class="opts">${SH.relic?`<button class="btn opt" data-a="buyrel" ${SH.relic.sold?'disabled':''}>${SH.relic.sold?'Relic sold':`Relic, ${SH.relic.p} gold: ${RELICS[SH.relic.k].n}. ${RELICS[SH.relic.k].d}`}</button>`:''}<button class="btn opt" data-a="remove" ${SH.removed?'disabled':''}>${SH.removed?'Card removed':'Remove a card from your deck: 75 gold'}</button></div><button class="btn pri" data-a="map">Leave the shop</button></div>`}
+ <div class="opts">${SH.relic?`<button class="btn opt" data-a="buyrel" ${SH.relic.sold?'disabled':''}>${SH.relic.sold?'Relic sold':`Relic, ${SH.relic.p} gold: ${RELICS[SH.relic.k].n}. ${RELICS[SH.relic.k].d}`}</button>`:''}<button class="btn opt" data-a="remove" ${SH.removed?'disabled':''}>${SH.removed?'Card removed':'Remove a card from your deck: '+merchantPrice(75)+' gold'}</button></div><button class="btn pri" data-a="map">Leave the shop</button></div>`}
 function restV(){return `<div class="panel"><img class="rest-art" src="assets/scenes/rest-site.webp" alt=""><h2>Rest site</h2><p class="sub">${RS.msg||'The fire is warm. There is time for one thing before you climb on.'}</p>
  ${RS.done?'':`<div class="row"><button class="btn" data-a="rheal">Rest: heal ${Math.round(G.maxHp*.3)} HP</button><button class="btn" data-a="rsmith">Smith: upgrade a card</button></div>`}<button class="btn${RS.done?' pri':''}" data-a="map">${RS.done?'Continue':'Skip'}</button></div>`}
 function eventV(){const e=EV.e;return `<div class="panel"><svg class="pic" viewBox="0 0 200 120" aria-hidden="true"><ellipse cx="100" cy="114" rx="70" ry="6" fill="#000" opacity=".5"/><path d="M58 114V58C58 31 77 14 100 14S142 31 142 58V114Z" fill="#0d0807" stroke="#e8c86a" stroke-width="3"/><circle cx="100" cy="68" r="22" fill="#ff5a36" opacity=".25"/><circle cx="100" cy="68" r="9" fill="#ff5a36"/><text x="100" y="74" text-anchor="middle" font-family="Cinzel,serif" font-weight="800" font-size="16" fill="#1a0d09">?</text></svg><h2>${e.n}</h2><p class="sub">${EV.msg||e.t}</p>
  ${EV.done?`<button class="btn pri" data-a="map">Continue</button>`:`<div class="opts">${e.o.map((o,i)=>`<button class="btn opt" data-a="evo" data-v="${i}" ${o.ok&&!o.ok()?'disabled':''}>${o.l}</button>`).join('')}</div>`}</div>`}
 function endV(){const w=screen=='win';return `<div class="panel end"><svg class="pic" viewBox="0 0 200 120" aria-hidden="true">${w?`<g transform="translate(100 64) scale(4.2)">${NI.boss}</g>`:`<g transform="translate(100 62) scale(4.2)">${NI.elite}</g>`}</svg><h1>${w?'The King falls':'Your climb ends'}</h1><p class="sub">${w?`You toppled the Hollow King with a deck of ${G.deck.length} cards and ${G.relics.length} relics.`:`You fell on floor ${G.floor} of 13 with ${G.deck.length} cards in your deck.`}</p><button class="btn pri" data-a="new">Start a new run</button></div>`}
-const VIEWS={map:mapV,combat:combatV,reward:rewardV,shop:shopV,rest:restV,shrine:shrineV,event:eventV,dead:endV,win:endV};
+function thresholdV(){const t=G.threshold,p=t.pending,b=blessingById(t.selected);return `<section class="threshold" aria-label="The Threshold"><h1>The Threshold</h1><p class="sub">Choose what you carry into the ascent.</p>${p?`<h2>${b.n}</h2><p class="sub">${b.d}</p><div class="row">${p.choices.map(v=>{const c=p.type==='card'?{id:v,up:0}:G.deck.find(x=>x.u===v);return c?cardV(c,`data-a="blessresolve" data-v="${v}"`):''}).join('')}</div>`:`<div class="threshold-offers">${t.offers.map((id,i)=>{const a=blessingById(id);return `<button class="threshold-offer" style="--delay:${i*130}ms" data-a="bless" data-v="${id}"><span class="threshold-art">${ICO[a.icon]}</span><b>${a.n}</b><span>${a.d}</span><i>${a.flavor}</i><strong>Accept offering</strong></button>`}).join('')}</div>`}</section>`}
+const VIEWS={threshold:thresholdV,map:mapV,combat:combatV,reward:rewardV,shop:shopV,rest:restV,shrine:shrineV,event:eventV,dead:endV,win:endV};
 function render(){PT=null;PV.key='';$('#app').innerHTML=screen=='title'?titleV():screen=='pick'?pickV():screen=='oathpreview'?oathPreviewV():topV()+VIEWS[screen]();
  if(screen=='map'){const n=$('.node.can');if(n)try{n.scrollIntoView({block:'center'})}catch(e){}}else if(screen!='combat')window.scrollTo(0,0);
  if(screen=='combat'){const st=$('.stage');if(st){bgMount(st);ptMount(st)}const hs=$('#hero .spr');if(hs)rigMount(hs)}
@@ -886,6 +943,7 @@ function closeModal(){const m=MD;MD=null;$('#modal').innerHTML='';if(m&&m.onClos
 
 /* ---------- input ---------- */
 const A={
+ bless:selectBlessing,blessresolve:resolveBlessing,
 new:()=>newRun(),hero:v=>{if(v==='oath'){screen='oathpreview';render()}else newRun(v)},pickback:()=>{screen='pick';render()},oathstart:()=>newRun('oath'),title:()=>{screen='title';render()},oinfo:v=>toast(GODS[v].oath+' ('+GODS[v].full+'). Law: '+GODS[v].law+' Price: '+(halo(v)?'lifted.':GODS[v].price)),
 cont:()=>{G=load();if(!G)return;G.hero=G.hero||'aether';G.oaths=G.oaths||[];G.deck=G.deck.filter(c=>K[c.id]&&(!c.tier||FK[c.id]));G.relics=G.relics.filter(k=>RELICS[k]);uid=Math.max(0,...G.deck.map(c=>c.u||0))+1;goMap()},
 deck:()=>openPick('Your deck ('+G.deck.length+' cards)',G.deck,null),
@@ -897,7 +955,7 @@ rrelic:()=>{if(!RW.relic)return;gainRelic(RW.relic);toast('Gained '+RELICS[RW.re
 map:goMap,
 buy:v=>{const s=SH.cards[+v];if(s.sold)return;if(G.gold<s.p)return toast('Not enough gold.');G.gold-=s.p;s.sold=1;G.deck.push(mk(s.id));render()},
 buyrel:()=>{const r=SH.relic;if(!r||r.sold)return;if(G.gold<r.p)return toast('Not enough gold.');G.gold-=r.p;r.sold=1;gainRelic(r.k);render()},
-remove:()=>{if(SH.removed)return;if(G.gold<75)return toast('Not enough gold.');openPick('Remove a card (75 gold)',G.deck,c=>{G.gold-=75;SH.removed=1;G.deck.splice(G.deck.indexOf(c),1);toast(name(c)+' removed.');render()})},
+remove:()=>{if(SH.removed)return;const p=merchantPrice(75);if(G.gold<p)return toast('Not enough gold.');openPick('Remove a card ('+p+' gold)',G.deck,c=>{G.gold-=p;SH.removed=1;G.deck.splice(G.deck.indexOf(c),1);toast(name(c)+' removed.');render()})},
 rheal:()=>{if(RS.done)return;const n=Math.round(G.maxHp*.3),b=G.hp;heal(n);RS.done=1;RS.msg='You rest by the fire and recover '+(G.hp-b)+' HP.';render()},
 rsmith:()=>{if(RS.done)return;if(!upgradable().length)return toast('Every card is already upgraded.');openPick('Upgrade a card',upgradable(),c=>{c.up=1;RS.done=1;RS.msg='You hammer '+name(c)+' into shape.';render()})},
 evo:v=>{if(EV.done)return;const o=EV.e.o[+v];if(o.ok&&!o.ok())return;const m=o.f();if(m!=null){EV.msg=m;EV.done=1}render()},
