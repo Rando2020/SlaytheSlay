@@ -9,7 +9,16 @@ const MAX_BODY = 256 * 1024;
 const ROOM_TTL = 6 * 60 * 60 * 1000;
 const ONLINE_TTL = 30 * 1000;
 const mime = {'.html':'text/html; charset=utf-8', '.js':'text/javascript; charset=utf-8',
+  '.css':'text/css', '.mjs':'text/javascript; charset=utf-8',
   '.webp':'image/webp', '.jpg':'image/jpeg', '.png':'image/png'};
+
+const pages = new Set([
+  'index.html', 'coop-online.js', 'enemy-lab.html', 'tests/combat-interactions.html',
+  'assets/maps/act01/registry.js', 'src/act-map.js', 'src/act-map.css',
+  'assets/rigs/registry.js', 'assets/rigs/player.js', 'assets/rigs/lab.js',
+  'tools/combat-lab.mjs', 'tools/combat-playtester.mjs',
+  'tools/reference-gallery.mjs', 'tools/reference-gallery.css'
+]);
 
 function fail(status, message) {
   throw Object.assign(new Error(message), {status});
@@ -67,7 +76,7 @@ function createCoopServer() {
     if (!url.pathname.startsWith('/api/')) {
       if (!['GET','HEAD'].includes(req.method)) fail(405, 'Method unavailable.');
       const name = decodeURIComponent(url.pathname.slice(1)) || 'index.html';
-      if (!['index.html','coop-online.js'].includes(name) &&
+      if (!pages.has(name) &&
           !/^(assets|art)\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_. -]+\.(?:png|jpg|webp)$/.test(name))
         fail(404, 'File unavailable.');
       const file = path.join(root, name);
