@@ -31,11 +31,16 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 .btn.sm{padding:0 12px}
 /* title */
 .title{display:flex;flex-direction:column;min-height:100vh}
-.title .hero{width:100%;height:46vh;min-height:230px;display:block;background:linear-gradient(to bottom,transparent 60%,var(--bg)),url(assets/bg_gate.webp) 50% 62%/cover}
-.hi .title .hero{background-image:linear-gradient(to bottom,transparent 60%,var(--bg)),url(assets/bg_gate_4k.webp)}
-.tbody{padding:18px max(5vw,18px) 40px;max-width:720px;margin:0 auto;width:100%}
+.title .hero{width:100%;height:64vh;min-height:320px;display:flex;align-items:flex-end;justify-content:center;background:linear-gradient(to bottom,#0008 0%,transparent 28%,transparent 52%,#17100ecc 82%,var(--bg) 100%),url(assets/bg_gate.webp) 50% 58%/cover}
+.tmark{text-align:center;padding:0 16px clamp(18px,5vh,56px);animation:rise-in 1.2s ease-out both}
+.tmark h1{font-size:clamp(50px,12vw,112px);letter-spacing:.02em;background:linear-gradient(#fff6de 10%,#e8c86a 55%,#a8742a);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 12px #000d) drop-shadow(0 0 28px #a46bff66)}
+.kick{margin:8px 0 0;font:800 clamp(13px,1.6vw,17px) Cinzel,serif;letter-spacing:.16em;color:#ece2ff;text-shadow:0 2px 8px #000}
+@keyframes rise-in{from{opacity:0;transform:translateY(16px)}}
+.hi .title .hero{background-image:linear-gradient(to bottom,#0008 0%,transparent 28%,transparent 52%,#17100ecc 82%,var(--bg) 100%),url(assets/bg_gate_4k.webp)}
+.tbody{padding:4px max(5vw,18px) 40px;max-width:720px;margin:0 auto;width:100%;text-align:center}
+.tbody .how{text-align:left}
 .title h1{font-size:clamp(40px,10vw,64px)}
-.lede{font-size:17px;color:var(--mute);max-width:52ch;margin:12px 0 20px}
+.lede{font-size:17px;color:var(--mute);max-width:52ch;margin:0 auto 20px}
 .how{margin-top:26px;border-top:1px solid #ffffff1a;padding-top:6px}
 .how summary{cursor:pointer;font-weight:800;min-height:44px;display:flex;align-items:center}
 .how li{margin:7px 0;color:var(--mute)}
@@ -490,8 +495,8 @@ function intV(e){const n=e.int,o=[];if(n.a){let d=n.a+(e.st.str||0);if(e.st.weak
 function topV(){return `<div class="top"><span class="stat hp">${ICO.heart}${G.hp}/${G.maxHp}</span><span class="stat gd">${ICO.coin}${G.gold}</span><span class="stat">Floor ${G.floor}/13</span><span class="relics">${G.relics.map(k=>`<button class="rel" data-a="rel" data-v="${k}" aria-label="${RELICS[k].n}">${RELICS[k].n[0]}</button>`).join('')}</span><button class="btn sm" data-a="deck">Deck ${G.deck.length}</button></div>`}
 function pickV(){return `<div class="panel pick"><h2>Choose your climber</h2><p class="sub">Each hero has their own starting deck, relic and cards to find on the way up.</p><div class="heroes">${Object.entries(HEROES).map(([k,h])=>`<button class="hcard" data-a="hero" data-v="${k}"><span class="hp"><img src="${PSET[k].idle}" alt=""></span><b>${h.n}</b><span class="hb">${h.b}</span><span class="hs">${h.hp} HP · ${RELICS[h.relic].n}</span>${k=='oath'?`<span class="oaths">${Object.entries(OATHS).map(([o,v])=>`<i class="o-${o}">${v.n}</i>`).join('')}</span>`:''}</button>`).join('')}</div><button class="btn sm" data-a="title">Back</button></div>`}
 function titleV(){const s=load();let emb='';for(let i=0;i<14;i++)emb+=`<circle class="emb" cx="${(i*67)%400}" cy="${200+(i*37)%40}" r="${1+(i%3)*.6}" fill="#ff5a36" style="animation-delay:${-(i*.53).toFixed(2)}s"/>`;
- return `<div class="title"><div class="hero" role="img" aria-label="A sealed aether gate in overgrown ruins"></div>
- <div class="tbody"><h1>Hollow Ascent</h1><p class="lede">A roguelike deckbuilder. Climb thirteen floors, shape your deck one card at a time, and topple the Hollow King at the top.</p><div class="row l"><button class="btn pri" data-a="new">Begin ascent</button>${s?`<button class="btn" data-a="cont">Continue from floor ${s.floor}</button>`:''}</div>
+ return `<div class="title"><div class="hero" role="img" aria-label="A sealed aether gate in overgrown ruins"><div class="tmark"><h1>Hollow Ascent</h1><p class="kick">A roguelike deckbuilder</p></div></div>
+ <div class="tbody"><p class="lede">Climb thirteen floors, shape your deck one card at a time, and topple the Hollow King at the top.</p><div class="row"><button class="btn pri" data-a="new">Begin ascent</button>${s?`<button class="btn" data-a="cont">Continue from floor ${s.floor}</button>`:''}</div>
  <details class="how"><summary>How to play</summary><ul><li>Tap a card to play it. If several enemies are alive, attacks ask you to tap a target.</li><li>Each turn you get 3 energy and draw 5 cards. Block fades at the start of your turn.</li><li>Enemy intents show their next move: red attacks, teal blocks, gold buffs, violet debuffs.</li><li>Vulnerable takes 50% more damage, Weak deals 25% less, Poison ticks every turn.</li><li>After fights, add a card or skip. A lean deck is often stronger. Rest sites heal or upgrade.</li><li>On a keyboard: 1 to 9 plays cards, E ends your turn.</li></ul></details></div></div>`}
 function mapV(){const m=G.map,F=m.length,H=(F-1)*64+92;
  const xy=(f,l)=>f==F-1?[180,48]:[60+l*80+m[f][l].jx,H-38-f*64+m[f][l].jy];
