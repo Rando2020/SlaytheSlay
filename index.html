@@ -1320,7 +1320,7 @@ const statusArt={str:'strength',vuln:'vulnerable',weak:'weak',poison:'poison'};
 const oathArt={aurel:'radiance',varran:'conquest',orun:'protection',mora:'twilight'};
 const stV=st=>Object.keys(st).filter(k=>st[k]&&STN[k]).map(k=>`<span class="chip ${STN[k][1]}" title="${STN[k][2]}">${statusArt[k]?hudIcon("status-"+statusArt[k],16):""}${STN[k][0]} ${st[k]}</span>`).join('');
 const cardArt=(c,hero)=>c.id==="strike"?`<img alt="" src="assets/ui/cards/${hero==="oath"?"dawn":"aetherwright"}-strike.png">`:ART[KD(c).t];
-function cardV(c,attrs='',cls=''){const k=KD(c),description=k.d(c.up,c),co=cost(c),g=godOf(c),dorm=g&&G&&G.hero=='oath'&&!ACT(g)&&!c.seal&&!c.tmpS;return `<button class="card t-${k.t} r${k.r}${description.length>32?' wordy':''}${c.up?' up':''}${g?' g-'+g:''}${c.tier?' tr'+c.tier:''}${dorm?' dorm':''}${K[c.id].m&&!c.tier?' mal':''} ${cls}" ${attrs}>${co>=0?`<span class="cost">${co}</span>`:''}${c.tier?`<span class="tier" title="${TIERN[c.tier]}">T${c.tier}</span>`:''}<span class="nm">${name(c)}</span><span class="art">${cardArt(c,G?.hero)}</span><span class="ds"><span>${keywordText(description)}</span></span><span class="ty">${TN[k.t]}${k.colorless?' · Colorless':''}${g?' · '+GODS[g].n:K[c.id].m?' · Malleable':''}${dorm?' · Dormant':''}</span></button>`}
+function cardV(c,attrs='',cls=''){const k=KD(c),description=k.d(c.up,c),co=cost(c),g=godOf(c),dorm=g&&G&&G.hero=='oath'&&!ACT(g)&&!c.seal&&!c.tmpS;return `<button class="card t-${k.t} r${k.r}${description.length>32?' wordy':''}${c.up?' up':''}${g?' g-'+g:''}${c.tier?' tr'+c.tier:''}${dorm?' dorm':''}${K[c.id].m&&!c.tier?' mal':''} ${cls}" ${attrs}>${co>=0?`<span class="cost">${co}</span>`:''}${c.tier?`<span class="tier" title="${TIERN[c.tier]}">T${c.tier}</span>`:''}<span class="nm">${name(c)}</span><span class="art">${cardArt(c,G?.hero)}</span><span class="ds"><span>${keywordText(description)}</span></span><span class="ty">${TN[k.t]}${k.colorless?' · '+keywordText('Colorless'):''}${g?' · '+GODS[g].n:K[c.id].m?' · '+keywordText('Malleable'):''}${dorm?' · '+keywordText('Dormant'):''}</span></button>`}
 function intV(e){const n=e.int,o=[],d0=EN[e.k];if(n.a){const bl=n.slam&&d0.keep?Math.floor(e.block/2):0;let d=n.a+bl+(e.st.str||0);if(e.st.weak)d*=.75;if(C.p.st.vuln)d*=1.5;o.push(`<span class="it a" title="${G.party?'Attacks all living climbers. Damage shown for the active climber.':'Attack'}">${G.party?'All · ':''}${hudIcon("intent-attack",14)}${Math.floor(d)}${n.x>1?'×'+n.x:''}</span>`)}
  if(n.b)o.push(`<span class="it b" title="Block">${hudIcon("intent-block",14)}${n.b}</span>`);if(n.str)o.push(`<span class="it u" title="Buff">${hudIcon("intent-buff",14)}</span>`);if(n.weak||n.vuln||n.poison)o.push(`<span class="it d" title="Debuff">${hudIcon("intent-debuff",14)}${n.poison||''}</span>`);return (n.n?`<span class="iname">${n.n}</span>`:'')+`<span class="irow">${o.join('')}</span>`}
 const relicArtwork={
@@ -1536,6 +1536,11 @@ const rewardTerms=[
  ['Strength','str'],['Dexterity','dex'],['Anointed','anoint'],['Bloodlust','blust'],
  ['Resolve','resolve'],['Soulbound','soul'],['Vulnerable','vuln'],['Weak','weak'],['Poison','poison']
 ].map(([term,key])=>[term,STN[key][2].split(': ').pop()]).concat([
+ ['Retain','Keep the chosen card in your hand when this turn ends.'],
+ ['Discard','Move a card out of your hand. Ordinary cards go to the discard pile and can return on a reshuffle. Divine cards follow their Sanctum rules.'],
+ ['Colorless','This card can appear for any class.'],
+ ['Malleable','This card can Sanctify into a permanent form tied to your oath.'],
+ ['Dormant','Its god’s oath is inactive. The card normally waits in that god’s Sanctum.'],
  ['Block','Absorbs incoming attack damage. Normally clears at the start of your next turn.'],
  ['Exhaust','Moves a card to the Exhaust pile for this combat. It stays in your deck for later fights.','Exhaust(?:ed)?'],
  ['Draw','Move cards into your hand. An empty draw pile reshuffles from Discard. Your hand holds up to 10.'],
@@ -1612,18 +1617,29 @@ document.addEventListener('focusin',e=>{
  if(card?.matches(':focus-visible'))explainKeyword(card,[...card.querySelectorAll('[data-keyword]')].map(w=>+w.dataset.keyword));
 });
 document.addEventListener('focusout',e=>{if(keywordAnchor===e.target)hideKeyword()});
+// Keep inspection gestures isolated even when a release lands on the parent card.
+let inspectPress=null;
 document.addEventListener('pointerdown',e=>{
- if(e.target.closest('[data-keyword]')||keywordPinned)e.stopImmediatePropagation();
+ const word=e.target.closest('[data-keyword]');
+ inspectPress=(word||keywordPinned)?{id:e.pointerId,word}:null;
+ if(inspectPress)e.stopImmediatePropagation();
+},true);
+document.addEventListener('pointercancel',e=>{
+ if(inspectPress?.id===e.pointerId)inspectPress=null;
 },true);
 document.addEventListener('click',e=>{
+ const press=inspectPress;
+ inspectPress=null;
  const word=e.target.closest('[data-keyword]');
- if(!word&&!keywordPinned)return;
+ if(!word&&!keywordPinned&&!(press&&e.detail>0))return;
  e.preventDefault();e.stopImmediatePropagation();
+ if(press&&e.detail>0&&press.word!==word){hideKeyword();return}
  if(word&&!(keywordPinned&&keywordAnchor===word))explainKeyword(word,[+word.dataset.keyword],true);
  else hideKeyword();
 },true);
 document.addEventListener('keydown',e=>{
- if(e.key==='Escape'&&keywordAnchor){hideKeyword();e.preventDefault();e.stopImmediatePropagation()}
+ if(e.key==='Escape'&&keywordAnchor){hideKeyword();e.preventDefault();e.stopImmediatePropagation();return}
+ if(keywordPinned&&screen==='combat'&&!MD&&/^[1-9e]$/i.test(e.key)){e.preventDefault();e.stopImmediatePropagation()}
 },true);
 addEventListener('resize',hideKeyword);
 document.addEventListener('scroll',hideKeyword,true);
