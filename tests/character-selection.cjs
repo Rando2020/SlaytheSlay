@@ -22,7 +22,7 @@ const run={hero:'oath'},combat={turn:5};
 ctx.uid=42;ctx.G=run;ctx.C=combat;
 ctx.HEROES.aether.deck=()=>{ctx.uid++;return [{id:'strike'}]};
 ctx.$=()=>({focus(){}});ctx.document={activeElement:null};ctx.MD={};
-ctx.openPick=(title,cards)=>{assert.equal(ctx.G,null);assert.equal(ctx.C,null);assert.equal(cards[0].id,'strike');};
+ctx.openPick=(title,cards)=>{assert.equal(ctx.G.hero,'aether');assert.notEqual(ctx.G,run);assert.equal(ctx.C,null);assert.equal(cards[0].id,'strike');};
 vm.runInContext('inspectStartingDeck()',ctx);
 assert.equal(ctx.uid,42);assert.equal(ctx.G,run);assert.equal(ctx.C,combat);
 ctx.openPick=()=>{throw Error('render failure')};

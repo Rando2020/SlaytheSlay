@@ -29,3 +29,5 @@ Shared responsive selection renderer, full composition on the left and charcoal/
 ## Review
 
 Independent review found one keyboard issue: the inspector could leave focus on the background Begin Ascent button. Added a failing regression check, then isolated the background with inert, focused Close and restored focus on dismissal. Unit checks and browser verification passed after the fix. The test encoding typo identified by review was corrected. No deferred findings.
+
+Latest-main integration: merged main 9d157b7 (card/HUD artwork), retained its renderers, and gave starting-deck rendering an isolated selected-class context so Oathbound Strike uses Dawn Strike artwork. The prior run and combat objects are still restored in finally. Both class-specific card-art counts and both start flows were rechecked after integration.
