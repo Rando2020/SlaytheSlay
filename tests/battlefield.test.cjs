@@ -12,6 +12,7 @@ test('combat fan uses viewport space and keeps up to ten cards within the hand',
   const handWidth=Math.min(width,1120),cardWidth=width<604?98:128;
   assert.equal(lefts.length,count);
   assert.ok(lefts[0]>=0);assert.ok(lefts.at(-1)+cardWidth<=handWidth);
+  if(count===10)assert.ok(lefts[0]>=50,'leave room for rotated corners and cost badges');
   assert.ok(Math.abs((lefts[0]+lefts.at(-1)+cardWidth)/2-handWidth/2)<1,'fan centered in viewport hand');
  }
 });

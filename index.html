@@ -288,6 +288,15 @@ body:has(#app>.stage){overflow:hidden}
  #app>.ctl .orb{width:44px;height:44px}
  #app>.ctl .orb b{font-size:21px}
 }
+@media(max-height:450px){
+ #app>.stage .actors{bottom:205px}
+ #app>.stage .hero .spr{height:60px}
+ #app>.stage .unit:not(.hero) .spr{height:45px}
+ #app>.stage .info{gap:0;padding:2px 4px}
+ #app>.stage .fn{font-size:10px}
+ #app>.stage .hpt{font-size:11px}
+ #app>.stage .bar{height:5px}
+}
 </style></head><body>
 <div id="app"></div><div id="modal"></div><svg id="aim" aria-hidden="true"><path id="aimP" fill="none" stroke="none"/><g id="aimG"></g></svg>
 <script>
@@ -820,7 +829,7 @@ function mapV(){const m=G.map,F=m.length,H=(F-1)*64+92;
 function heroV(now){const p=C.p;return `<div class="unit hero${p.block?' guard':''}" id="hero"><span class="spr"><i class="gshadow"></i></span><span class="info"><span class="fn">${HEROES[G.hero||'aether'].s}</span><span class="bar"><i style="width:${G.hp/G.maxHp*100}%"></i></span><span class="hpt">${G.hp}/${G.maxHp}${p.block?` <span class="chip blk">${ICO.shield}${p.block}</span>`:''}</span><span class="chips">${(G.oaths||[]).map(g=>`<button class="chip oath o-${g}" data-a="oinfo" data-v="${g}" title="${GODS[g].law}">${GODS[g].oath}</button>`).join('')}${stV(p.st)}</span></span></div>`}
 function foeV(e,tg,now){const d=EN[e.k],dead=e.hp<=0,el=dead?now-(e.dieAt||0):0,st=dead?(el<800?' dying':' dead'):'';
  return `<button class="unit${d.big?' big':''}${tg&&!dead?' tgt':''}${st}" id="f${e.i}" data-a="foe" data-v="${e.i}" aria-label="${d.n}"${st==' dying'?` style="animation-delay:-${el|0}ms"`:''}><span class="ints">${dead?'':intV(e)}</span><span class="spr"><svg class="bob${d.s=='moth'||d.s=='ghost'?' fly':''}" viewBox="0 0 120 100" style="animation-delay:-${(now+e.i*900)%2600|0}ms" aria-hidden="true">${SPR[d.s](d.col)}</svg></span><span class="info"><span class="fn">${d.n}</span><span class="bar"><i style="width:${e.hp/e.max*100}%"></i></span><span class="hpt">${e.hp}/${e.max}${e.block?` <span class="chip blk">${ICO.shield}${e.block}</span>`:''}</span><span class="chips">${stV(e.st)}</span></span></button>`}
-function handV(){const n=C.hand.length;if(!n)return '<p class="empty">No cards in hand</p>';const W=Math.min(innerWidth,1120)-24,cw=W<580?98:128,mid=(n-1)/2,step=n>1?Math.min(cw+10,(W-cw-26)/(n-1)):0,now=performance.now();
+function handV(){const n=C.hand.length;if(!n)return '<p class="empty">No cards in hand</p>';const W=Math.min(innerWidth,1120)-24,cw=W<580?98:128,mid=(n-1)/2,step=n>1?Math.min(cw+10,(W-cw-90)/(n-1)):0,now=performance.now();
  return C.hand.map((c,i)=>{const o=i-mid,x=W/2+o*step-cw/2+12,rot=n>1?o*Math.min(5,26/n):0,y=o*o*Math.min(3.2,16/n),dl=c.dt?c.dt-now:-999,an=dl>-420&&!RM?`;animation:deal .42s ease-out ${dl|0}ms backwards`:'';
   return cardV(c,`data-a="card" data-v="${i}" style="left:${x.toFixed(1)}px;--r:${rot.toFixed(2)}deg;--y:${y.toFixed(1)}px;z-index:${i+1}${an}"`,(i==C.sel?'sel ':'')+(playable(c)?'':'no'))}).join('')}
 function combatV(){const tg=C.sel>=0,now=performance.now();
