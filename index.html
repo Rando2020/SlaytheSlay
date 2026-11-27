@@ -306,6 +306,8 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 .piles{display:flex;flex-wrap:wrap;gap:4px}.pile-btn{font:inherit;color:inherit;background:#201c20;border:1px solid #766653;border-radius:5px;padding:4px 7px;cursor:pointer}
 .pile-view figure{margin:0;text-align:center}.pile-view .card{pointer-events:none}.pile-view figcaption{max-width:106px}.pile-view h3{text-align:center}
 .draw-forecast{position:absolute;top:32px;left:50%;transform:translateX(-50%);z-index:5;max-width:95%;width:max-content;text-align:center;background:#191519eb;color:#ffe4a9;padding:3px 8px;border-radius:4px;pointer-events:none}.draw-forecast:empty{display:none}
+.reward-sheet{max-width:620px;margin:clamp(0px,5vh,48px) auto;padding:18px;background:#211a19;border:1px solid #78644b;border-radius:12px}.reward-detail{display:grid;grid-template-columns:auto 1fr;align-items:start;gap:24px;margin:22px 0}.reward-detail .card{opacity:1}.reward-rules{font-size:1.2rem;line-height:1.4;margin:0}.reward-detail dl{margin-bottom:0}.reward-detail dt{color:#f2d6a2;font-weight:bold}.reward-detail dd{margin:2px 0 12px;line-height:1.4}
+@media(max-width:550px){.reward-detail{grid-template-columns:1fr;gap:16px}.reward-detail .card{margin:auto}.reward-sheet{margin:0 auto}.reward-detail dd{margin-bottom:8px}}
 </style></head><body>
 <div id="app"></div><div id="modal"></div><svg id="aim" aria-hidden="true"><path id="aimP" fill="none" stroke="none"/><g id="aimG"></g></svg>
 <script>
@@ -913,7 +915,7 @@ function combatV(){const tg=C.sel>=0,now=performance.now();
  <div class="ctl"><div class="orb" title="Energy"><b>${C.energy}</b><small>of 3</small></div><div class="piles">${pileControls()}</div>${has('key')&&!C.keyUsed&&!C.busy&&dormGods().some(g=>C.sanc[g].length)?`<button class="btn sm" data-a="key" title="${RELICS.key.d}">Key</button>`:''}<button class="btn pri" data-a="end" ${C.busy?'disabled':''}>End turn</button></div>`}
 const copiesOwned=id=>G.deck.filter(c=>c.id===id&&!c.tier).length;
 function rewardV(){const r=RW.relic&&RELICS[RW.relic];return `<div class="panel"><h2>${RW.title||'Victory'}</h2>${RW.gold?`<p class="sub">You found ${RW.gold} gold.</p>`:''}${r?`<button class="btn relbtn" data-a="rrelic"><span class="rel">${relicIcon(RW.relic)}</span><span>Take ${r.n}: ${r.d}</span></button>`:''}
- ${RW.cards.length?`<h3>${RW.ascDone&&!RW.asc.free?'You chose an Ascension':RW.taken?'Card added to your deck':'Choose a card to add'}</h3><div class="row">${RW.cards.map((id,i)=>`<div class="ware">${cardV({id,up:0},RW.taken?'disabled':`data-a="rcard" data-v="${i}"`,RW.taken?'no':'')}<span>${copiesOwned(id)} in deck</span></div>`).join('')}</div>`:''}
+ ${RW.cards.length?`<h3>${RW.ascDone&&!RW.asc.free?'You chose an Ascension':RW.taken?'Card added to your deck':'Choose a card to add'}</h3><div class="row">${RW.cards.map((id,i)=>`<div class="ware">${cardV({id,up:0},RW.taken?'disabled':`data-a="inspectreward" data-v="${i}"`,RW.taken?'no':'')}<span>${copiesOwned(id)} in deck</span></div>`).join('')}</div>`:''}
  ${RW.asc&&!RW.ascDone&&(RW.asc.free||!RW.taken)?`<div class="opts"><button class="btn opt" data-a="rasc">${RW.asc.free?'A divine light rests on the chest. Exalt a card':'Instead of a card, Ascend one'} (T${RW.asc.from} to T${RW.asc.from+1})</button></div>`:''}
  <button class="btn pri" data-a="map">${RW.cards.length&&!RW.taken?'Skip card and continue':'Continue'}</button></div>`}
 function shrineV(){const cur=G.oaths||[],mx=has('twin')?2:1,o=[];
@@ -1018,6 +1020,56 @@ function showComparison(card,label){
   if(before&&after)markSmithChanges(before,after);
  }
 }
+const rewardTerms=[
+ ['Strength','str'],['Dexterity','dex'],['Anointed','anoint'],['Bloodlust','blust'],
+ ['Resolve','resolve'],['Soulbound','soul'],['Vulnerable','vuln'],['Weak','weak'],['Poison','poison']
+].map(([term,key])=>[term,STN[key][2].split(': ').pop()]).concat([
+ ['Block','Absorbs incoming attack damage. Normally clears at the start of your next turn.'],
+ ['Exhaust','Moves a card to the Exhaust pile for this combat. It stays in your deck for later fights.','Exhaust(?:ed)?'],
+ ['Draw','Move cards into your hand. An empty draw pile reshuffles from Discard. Your hand holds up to 10.'],
+ ['Divine Draw','Draw a random eligible card from a Sanctum. Each card can be drawn this way once per turn.'],
+ ['Energy','Pay this resource to play a card. Its cost appears in the upper corner.'],
+ ['Sanctify','While sworn, playing this card permanently transforms it into a card of your god and places it in their Sanctum. Your ordinary deck must keep at least 8 cards.'],
+ ['Unsworn','You have no active oath.'],
+ ['Sworn','This card normally returns to its god’s Sanctum after play or discard.'],
+ ['Dormant Sanctum','A god’s card pile while their oath is inactive.'],
+ ['Reliquary','Orun’s Sanctum, a separate pile for his cards.'],
+ ['Offer','Exhaust a chosen card from an active Sanctum.'],
+ ['Recall','Choose an eligible card from an active Sanctum and put it in your hand.'],
+ ['Restore','Return an eligible Exhausted divine card to its god’s Sanctum.'],
+ ['Divine damage','Ignores Strength, Weak and Vulnerable. Enemy Block still absorbs it.'],
+ ['Lethal','This attack reduces its target to zero HP.'],
+ ['Once per combat','Each copy can use this effect once in a fight.'],
+ ['Sacrifice','Spend HP directly, bypassing Block. A sacrifice leaves at least 1 HP.','sacrific(?:e|ed)'],
+ ['Debuff','A harmful status such as Weak, Vulnerable or Poison.']
+]);
+function rewardDefinitions(rules){
+ let remaining=rules;
+ const definitions=[];
+ // Match phrases first so Divine Draw does not also explain ordinary Draw.
+ for(const [term,meaning,pattern] of [...rewardTerms].sort((a,b)=>b[0].length-a[0].length)){
+  const match=new RegExp('\\b(?:'+(pattern||term)+')\\b','gi');
+  if(match.test(remaining)){
+   definitions.push(`<dt>${term}</dt><dd>${meaning}</dd>`);
+   remaining=remaining.replace(match,' ');
+  }
+ }
+ return definitions.join('');
+}
+function inspectReward(v){
+ const index=Number(v),offer=RW;
+ if(screen!=='reward'||MD||!offer||offer.taken||!Number.isInteger(index)||!offer.cards[index])return;
+ const id=offer.cards[index],card={id,up:0},k=KD(card),rules=k.d(card.up,card);
+ const source=$('[data-a="inspectreward"][data-v="'+index+'"]');
+ MD={reward:{offer,index,id},onClose:()=>{$('#app').inert=false;source?.focus()}};
+ const defs=rewardDefinitions(rules);
+ $('#modal').innerHTML=`<div class="modal reward-inspect" role="dialog" aria-modal="true" aria-labelledby="reward-title"><div class="reward-sheet">
+ <div class="mhead"><h2 id="reward-title">${k.n}</h2><button class="btn" data-a="mclose">Back to rewards</button></div>
+ <div class="reward-detail"><div aria-hidden="true">${cardV(card,'disabled')}</div>
+ <div><p class="reward-rules">${rules}</p>${defs?`<dl>${defs}</dl>`:''}</div></div>
+ <button class="btn pri" data-a="rcard">Take ${k.n}</button></div></div>`;
+ $('#app').inert=true;$('#modal [data-a="mclose"]').focus();
+}
 function inspectWare(v){
  const item=SH?.cards[v];if(screen!=='shop'||MD||!item||item.sold)return;
  const card={id:item.id,up:0},left=G.gold-item.p;
@@ -1039,7 +1091,13 @@ deck:()=>openPick('Your deck ('+G.deck.length+' cards)',G.deck,null),
 rel:v=>toast(RELICS[v].n+': '+RELICS[v].d),
 go:v=>{const[f,l]=v.split(',').map(Number);enter(f,l)},
 card:v=>tapCard(+v),foe:v=>tapFoe(+v),end:()=>endTurn(),
-rcard:v=>{if(RW.taken)return;G.deck.push(mk(RW.cards[+v]));RW.taken=true;render()},
+inspectreward:inspectReward,
+rcard:()=>{
+ const chosen=MD?.reward;
+ if(screen!=='reward'||!chosen||chosen.offer!==RW||RW.taken||RW.cards[chosen.index]!==chosen.id)return;
+ G.deck.push(mk(chosen.id));RW.taken=true;closeModal();render();
+ ($('[data-a="rrelic"]')||$('[data-a="rasc"]')||$('[data-a="map"]'))?.focus();
+},
 rrelic:()=>{if(!RW.relic)return;gainRelic(RW.relic);toast('Gained '+RELICS[RW.relic].n);RW.relic=null;render()},
 map:goMap,
 inspectware:inspectWare,
