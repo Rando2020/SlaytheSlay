@@ -2,7 +2,16 @@
 
 A roguelike deckbuilder in the style of Slay the Spire, built as a single web page. Working title in game: **Hollow Ascent**.
 
-Climb 13 floors, build your deck one card at a time, and topple the Hollow King. The hero is **The Aetherwright**, an aether-punk gunslinger with painted art and a 2D mesh rig.
+Climb 13 floors, build your deck one card at a time, and topple the Hollow King. Pick one of two heroes at the start, each with painted art on a 2D mesh rig:
+
+- **The Aetherwright**, an aether-punk gunslinger (Strength, poison, raw firepower).
+- **The Oathbound**, a wandering knight who swears Oaths to four gods. Each Oath is a stance that changes how he fights, and his blade glows in that god's color:
+  - **Radiance** (Aurel, gold): at the end of your turn, deal 4 damage to ALL enemies.
+  - **Conquest** (Varran, red): your attacks deal 50% more damage, you take 25% more.
+  - **Protection** (Orun, blue): at the end of your turn, gain 6 Block.
+  - **Twilight** (Mora, violet): your attacks apply 1 Weak, draw 1 extra card each turn.
+
+  He starts with the Pilgrim Star relic (first Oath each combat gives 1 Energy) and has his own pool of 22 cards.
 
 ## Play
 
@@ -43,7 +52,9 @@ then visit `http://localhost:8000`.
 | `art/source/enemies/` | Original enemy art and model sheets |
 | `assets/fx/` | Ambient and combat effects (black background, drawn with screen blending) |
 | `art/cutouts/fx/` | Every effect cut from the two FX sheets, with contact sheets |
-| `tools/` | Python scripts used to cut the hero poses out of their backgrounds |
+| `assets/oath/` | Oathbound poses: idle, attack, hurt, cast (oath invocation), power (oath sworn) |
+| `art/source/oathbound/` | Oathbound concept sheets, generated poses and parts sheets |
+| `tools/` | Python scripts used to cut the hero poses out of their backgrounds (`cut_oathbound.py` for the knight) |
 
 ## Art pipeline
 
