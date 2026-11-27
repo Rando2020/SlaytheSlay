@@ -34,3 +34,7 @@ Existing painted gate art is reused as an interim environment, with gold-bordere
 ## Testing
 
 Run `node --test tests/*.test.cjs`. The Threshold logic harness uses actual card definitions, pools, heroes, relic metadata and the run/Threshold functions from index.html with stubbed presentation, storage and common relic application. It samples 100 seeds per class and tests every generated option, invalid selections, reloads before and after application, temporary counters, and merchant pricing. This is not browser end-to-end or full gameplay testing. Balance values remain provisional.
+
+## Multiplayer integration
+
+Parties use the same Threshold after the final character is confirmed. Each climber receives three seeded offers and resolves exactly one personal blessing before the shared map opens. Member offers, pending card choices and effects persist in the separate party save. Reload resumes the first unresolved member. Combat duration decrements for every member on victory, and first-shop discounts expire separately as each member leaves the merchant. Legacy party saves without Threshold data continue without retroactive blessings.

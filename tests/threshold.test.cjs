@@ -7,7 +7,7 @@ function runThresholdChecks(html,check){
  const block=(a,b)=>html.slice(html.indexOf(a),html.indexOf(b,html.indexOf(a)));
  const line=a=>html.split('\n').find(s=>s.startsWith(a));
  const code=[
- 'let G=null,C=null,screen="title",uid=1,saved=null;const save=()=>{saved=JSON.stringify(G)},render=()=>{},closeModal=()=>{};',
+ 'const window={};let G=null,C=null,screen="title",uid=1,saved=null;const save=()=>{saved=JSON.stringify(G)},render=()=>{},closeModal=()=>{};',
  block('const K={','const POOLS='),line('const POOLS='),line('const POOL='),line('const ACT='),line('const godOf='),line('const ordinaryCount='),block('const HEROES=','let SIM='),block('const RELICS=','const STN='),line('const mk='),line('const upgradable='),
  'const gainRelic=k=>{G.relics.push(k);if(k==="moss"){G.maxHp+=8;G.hp+=8}};',
  block('/* ---------- The Threshold ---------- */','function mkShop()'),

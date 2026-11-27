@@ -1,0 +1,163 @@
+const {test} = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+
+const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+const game = html.match(/<script>\s*\(\(\)=>\{([\s\S]*?)\}\)\(\);\s*<\/script>/)[1];
+
+// Run the shipped game with real action handlers and views. Only the browser
+// surfaces, animation timers and local storage are substituted.
+function launch(heroes, storage = new Map(), leaveThreshold = false) {
+  const app = {style: {}, clientWidth: 1000};
+  const modal = {style: {}};
+  const noop = () => {};
+  const ctx = vm.createContext({
+    document: {
+      documentElement: {style: {}},
+      addEventListener: noop,
+      querySelector: q => q === '#app' ? app : q === '#modal' ? modal : null
+    },
+    window: {screen: {width: 1000, height: 700}, scrollTo: noop},
+    localStorage: {
+      getItem: k => storage.get(k),
+      setItem: (k, v) => storage.set(k, v),
+      removeItem: k => storage.delete(k)
+    },
+    matchMedia: () => ({matches: true}), devicePixelRatio: 1,
+    Image: class {}, innerWidth: 1000, innerHeight: 700, performance,
+    requestAnimationFrame: noop, addEventListener: noop, setTimeout: queueMicrotask,
+    clearTimeout: noop
+  });
+  const run = source => vm.runInContext(source, ctx);
+  run(game);
+  if (heroes) {
+    run("Math.random=()=>0");
+    if (heroes.length > 1) run(`A.party('${heroes.length}')`);
+    else run('A.new()');
+    for (const hero of heroes) {
+      run(`A.hero('${hero}')`);
+      if (hero === 'oath') run('A.oathstart()');
+    }
+    if (!leaveThreshold) {
+      while (run('screen') === 'threshold') run("A.bless('merchant')");
+    }
+    if (leaveThreshold) return {run, storage};
+    assert.equal(run('screen'), 'map');
+  }
+  return {run, storage};
+}
+
+test('enemy HP scales each spawn exactly once for solo through four seats', () => {
+  for (const count of [1, 2, 3, 4]) {
+    const {run} = launch(Array(count).fill('aether'));
+    run("G.floor=11; Math.random=()=>0; startCombat(['tick','jugg','king'], 'fight')");
+    assert.equal(run('JSON.stringify(C.foes.map(e=>[e.hp,e.max]))'),
+      JSON.stringify([14, 117, 180].map(hp => [hp * count, hp * count])));
+  }
+});
+
+test('two seats act before the enemy, which resolves each hit against personal block', async () => {
+  const {run} = launch(['aether', 'oath']);
+  run("A.go('0,0'); startCombat(['scrap'], 'fight'); C.foes[0].int={a:4,x:2}; C.p.block=6");
+  await run('A.end()');
+  assert.equal(run('activeSeat()'), 1);
+  assert.equal(run('G.hero'), 'oath');
+  assert.equal(run('C.p.block'), 5, 'Oathbound retains their own opening relic');
+  assert.equal(run('C.energy'), 3);
+  assert.equal(run('C.foes[0].t'), 0);
+  await run('A.end()');
+  assert.equal(run('activeSeat()'), 0);
+  assert.equal(run('partyMember(0).hp'), 68);
+  assert.equal(run('partyMember(1).hp'), 77);
+  assert.equal(run('C.foes[0].t'), 1);
+});
+
+test('a fallen player is skipped and surviving players can finish the round', async () => {
+  const {run} = launch(['aether', 'aether']);
+  run("startCombat(['scrap'], 'fight'); G.hp=1; C.foes[0].int={a:4,x:2}");
+  await run('A.end()');
+  await run('A.end()');
+  assert.equal(run('screen'), 'combat');
+  assert.equal(run('activeSeat()'), 1);
+  assert.equal(run('partyMember(0).hp'), 0);
+  assert.equal(run('G.hp'), 62);
+  run('C.foes[0].int={a:99}');
+  await run('A.end()');
+  assert.equal(run('screen'), 'dead');
+});
+
+test('four-player enemy buffs and intents advance once while every player takes damage', async () => {
+  const {run} = launch(Array(4).fill('aether'));
+  run("startCombat(['king'], 'boss')");
+  for (let seat = 0; seat < 4; seat++) {
+    assert.equal(run('activeSeat()'), seat);
+    await run('A.end()');
+  }
+  assert.equal(run('C.foes[0].st.str'), 2);
+  assert.equal(run('C.foes[0].block'), 10);
+  for (let seat = 0; seat < 4; seat++) await run('A.end()');
+  for (let seat = 0; seat < 4; seat++) assert.equal(run(`partyMember(${seat}).hp`), 50);
+  assert.equal(run('C.foes[0].t'), 2);
+});
+
+test('solo enemy damage and turn order remain unchanged', async () => {
+  const {run} = launch(['aether']);
+  run("startCombat(['rustjaw'], 'fight'); C.p.block=3");
+  await run('A.end()');
+  assert.equal(run('G.hp'), 67);
+  assert.equal(run('C.turn'), 2);
+  assert.equal(run('C.foes[0].t'), 1);
+});
+
+test('each player drafts their own reward and the shared map resumes from storage', () => {
+  const solo = launch(['aether']);
+  const {run, storage} = launch(['oath', 'aether'], solo.storage);
+  run("A.go('0,1'); winCombat()");
+  assert.equal(run('screen'), 'reward');
+  assert.equal(run('activeSeat()'), 0);
+  run("A.rcard('0'); A.map()");
+  assert.equal(run('screen'), 'reward');
+  assert.equal(run('activeSeat()'), 1);
+  assert.equal(run('G.deck.length'), 10);
+  run('A.map()');
+  assert.equal(run('screen'), 'map');
+  const resumed = launch(null, storage).run;
+  resumed('A.contparty()');
+  assert.equal(resumed('partySize()'), 2);
+  assert.equal(resumed('JSON.stringify(G.path)'), '[[0,1]]');
+  assert.equal(resumed('partyMember(0).hero'), 'oath');
+  assert.equal(resumed('partyMember(0).deck.length'), 11);
+  assert.equal(resumed('partyMember(1).hero'), 'aether');
+  assert.equal(resumed('partyMember(1).deck.length'), 10);
+  resumed('A.cont()');
+  assert.equal(resumed('partySize()'), 1);
+  assert.equal(resumed('G.floor'), 0, 'the separate solo run survives a party save');
+});
+
+
+test('each party member resolves a persisted Threshold before the shared map', () => {
+  const {run,storage}=launch(['aether','oath'],new Map(),true);
+  assert.equal(run('screen'),'threshold');
+  assert.equal(run('JSON.stringify(G.party.map(p=>p.threshold.offers.length))'),'[3,3]');
+  run("A.bless('tempered')");
+  const pending=run('JSON.stringify(G.threshold.pending)');
+  const resumed=launch(null,storage).run;
+  resumed('A.contparty()');
+  assert.equal(resumed('screen'),'threshold');
+  assert.equal(resumed('JSON.stringify(G.threshold.pending)'),pending);
+  resumed('resolveBlessing(G.threshold.pending.choices[0])');
+  assert.equal(resumed('activeSeat()'),1);
+  assert.equal(resumed('screen'),'threshold');
+  resumed("A.bless('merchant')");
+  assert.equal(resumed('screen'),'map');
+  assert.equal(resumed('G.party.every(p=>p.threshold.applied)'),true);
+  resumed("A.go('0,0');winCombat()");
+  resumed('A.map();A.map();G.map[1][0].t="shop";A.go("1,0")');
+  assert.equal(resumed('merchantPrice(100)'),100);
+  resumed('A.map()');
+  assert.equal(resumed('merchantPrice(100)'),70);
+  resumed('A.map()');
+  assert.equal(resumed('partyMember(1).threshold.merchantRemaining'),0);
+});
