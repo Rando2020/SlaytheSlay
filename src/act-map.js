@@ -3,9 +3,22 @@ const ActMap = (() => {
   const act = {
     title: 'Verdant Remnants', floors: 13, lanes: 4, branchChance: 0.55,
     restFloor: 12, treasureFloor: 7, oathShrineFloor: 3,
-    art: ACT01_ART, root: 'assets/maps/act01/',
+    art: {
+      ...ACT01_ART,
+      icons: {
+        ...ACT01_ART.icons,
+        combat: 'symbols/combat.svg',
+        elite: 'symbols/elite.svg',
+        boss: 'symbols/boss.svg',
+        rest: 'symbols/rest.svg',
+        merchant: 'symbols/merchant.svg',
+        shrine: 'symbols/shrine.svg',
+        treasure: 'symbols/treasure.svg',
+        unknown: 'symbols/unknown.svg'
+      }
+    }, root: 'assets/maps/act01/',
     encounters: {
-      fight: ['combat', 'Fight', 'Defeat a group of enemies to earn a reward.'],
+      fight: ['combat', 'Common enemy', 'Defeat a group of enemies to earn a reward.'],
       elite: ['elite', 'Elite', 'Face an elite enemy for a chance to claim a relic.'],
       rest: ['rest', 'Rest site', 'Recover health or upgrade a card.'],
       shop: ['merchant', 'Merchant', 'Spend gold on cards, a relic or card removal.'],
