@@ -308,6 +308,10 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 .draw-forecast{position:absolute;top:32px;left:50%;transform:translateX(-50%);z-index:5;max-width:95%;width:max-content;text-align:center;background:#191519eb;color:#ffe4a9;padding:3px 8px;border-radius:4px;pointer-events:none}.draw-forecast:empty{display:none}
 .reward-sheet{max-width:620px;margin:clamp(0px,5vh,48px) auto;padding:18px;background:#211a19;border:1px solid #78644b;border-radius:12px}.reward-detail{display:grid;grid-template-columns:auto 1fr;align-items:start;gap:24px;margin:22px 0}.reward-detail .card{opacity:1}.reward-rules{font-size:1.2rem;line-height:1.4;margin:0}.reward-detail dl{margin-bottom:0}.reward-detail dt{color:#f2d6a2;font-weight:bold}.reward-detail dd{margin:2px 0 12px;line-height:1.4}
 @media(max-width:550px){.reward-detail{grid-template-columns:1fr;gap:16px}.reward-detail .card{margin:auto}.reward-sheet{margin:0 auto}.reward-detail dd{margin-bottom:8px}}
+.card-keyword{--word:#405375;--bright:#bfccf1;color:var(--word);font-weight:700;text-decoration:underline dotted;text-underline-offset:2px;cursor:help;pointer-events:auto}
+.kw-status{--word:#833b63;--bright:#f0b4d7}.kw-poison{--word:#32612d;--bright:#afe498}.kw-guard{--word:#195c65;--bright:#9adee3}.kw-attack{--word:#873b26;--bright:#ffb49b}.kw-divine{--word:#66418a;--bright:#dfb9ff}
+.reward-rules .card-keyword{color:var(--bright)}.dragcard .card-keyword{pointer-events:none}
+#card-keyword-tip{position:fixed;z-index:150;max-width:min(300px,calc(100vw - 16px));padding:8px 12px;border:1px solid #ae906e;border-radius:6px;background:#201a19;color:#f7eddd;box-shadow:0 4px 16px #0008;pointer-events:none;font:15px/1.35 'Alegreya Sans',system-ui,sans-serif}#card-keyword-tip strong{color:#f4d49c}
 </style></head><body>
 <div id="app"></div><div id="modal"></div><svg id="aim" aria-hidden="true"><path id="aimP" fill="none" stroke="none"/><g id="aimG"></g></svg>
 <script>
@@ -870,7 +874,7 @@ const hudIcon=(name,size)=>`<img class="hud-icon" alt="" src="assets/ui/hud/${na
 const statusArt={str:'strength',vuln:'vulnerable',weak:'weak',poison:'poison'};
 const oathArt={aurel:'radiance',varran:'conquest',orun:'protection',mora:'twilight'};
 const stV=st=>Object.keys(st).filter(k=>st[k]&&STN[k]).map(k=>`<span class="chip ${STN[k][1]}" title="${STN[k][2]}">${statusArt[k]?hudIcon("status-"+statusArt[k],16):""}${STN[k][0]} ${st[k]}</span>`).join('');
-function cardV(c,attrs='',cls=''){const k=KD(c),co=cost(c),g=godOf(c),dorm=g&&G&&G.hero=='oath'&&!ACT(g)&&!c.seal&&!c.tmpS;return `<button class="card t-${k.t} r${k.r}${c.up?' up':''}${g?' g-'+g:''}${c.tier?' tr'+c.tier:''}${dorm?' dorm':''}${K[c.id].m&&!c.tier?' mal':''} ${cls}" ${attrs}>${co>=0?`<span class="cost">${co}</span>`:''}${c.tier?`<span class="tier" title="${TIERN[c.tier]}">T${c.tier}</span>`:''}<span class="nm">${name(c)}</span><span class="art">${c.id==="strike"?`<img alt="" src="assets/ui/cards/${G?.hero==="oath"?"dawn":"aetherwright"}-strike.png">`:ART[k.t]}</span><span class="ds"><span>${k.d(c.up,c)}</span></span><span class="ty">${TN[k.t]}${g?' · '+GODS[g].n:K[c.id].m?' · Malleable':''}${dorm?' · Dormant':''}</span></button>`}
+function cardV(c,attrs='',cls=''){const k=KD(c),co=cost(c),g=godOf(c),dorm=g&&G&&G.hero=='oath'&&!ACT(g)&&!c.seal&&!c.tmpS;return `<button class="card t-${k.t} r${k.r}${c.up?' up':''}${g?' g-'+g:''}${c.tier?' tr'+c.tier:''}${dorm?' dorm':''}${K[c.id].m&&!c.tier?' mal':''} ${cls}" ${attrs}>${co>=0?`<span class="cost">${co}</span>`:''}${c.tier?`<span class="tier" title="${TIERN[c.tier]}">T${c.tier}</span>`:''}<span class="nm">${name(c)}</span><span class="art">${c.id==="strike"?`<img alt="" src="assets/ui/cards/${G?.hero==="oath"?"dawn":"aetherwright"}-strike.png">`:ART[k.t]}</span><span class="ds"><span>${keywordText(k.d(c.up,c))}</span></span><span class="ty">${TN[k.t]}${g?' · '+GODS[g].n:K[c.id].m?' · Malleable':''}${dorm?' · Dormant':''}</span></button>`}
 function intV(e){const n=e.int,o=[],d0=EN[e.k];if(n.a){const bl=n.slam&&d0.keep?Math.floor(e.block/2):0;let d=n.a+bl+(e.st.str||0);if(e.st.weak)d*=.75;if(C.p.st.vuln)d*=1.5;o.push(`<span class="it a" title="Attack">${hudIcon("intent-attack",14)}${Math.floor(d)}${n.x>1?'×'+n.x:''}</span>`)}
  if(n.b)o.push(`<span class="it b" title="Block">${hudIcon("intent-block",14)}${n.b}</span>`);if(n.str)o.push(`<span class="it u" title="Buff">${hudIcon("intent-buff",14)}</span>`);if(n.weak||n.vuln||n.poison)o.push(`<span class="it d" title="Debuff">${hudIcon("intent-debuff",14)}${n.poison||''}</span>`);return (n.n?`<span class="iname">${n.n}</span>`:'')+`<span class="irow">${o.join('')}</span>`}
 const relicArtwork={
@@ -935,7 +939,7 @@ function eventV(){const e=EV.e;return `<div class="panel"><svg class="pic" viewB
  ${EV.done?`<button class="btn pri" data-a="map">Continue</button>`:`<div class="opts">${e.o.map((o,i)=>`<button class="btn opt" data-a="evo" data-v="${i}" ${o.ok&&!o.ok()?'disabled':''}>${o.l}</button>`).join('')}</div>`}</div>`}
 function endV(){const w=screen=='win';return `<div class="panel end"><svg class="pic" viewBox="0 0 200 120" aria-hidden="true">${w?`<g transform="translate(100 64) scale(4.2)">${NI.boss}</g>`:`<g transform="translate(100 62) scale(4.2)">${NI.elite}</g>`}</svg><h1>${w?'The King falls':'Your climb ends'}</h1><p class="sub">${w?`You toppled the Hollow King with a deck of ${G.deck.length} cards and ${G.relics.length} relics.`:`You fell on floor ${G.floor} of 13 with ${G.deck.length} cards in your deck.`}</p><button class="btn pri" data-a="new">Start a new run</button></div>`}
 const VIEWS={map:mapV,combat:combatV,reward:rewardV,shop:shopV,rest:restV,shrine:shrineV,event:eventV,dead:endV,win:endV};
-function render(){PT=null;PV.key='';$('#app').innerHTML=screen=='title'?titleV():screen=='pick'?pickV():screen=='oathpreview'?oathPreviewV():topV()+VIEWS[screen]();
+function render(){hideKeyword();PT=null;PV.key='';$('#app').innerHTML=screen=='title'?titleV():screen=='pick'?pickV():screen=='oathpreview'?oathPreviewV():topV()+VIEWS[screen]();
  if(screen=='map'){const n=$('.node.can');if(n)try{n.scrollIntoView({block:'center'})}catch(e){}}else if(screen!='combat')window.scrollTo(0,0);
  if(screen=='combat'){const st=$('.stage');if(st){bgMount(st);ptMount(st)}const hs=$('#hero .spr');if(hs)rigMount(hs)}
  flush();if(screen=='combat'&&C&&C.sel>=0&&!aimOn){aimOn=true;requestAnimationFrame(aimTick)}}
@@ -1017,7 +1021,12 @@ function showComparison(card,label){
  pair.innerHTML=face(label,card)+(canSmith(card)?face('Upgraded',{...card,up:1}):'');
  for(const selector of ['.cost','.ds>span']){
   const [before,after]=pair.querySelectorAll(selector);
-  if(before&&after)markSmithChanges(before,after);
+  if(before&&after){
+   markSmithChanges(before,after);
+   if(selector==='.ds>span')for(const face of [before,after]){
+    if(!face.querySelector('[data-keyword]'))face.innerHTML=keywordText(face.innerHTML);
+   }
+  }
  }
 }
 const rewardTerms=[
@@ -1041,21 +1050,80 @@ const rewardTerms=[
  ['Lethal','This attack reduces its target to zero HP.'],
  ['Once per combat','Each copy can use this effect once in a fight.'],
  ['Sacrifice','Spend HP directly, bypassing Block. A sacrifice leaves at least 1 HP.','sacrific(?:e|ed)'],
+ ['Status','A card type for combat conditions such as Burden. It occupies a slot when drawn.'],
+ ['Curse','A harmful card in your deck, such as Doubt.'],
+ ['Unplayable','This card cannot be played from your hand.'],
  ['Debuff','A harmful status such as Weak, Vulnerable or Poison.']
 ]);
-function rewardDefinitions(rules){
- let remaining=rules;
- const definitions=[];
- // Match phrases first so Divine Draw does not also explain ordinary Draw.
- for(const [term,meaning,pattern] of [...rewardTerms].sort((a,b)=>b[0].length-a[0].length)){
-  const match=new RegExp('\\b(?:'+(pattern||term)+')\\b','gi');
-  if(match.test(remaining)){
-   definitions.push(`<dt>${term}</dt><dd>${meaning}</dd>`);
-   remaining=remaining.replace(match,' ');
-  }
- }
- return definitions.join('');
+const cardKeywords=[...rewardTerms].sort((a,b)=>b[0].length-a[0].length);
+const keywordPattern=new RegExp('\\b(?:'+cardKeywords.map(([term,,pattern])=>'('+ (pattern||term)+')').join('|')+')\\b','gi');
+const keywordGroups={
+ status:['Weak','Vulnerable','Debuff'],poison:['Poison'],guard:['Block','Resolve','Dexterity'],
+ attack:['Strength','Bloodlust','Lethal','Sacrifice'],divine:['Divine Draw','Divine damage','Unsworn','Sworn','Dormant Sanctum','Reliquary','Sanctify','Anointed','Soulbound','Restore','Recall','Offer']
+};
+function scanKeywords(html,format){
+ // Preserve inline markup used for modified damage and upgrade highlights.
+ return html.split(/(<[^>]+>)/g).map(part=>part.startsWith('<')?part:part.replace(keywordPattern,(word,...args)=>{
+  const index=args.slice(0,cardKeywords.length).findIndex(value=>value!==undefined);
+  return format(word,index);
+ })).join('');
 }
+function keywordText(html){
+ return scanKeywords(html,(word,index)=>{
+  const group=Object.keys(keywordGroups).find(key=>keywordGroups[key].includes(cardKeywords[index][0]))||'action';
+  return `<span class="card-keyword kw-${group}" data-keyword="${index}">${word}</span>`;
+ });
+}
+function rewardDefinitions(rules){
+ const indices=new Set();
+ scanKeywords(rules,(word,index)=>{indices.add(index);return word});
+ return [...indices].map(index=>{const [term,meaning]=cardKeywords[index];return `<dt>${term}</dt><dd>${meaning}</dd>`}).join('');
+}
+let keywordAnchor=null,keywordPinned=false;
+function hideKeyword(){
+ if(keywordAnchor)keywordAnchor.removeAttribute('aria-describedby');
+ keywordAnchor=null;keywordPinned=false;$('#card-keyword-tip')?.remove();
+}
+function explainKeyword(anchor,indices,pin=false){
+ hideKeyword();if(!indices.length)return;
+ keywordAnchor=anchor;keywordPinned=pin;
+ const tip=document.createElement('div');tip.id='card-keyword-tip';tip.setAttribute('role','tooltip');
+ for(const index of new Set(indices)){
+  const [term,meaning]=cardKeywords[index],line=document.createElement('div'),label=document.createElement('strong');
+  label.textContent=term;line.append(label,' · '+meaning);tip.append(line);
+ }
+ document.body.append(tip);anchor.setAttribute('aria-describedby',tip.id);
+ const r=anchor.getBoundingClientRect(),box=tip.getBoundingClientRect();
+ tip.style.left=Math.max(8,Math.min(innerWidth-box.width-8,r.left))+'px';
+ tip.style.top=Math.max(8,Math.min(innerHeight-box.height-8,r.top>=box.height+12?r.top-box.height-6:r.bottom+6))+'px';
+}
+document.addEventListener('pointerover',e=>{
+ const word=e.target.closest('[data-keyword]');
+ if(e.pointerType==='mouse'&&word&&!keywordPinned&&!e.buttons)explainKeyword(word,[+word.dataset.keyword]);
+});
+document.addEventListener('pointerout',e=>{
+ if(!keywordPinned&&keywordAnchor===e.target&&!keywordAnchor.contains(e.relatedTarget))hideKeyword();
+});
+document.addEventListener('focusin',e=>{
+ const card=e.target.closest('.card');
+ if(card?.matches(':focus-visible'))explainKeyword(card,[...card.querySelectorAll('[data-keyword]')].map(w=>+w.dataset.keyword));
+});
+document.addEventListener('focusout',e=>{if(keywordAnchor===e.target)hideKeyword()});
+document.addEventListener('pointerdown',e=>{
+ if(e.target.closest('[data-keyword]')||keywordPinned)e.stopImmediatePropagation();
+},true);
+document.addEventListener('click',e=>{
+ const word=e.target.closest('[data-keyword]');
+ if(!word&&!keywordPinned)return;
+ e.preventDefault();e.stopImmediatePropagation();
+ if(word&&!(keywordPinned&&keywordAnchor===word))explainKeyword(word,[+word.dataset.keyword],true);
+ else hideKeyword();
+},true);
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'&&keywordAnchor){hideKeyword();e.preventDefault();e.stopImmediatePropagation()}
+},true);
+addEventListener('resize',hideKeyword);
+document.addEventListener('scroll',hideKeyword,true);
 function inspectReward(v){
  const index=Number(v),offer=RW;
  if(screen!=='reward'||MD||!offer||offer.taken||!Number.isInteger(index)||!offer.cards[index])return;
@@ -1066,7 +1134,7 @@ function inspectReward(v){
  $('#modal').innerHTML=`<div class="modal reward-inspect" role="dialog" aria-modal="true" aria-labelledby="reward-title"><div class="reward-sheet">
  <div class="mhead"><h2 id="reward-title">${k.n}</h2><button class="btn" data-a="mclose">Back to rewards</button></div>
  <div class="reward-detail"><div aria-hidden="true">${cardV(card,'disabled')}</div>
- <div><p class="reward-rules">${rules}</p>${defs?`<dl>${defs}</dl>`:''}</div></div>
+ <div><p class="reward-rules">${keywordText(rules)}</p>${defs?`<dl>${defs}</dl>`:''}</div></div>
  <button class="btn pri" data-a="rcard">Take ${k.n}</button></div></div>`;
  $('#app').inert=true;$('#modal [data-a="mclose"]').focus();
 }
@@ -1080,7 +1148,7 @@ function inspectWare(v){
  <button class="btn pri" data-a="buy" ${left<0?'disabled':''}>${left<0?'Need '+(-left)+' more gold':'Buy for '+item.p+' gold · '+left+' left'}</button></div>`;
  showComparison(card,'For sale');$('#modal [data-a="mclose"]').focus();
 }
-function closeModal(){const m=MD;MD=null;$('#modal').innerHTML='';if(m&&m.onClose)m.onClose();if(m&&m.ask)m.ask(null)}
+function closeModal(){hideKeyword();const m=MD;MD=null;$('#modal').innerHTML='';if(m&&m.onClose)m.onClose();if(m&&m.ask)m.ask(null)}
 
 /* ---------- input ---------- */
 const A={
@@ -1252,7 +1320,7 @@ for(const event of ['pointerout','focusout']){
 function clearPreview(){document.querySelectorAll('.pv,.pvn').forEach(x=>x.remove());document.querySelectorAll('.unit.lethal').forEach(x=>x.classList.remove('lethal'))}
 function setPreview(ci,ti,cardEl){const key=ci<0?'':ci+':'+ti;if(key===PV.key)return;PV.key=key;clearPreview();const c=C&&C.hand[ci];
  PT=ti!=null&&ti!=='all'&&C?C.foes[ti]:null;
- const el=cardEl||$(`.hand .card[data-v="${ci}"]`);if(c&&el){showDrawForecast(c);const ds=el.querySelector('.ds');if(ds)ds.innerHTML='<span>'+KD(c).d(c.up,c)+'</span>'}
+ const el=cardEl||$(`.hand .card[data-v="${ci}"]`);if(c&&el){showDrawForecast(c);const ds=el.querySelector('.ds');if(ds)ds.innerHTML='<span>'+keywordText(KD(c).d(c.up,c))+'</span>'}
  if(!c||ti==null){PT=null;return}
  const r=simCard(c,ti==='all'?null:ti);PT=null;if(!r)return;
  r.loss.forEach((l,i)=>{const f=C.foes[i],u=$('#f'+i);if(!l||!u||f.hp<=0)return;const nh=f.hp-l,bar=u.querySelector('.bar'),hp=u.querySelector('.hpt');
