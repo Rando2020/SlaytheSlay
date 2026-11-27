@@ -16,3 +16,10 @@ test('combat fan uses viewport space and keeps up to ten cards within the hand',
   assert.ok(Math.abs((lefts[0]+lefts.at(-1)+cardWidth)/2-handWidth/2)<1,'fan centered in viewport hand');
  }
 });
+
+test('combat overlays keep modals above controls and preserve painted sprite proportions',()=>{
+ const css=html.match(/<style>([\s\S]*?)<\/style>/)[1];
+ const z=selector=>Number([...css.matchAll(/([^{}]+)\{([^{}]+)\}/g)].filter(m=>m[1].trim()===selector).at(-1)?.[2].match(/z-index:(\d+)/)?.[1]);
+ assert.ok(z('.modal')>z('#app>.ctl'),'deck and card-choice modal must cover combat controls');
+ assert.doesNotMatch(css,/#app>\.stage \.unit:not\(\.hero\) \.spr\{/,'generic sprite dimensions must exclude painted enemies');
+});

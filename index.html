@@ -221,7 +221,7 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 .end h1{font-size:clamp(38px,9vw,58px)}
 /* overlays */
 #modal:empty{display:none}
-.modal{position:fixed;inset:0;background:#0b0706ee;z-index:20;overflow:auto;padding:16px 14px 40px}
+.modal{position:fixed;inset:0;background:#0b0706ee;z-index:55;overflow:auto;padding:16px 14px 40px}
 .mhead{display:flex;justify-content:space-between;align-items:center;gap:12px;max-width:900px;margin:0 auto}
 .mhead h2{font-size:24px}
 .grid{display:flex;flex-wrap:wrap;gap:16px 12px;justify-content:center;padding-top:22px;max-width:900px;margin:0 auto}
@@ -318,8 +318,8 @@ body:has(#app>.stage){overflow:hidden}
  #app>.hand .card .art{height:40px}
  #app>.stage .actors{padding:0 10px;gap:0;bottom:290px}
  #app>.stage .foes{gap:0}
- #app>.stage .unit:not(.hero){width:82px}
- #app>.stage .unit:not(.hero) .spr{width:78px;height:76px}
+ #app>.stage .unit:not(.hero):not(.pw){width:82px}
+ #app>.stage .unit:not(.hero):not(.pw) .spr{width:78px;height:76px}
  #app>.stage .hero{width:108px}
  #app>.stage .hero .spr{height:170px}
  #app>.stage .fn{font-size:10px}
@@ -342,7 +342,7 @@ body:has(#app>.stage){overflow:hidden}
 @media(max-height:450px){
  #app>.stage .actors{bottom:205px}
  #app>.stage .hero .spr{height:60px}
- #app>.stage .unit:not(.hero) .spr{height:45px}
+ #app>.stage .unit:not(.hero):not(.pw) .spr{height:45px}
  #app>.stage .info{gap:0;padding:2px 4px}
  #app>.stage .fn{font-size:10px}
  #app>.stage .hpt{font-size:11px}
@@ -356,10 +356,10 @@ body:has(#app>.stage){overflow:hidden}
  #app>.stage .actors{bottom:28vh;padding-inline:clamp(32px,9vw,180px)}
  #app>.stage .hero{width:clamp(160px,17vw,240px)}
  #app>.stage .hero .spr{height:clamp(220px,34vh,330px)}
- #app>.stage .unit:not(.hero){width:150px}
- #app>.stage .unit:not(.hero) .spr{width:144px;height:120px}
- #app>.stage .unit.big{width:190px}
- #app>.stage .unit.big .spr{width:184px;height:154px}
+ #app>.stage .unit:not(.hero):not(.pw){width:150px}
+ #app>.stage .unit:not(.hero):not(.pw) .spr{width:144px;height:120px}
+ #app>.stage .unit.big:not(.pw){width:190px}
+ #app>.stage .unit.big:not(.pw) .spr{width:184px;height:154px}
  #app>.hand{height:190px}
 }
 #app>.stage .gshadow{left:4%;right:4%;height:16px;bottom:-5px;background:radial-gradient(closest-side,#080706b0,transparent)}
@@ -367,6 +367,13 @@ body:has(#app>.stage){overflow:hidden}
 .spr.paint>.enemy-idle ~ .rg{visibility:hidden}
 .spr.paint:is(.outL,.retL,.hitR)>.enemy-idle{visibility:hidden}
 .spr.paint:is(.outL,.retL,.hitR)>.enemy-idle ~ .rg{visibility:visible}
+/* Enemy status stays above its intent and art; feet retain their ground baseline. */
+#app>.stage .foes .unit{margin-bottom:56px}
+#app>.stage .foes .info{order:-1}
+@media(max-height:600px){
+ #app>.stage .foes .unit.pw{width:calc(var(--w)*.55px + 8px)}
+ #app>.stage .foes .unit.pw .spr.paint{width:calc(var(--w)*.55px);height:calc(var(--h)*.55px)}
+}
 </style></head><body>
 <div id="app"></div><div id="modal"></div><svg id="aim" aria-hidden="true"><path id="aimP" fill="none" stroke="none"/><g id="aimG"></g></svg>
 <script>
