@@ -7,8 +7,11 @@ function runThresholdChecks(html,check){
  const block=(a,b)=>html.slice(html.indexOf(a),html.indexOf(b,html.indexOf(a)));
  const line=a=>html.split('\n').find(s=>s.startsWith(a));
  const code=[
- 'const window={};let G=null,C=null,screen="title",uid=1,saved=null;const save=()=>{saved=JSON.stringify(G)},render=()=>{},closeModal=()=>{};',
- block('const K={','const POOLS='),line('const POOLS='),line('const POOL='),line('const ACT='),line('const godOf='),line('const ordinaryCount='),block('const HEROES=','let SIM='),block('const RELICS=','const STN='),line('const mk='),line('const upgradable='),
+ 'let selectedNode=null; const START_GOLD=99,window={},document={addEventListener(){}};',
+ fs.readFileSync(path.join(__dirname,'../assets/maps/act01/registry.js'),'utf8'),
+ fs.readFileSync(path.join(__dirname,'../src/act-map.js'),'utf8'),
+ 'let G=null,C=null,screen="title",uid=1,saved=null;const save=()=>{saved=JSON.stringify(G)},render=()=>{},closeModal=()=>{};',
+ block('const K={','const POOLS='),line('const POOLS='),line('const POOL='),line('const ACT='),line('const godOf='),line('const ordinaryCount='),block('const HEROES=','let SIM='),block('const RELICS=','const STN='),line('const mk='),line('const canSmith='),line('const upgradable='),
  'const gainRelic=k=>{G.relics.push(k);if(k==="moss"){G.maxHp+=8;G.hp+=8}};',
  block('/* ---------- The Threshold ---------- */','function mkShop()'),
  'return {start:newRunSeed,select:selectBlessing,resolve:resolveBlessing,combat:thresholdCombat,won:thresholdCombatWon,price:merchantPrice,goMap,registry:BLESSINGS,eligible:unlockedBlessings,state:()=>G,screen:()=>screen,save:()=>saved,reload:()=>{G=JSON.parse(saved);uid=Math.max(0,...G.deck.map(c=>c.u))+1;screen="title";goMap()},shop:()=>{screen="shop";goMap()}}'

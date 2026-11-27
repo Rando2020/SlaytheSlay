@@ -224,7 +224,7 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 .end h1{font-size:clamp(38px,9vw,58px)}
 /* overlays */
 #modal:empty{display:none}
-.modal{position:fixed;inset:0;background:#0b0706ee;z-index:20;overflow:auto;padding:16px 14px 40px}
+.modal{position:fixed;inset:0;background:#0b0706ee;z-index:55;overflow:auto;padding:16px 14px 40px}
 .mhead{display:flex;justify-content:space-between;align-items:center;gap:12px;max-width:900px;margin:0 auto}
 .mhead h2{font-size:24px}
 .grid{display:flex;flex-wrap:wrap;gap:16px 12px;justify-content:center;padding-top:22px;max-width:900px;margin:0 auto}
@@ -248,6 +248,40 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 .oath-preview h1{font-size:clamp(26px,4.5vw,52px);color:var(--gold)}
 .oath-preview .sub{margin:0}
 .oath-preview .row{justify-content:center;flex-wrap:wrap}
+/* Character selection: the painting remains intact; all UI stays live. */
+#app:has(.ascent-select){max-width:1800px;zoom:1!important}
+.ascent-select{background:#151618;min-height:100svh;display:flex;flex-direction:column;color:#e8dfcf}
+.select-head{padding:20px 28px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #90704455;gap:18px}
+.select-brand{font:600 16px Cinzel,serif;letter-spacing:.14em;color:#baa078}
+.select-head .btn,.ascent-select .btn{border-radius:3px;border-color:#90704488;background:#222225}
+.select-body{display:grid;grid-template-columns:minmax(0,1.85fr) minmax(340px,1fr);flex:1}
+.select-scene{margin:0;display:flex;flex-direction:column;justify-content:center;background:radial-gradient(ellipse at center,#2d2927,#111315 75%);border-right:1px solid #90704455;padding:24px 0}
+.select-scene img{display:block;width:100%;height:auto;aspect-ratio:1672/941;object-fit:contain}
+.select-scene.neutral img{height:clamp(250px,44vh,510px);aspect-ratio:auto;opacity:.85}
+.select-scene figcaption{padding:22px 28px 0;color:#b7a48a;font:600 12px Cinzel,serif;letter-spacing:.12em;text-align:center}
+.select-info{padding:clamp(24px,3vw,48px);display:flex;flex-direction:column;justify-content:center;gap:18px;background:linear-gradient(135deg,#242323,#17181a)}
+.select-info .eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.22em;color:#bca077;margin:0}
+.select-info h1{font-size:clamp(28px,3vw,48px);color:#e4d0ac;line-height:1.15}
+.select-info .tagline{font-family:Cinzel,serif;font-size:13px;color:#bca077;margin:0}
+.select-info p{margin:0;color:#c3bdb1}
+.select-stats{display:flex;gap:22px;padding:14px 0;border-block:1px solid #90704455;color:#d4bd92}
+.select-relic strong{display:block;font-family:Cinzel,serif;font-size:14px;color:#e0cfaf;margin-bottom:5px}
+.select-laws{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.select-laws details{padding:8px;background:#ffffff04;border:1px solid #90704444;font-size:13px}
+.select-laws summary{cursor:pointer;min-height:32px;display:list-item;color:#dac5a2}
+.select-laws p{margin-top:8px}
+.select-info .btn{width:100%;padding:12px 14px}
+.select-info .btn.pri{background:linear-gradient(#b49865,#82663f);color:#141414;border-color:#c4a576;font-family:Cinzel,serif;letter-spacing:.06em}
+.select-roster{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;padding:20px 24px;border-top:1px solid #90704455;background:#17181a}
+.select-portrait{display:flex;align-items:center;gap:12px;min-height:80px;min-width:180px;padding:8px 18px 8px 8px;background:#222225;border:1px solid #665239;color:#bfb6a6;text-align:left;border-radius:3px}
+.select-portrait img{width:52px;height:64px;object-fit:contain;background:#141517}
+.select-portrait[aria-pressed=true]{border-color:#d0b17d;box-shadow:inset 0 -2px #d0b17d;color:#f2e0bc;background:#34302a}
+.select-portrait small{display:block;color:#9d9487;font-size:12px;margin-top:3px}
+.select-portrait:disabled{cursor:default;opacity:.5}
+.portrait-blank{display:grid;place-items:center;width:52px;height:64px;background:#141517;color:#81745f;font:24px Cinzel,serif}
+@media(max-width:850px){.select-body{grid-template-columns:1fr}.select-scene{border-right:0;padding:0}.select-scene figcaption{padding:14px}.select-info{padding:24px;gap:16px}.select-head{padding:14px 18px}.select-portrait{min-width:0;flex:1;padding:8px;gap:8px}.select-roster{gap:8px;padding:14px}.select-portrait img,.portrait-blank{width:36px;height:48px}.select-brand{font-size:12px}}
+@media(max-width:420px){.select-portrait{font-size:13px;flex-direction:column;text-align:center}.select-portrait small{font-size:11px}.select-laws{grid-template-columns:1fr 1fr}}
+
 .pick{text-align:center}.heroes{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:16px 0}
 .hcard{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 14px 16px;border-radius:14px;border:1px solid #ffffff22;background:linear-gradient(#2a1814,#160e0c);text-align:center;transition:transform .15s,border-color .15s}
 .hcard:hover,.hcard:focus-visible{transform:translateY(-3px);border-color:var(--gold)}
@@ -306,6 +340,107 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 .spr.paint>.enemy-action{position:absolute;bottom:0;left:50%;width:auto;height:100%;max-width:none;transform:translateX(-50%);visibility:hidden;pointer-events:none}
 .spr.paint:is(.outL,.retL,.hitR)>.enemy-idle{visibility:hidden}
 .spr.paint:is(.outL,.retL):not(.hitR)>.enemy-attack,.spr.paint.hitR>.enemy-hurt{visibility:visible}
+.smith-dialog{display:flex;flex-direction:column;align-items:center;gap:12px}
+.smith-dialog .mhead{width:min(100%,640px)}
+.smith-pair,.smith-list{display:flex;justify-content:center;gap:12px}
+.smith-pair figure{margin:0}.smith-pair figcaption{text-align:center;margin-bottom:6px}
+.smith-pair .card{pointer-events:none}.smith-pair mark{background:#ffe5a2;color:#26170a;font-weight:800}
+.smith-list{flex-wrap:wrap;max-width:640px;overflow-y:auto;min-height:48px;padding:5px}
+.smith-list [aria-pressed="true"]{outline:2px solid #f7cc78}
+@media(max-height:520px) and (min-width:560px){.smith-dialog{display:grid;grid-template-columns:1fr 1fr;align-content:start}.smith-dialog .mhead{grid-column:span 2}.smith-list{max-height:44vh}.smith-dialog [data-a="smithconfirm"]{grid-column:span 2;justify-self:center}}
+.piles{display:flex;flex-wrap:wrap;gap:4px}.pile-btn{font:inherit;color:inherit;background:#201c20;border:1px solid #766653;border-radius:5px;padding:4px 7px;cursor:pointer}
+.pile-view figure{margin:0;text-align:center}.pile-view .card{pointer-events:none}.pile-view figcaption{max-width:106px}.pile-view h3{text-align:center}
+.draw-forecast{position:absolute;top:32px;left:50%;transform:translateX(-50%);z-index:5;max-width:95%;width:max-content;text-align:center;background:#191519eb;color:#ffe4a9;padding:3px 8px;border-radius:4px;pointer-events:none}.draw-forecast:empty{display:none}
+.reward-sheet{max-width:620px;margin:clamp(0px,5vh,48px) auto;padding:18px;background:#211a19;border:1px solid #78644b;border-radius:12px}.reward-detail{display:grid;grid-template-columns:auto 1fr;align-items:start;gap:24px;margin:22px 0}.reward-detail .card{opacity:1}.reward-rules{font-size:1.2rem;line-height:1.4;margin:0}.reward-detail dl{margin-bottom:0}.reward-detail dt{color:#f2d6a2;font-weight:bold}.reward-detail dd{margin:2px 0 12px;line-height:1.4}
+@media(max-width:550px){.reward-detail{grid-template-columns:1fr;gap:16px}.reward-detail .card{margin:auto}.reward-sheet{margin:0 auto}.reward-detail dd{margin-bottom:8px}}
+.card-keyword{--word:#405375;--bright:#bfccf1;color:var(--word);font-weight:700;text-decoration:underline dotted;text-underline-offset:2px;cursor:help;pointer-events:auto}
+.kw-status{--word:#833b63;--bright:#f0b4d7}.kw-poison{--word:#32612d;--bright:#afe498}.kw-guard{--word:#195c65;--bright:#9adee3}.kw-attack{--word:#873b26;--bright:#ffb49b}.kw-divine{--word:#66418a;--bright:#dfb9ff}
+.reward-rules .card-keyword{color:var(--bright)}.dragcard .card-keyword{pointer-events:none}
+#card-keyword-tip{position:fixed;z-index:150;max-width:min(300px,calc(100vw - 16px));padding:8px 12px;border:1px solid #ae906e;border-radius:6px;background:#201a19;color:#f7eddd;box-shadow:0 4px 16px #0008;pointer-events:none;font:15px/1.35 'Alegreya Sans',system-ui,sans-serif}#card-keyword-tip strong{color:#f4d49c}
+/* Full-screen combat: scenery under the HUD and foreground hand. */
+body:has(#app>.stage){overflow:hidden}
+#app:has(>.stage){max-width:none;width:100%;height:100dvh;min-height:0;zoom:1!important}
+#app:has(>.stage)>.top{position:fixed;inset:0 0 auto;z-index:10;background:linear-gradient(#100c0def,#100c0d90);border:0;padding:10px clamp(14px,3vw,48px)}
+#app>.stage{position:fixed;inset:0;height:100dvh;width:100%;border:0}
+#app>.stage .shade{background:linear-gradient(#0007,transparent 22%,transparent 48%,#100c0d55 68%,#100c0de8 100%)}
+#app>.stage .hint{top:76px;font-size:clamp(13px,1.3vw,18px)}
+#app>.stage .actors{bottom:clamp(280px,39vh,360px);padding:0 clamp(20px,7vw,140px);gap:16px}
+#app>.stage .hero{width:clamp(128px,14vw,200px)}
+#app>.stage .hero .spr{width:100%;height:clamp(180px,30vh,290px)}
+#app>.stage .foes{gap:clamp(4px,2vw,30px)}
+#app>.hand{position:fixed;left:50%;bottom:70px;transform:translateX(-50%);width:min(100%,1120px);height:230px;margin:0;z-index:20;pointer-events:none}
+#app>.hand .card{pointer-events:auto;top:24px;width:var(--hand-card-width);height:var(--hand-card-height);box-shadow:0 12px 24px #000b,inset 0 0 0 3px var(--tc)}
+#app>.hand .card .ds{font-size:14px}
+#app>.hand .card:focus-visible{transform:translateY(-32px) rotate(0) scale(1.07);z-index:40!important}
+#app>.ctl{position:fixed;inset:auto 0 0;z-index:21;padding:8px clamp(16px,3vw,48px) max(12px,env(safe-area-inset-bottom));pointer-events:none;background:linear-gradient(transparent,#100c0d88)}
+#app>.ctl>*{pointer-events:auto}
+#app>.ctl .piles{color:#e6dac8;text-shadow:0 2px 5px #000}
+#app>.ctl .btn{min-width:116px;box-shadow:0 4px 18px #0008}
+@media(max-width:603px){
+ #app>.hand{height:204px;bottom:72px}
+ #app>.hand .card{top:24px}
+ #app>.hand .card .ds{font-size:13px}
+ #app>.stage .actors{padding:0 10px;gap:0;bottom:290px}
+ #app>.stage .foes{gap:0}
+ #app>.stage .unit:not(.hero):not(.pw){width:82px}
+ #app>.stage .unit:not(.hero):not(.pw) .spr{width:78px;height:76px}
+ #app>.stage .hero{width:108px}
+ #app>.stage .hero .spr{height:170px}
+ #app>.stage .fn{font-size:10px}
+ #app>.ctl{gap:8px}
+ #app>.ctl .piles{font-size:12px}
+ #app>.ctl .btn{min-width:90px;padding:0 12px}
+}
+@media(max-height:600px){
+ #app>.hand{--hand-card-width:110px;--hand-card-height:152px;height:170px;bottom:52px}
+ #app>.hand .card{top:12px}
+ #app>.stage .actors{bottom:210px;padding-inline:5vw}
+ #app>.stage .hero .spr{height:100px}
+ #app>.stage .rig.tall{top:-30%;height:130%}
+ #app>.stage .hint{top:58px}
+ #app>.ctl{padding-block:4px}
+ #app>.ctl .orb{width:44px;height:44px}
+ #app>.ctl .orb b{font-size:21px}
+}
+@media(max-height:450px){
+ #app>.stage .actors{bottom:205px}
+ #app>.stage .hero .spr{height:60px}
+ #app>.stage .unit:not(.hero):not(.pw) .spr{height:45px}
+ #app>.stage .info{gap:0;padding:2px 4px}
+ #app>.stage .fn{font-size:10px}
+ #app>.stage .hpt{font-size:11px}
+ #app>.stage .bar{height:5px}
+}
+/* Grounded courtyard: a deeper painted floor, closer fighters, stable ground. */
+#app>.stage .bgL{inset:0;transform:none}
+#app>.stage .bgimg{animation:none;object-position:50% 52%;transform:none}
+#app>.stage .midL,#app>.stage .fgL{display:none}
+@media(min-width:604px) and (min-height:601px){
+ #app>.stage .actors{bottom:28vh;padding-inline:clamp(32px,9vw,180px)}
+ #app>.stage .hero{width:clamp(160px,17vw,240px)}
+ #app>.stage .hero .spr{height:clamp(220px,34vh,330px)}
+ #app>.stage .unit:not(.hero):not(.pw){width:150px}
+ #app>.stage .unit:not(.hero):not(.pw) .spr{width:144px;height:120px}
+ #app>.stage .unit.big:not(.pw){width:190px}
+ #app>.stage .unit.big:not(.pw) .spr{width:184px;height:154px}
+ #app>.hand{height:244px}
+}
+#app>.stage .gshadow{left:4%;right:4%;height:16px;bottom:-5px;background:radial-gradient(closest-side,#080706b0,transparent)}
+/* The painted idle and action rig share one target box and ground line. */
+.spr.paint>.enemy-idle ~ .rg{visibility:hidden}
+.spr.paint:is(.outL,.retL,.hitR)>.enemy-idle{visibility:hidden}
+.spr.paint:is(.outL,.retL,.hitR)>.enemy-idle ~ .rg{visibility:visible}
+/* Enemy status stays above its intent and art; feet retain their ground baseline. */
+#app>.stage .foes .unit{margin-bottom:56px}
+#app>.stage .foes .info{order:-1}
+@media(max-height:600px){
+ #app>.stage .foes .unit.pw{width:calc(var(--w)*.55px + 8px)}
+ #app>.stage .foes .unit.pw .spr.paint{width:calc(var(--w)*.55px);height:calc(var(--h)*.55px)}
+}
+/* Only the nearest scenery softens; actors and the hand stay above this layer. */
+#app>.stage .foreground-soften{position:absolute;inset:80% 0 0;z-index:0;pointer-events:none;-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);-webkit-mask-image:linear-gradient(transparent,#000 80%);mask-image:linear-gradient(transparent,#000 80%);background:linear-gradient(transparent,#100c0d44)}
+#app>.stage .actors{z-index:2}
+#app>.stage .bgL>.bgimg{height:110%;top:-10%}
 
 /* Threshold: existing painted gate, independent offering panels */
 .threshold{position:relative;isolation:isolate;min-height:75vh;padding:clamp(20px,4vw,60px) 12px;text-align:center;background:linear-gradient(180deg,#120e0cdc,#211812bc 35%,#100c0bf2),url(assets/bg_gate.webp) center/cover;border:1px solid #a88b5355;border-radius:12px;overflow:hidden}
@@ -313,8 +448,13 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 .threshold-offer{display:flex;flex-direction:column;align-items:center;gap:12px;min-height:270px;padding:24px 12px 16px;color:#f3e9d7;background:linear-gradient(150deg,#49382a,#211815 55%,#15100f);border:1px solid #9c8050;border-radius:9px;box-shadow:inset 0 0 0 4px #211815,0 12px 24px #0008;cursor:pointer;font:inherit;animation:threshold-reveal .45s both;animation-delay:var(--delay);transition:transform .2s,border-color .2s,box-shadow .2s}
 .threshold-offer:hover,.threshold-offer:focus-visible{transform:translateY(-4px);border-color:#ffe1a1;box-shadow:0 0 24px #e8c86a66;outline:2px solid #ffe1a1;outline-offset:3px}.threshold-offer:active{transform:scale(.97)}.threshold-art{display:grid;place-items:center;width:74px;height:74px;border:1px solid #a98a4c;border-radius:50%;background:radial-gradient(circle,#c59e4455,#271b16 70%);color:#f0d28b;box-shadow:0 0 24px #d3a94b33}.threshold-art svg{width:40px;height:40px}.threshold-offer b{font-size:1.15rem;color:#f1d99d}.threshold-offer i{font-size:.85rem;color:#c4b49c}.threshold-offer strong{margin-top:auto;color:#f1d99d;font-size:.83rem}.threshold .row{flex-wrap:wrap}
 @keyframes threshold-reveal{from{opacity:0;translate:0 16px}to{opacity:1;translate:0 0}}@media(max-width:600px){.threshold-offers{grid-template-columns:1fr;max-width:360px;margin:20px auto}.threshold-offer{min-height:180px;padding:14px}.threshold-art{width:50px;height:50px}.threshold-art svg{width:28px;height:28px}}@media(prefers-reduced-motion:reduce){.threshold-offer{animation:none;transition:none}}
-</style></head><body>
+</style><link rel="stylesheet" href="src/act-map.css">
+</head><body>
 <div id="app"></div><div id="modal"></div><svg id="aim" aria-hidden="true"><path id="aimP" fill="none" stroke="none"/><g id="aimG"></g></svg>
+<script src="assets/maps/act01/registry.js"></script>
+<script src="src/act-map.js"></script>
+<script src="assets/rigs/registry.js"></script>
+<script src="assets/rigs/player.js"></script>
 <script>
 (()=>{
 const $=s=>document.querySelector(s);
@@ -322,10 +462,11 @@ const R=n=>Math.floor(Math.random()*n);
 const pick=a=>a[R(a.length)];
 const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=R(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const combatLab = new URLSearchParams(location.search).get('dev') === 'combat';
 const SAVE='hollow-ascent-v1';
-const save=()=>{try{localStorage.setItem(G.party?SAVE+'-party':SAVE,JSON.stringify(G))}catch(e){}};
-const load=(party=false)=>{try{return JSON.parse(localStorage.getItem(party?SAVE+'-party':SAVE))}catch(e){return null}};
-const wipe=()=>{try{localStorage.removeItem(G?.party?SAVE+'-party':SAVE)}catch(e){}};
+const save=()=>{if(combatLab)return;try{localStorage.setItem(G.party?SAVE+'-party':SAVE,JSON.stringify(G))}catch(e){}};
+const load=(party=false)=>{if(combatLab)return null;try{return JSON.parse(localStorage.getItem(party?SAVE+'-party':SAVE))}catch(e){return null}};
+const wipe=()=>{if(combatLab)return;try{localStorage.removeItem(G?.party?SAVE+'-party':SAVE)}catch(e){}};
 let G=null,C=null,RW=null,SH=null,RS=null,SR=null,EV=null,MD=null,screen='title',uid=1,Q=[];
 
 /* ---------- icons and art ---------- */
@@ -358,7 +499,7 @@ king:c=>`${sh(40)}<path d="M60 44C82 46 104 70 118 96H70Z" fill="#2a0f16"/><path
 const HERO=`${sh(28)}<path d="M50 46C36 52 18 74 8 96H50Z" fill="#2f6f63"/><path d="M30 96L42 44H68L80 96Z" fill="#5fb3a1"/><path d="M54 44L60 96H46Z" fill="#000" opacity=".18"/><path d="M36 46C34 20 70 12 76 36L72 48H40Z" fill="#4a9a89"/><ellipse cx="66" cy="36" rx="8" ry="9" fill="#120c0b"/><circle cx="70" cy="35" r="2.2" fill="#ff5a36"/><path d="M70 60L110 44" stroke="#efe4d2" stroke-width="4" stroke-linecap="round"/><path d="M69 52L74 67" stroke="#e8c86a" stroke-width="4" stroke-linecap="round"/><circle cx="66" cy="62" r="5" fill="#3c8b7c"/>`;
 const tree=(x,h,k=1,o=1)=>`<path d="M${x} 200L${x+2*k} ${200-h}M${x+1} ${200-h*.6}L${x-15*k} ${200-h*.86}M${x+1.5} ${200-h*.76}L${x+17*k} ${200-h}M${x+1} ${200-h*.42}L${x+13*k} ${200-h*.56}" stroke="#0b0f09" stroke-width="${4*k}" stroke-linecap="round" fill="none" opacity="${o}"/>`;
 const brazier=x=>`<path d="M${x-3} 198V150h6V198Z" fill="#0c0606"/><path d="M${x-16} 146h32l-6 10h-20Z" fill="#2a1410"/><path class="fl" d="M${x} 112C${x+14} 128 ${x+14} 138 ${x+8} 146H${x-8}C${x-14} 138 ${x-12} 126 ${x} 112Z" fill="#ff5a36"/><path class="fl" d="M${x} 128C${x+6} 136 ${x+6} 142 ${x+3} 146H${x-3}C${x-6} 142 ${x-5} 136 ${x} 128Z" fill="#e8c86a"/><circle cx="${x}" cy="136" r="40" fill="#ff5a36" opacity=".08"/>`;
-const HI=Math.max(window.screen.width,window.screen.height)*(devicePixelRatio||1)>2200,BGS=['ruins','tree','gate'].map(n=>`assets/bg_${n}${HI?'_4k':''}.webp`),BGI={};
+const HI=Math.max(window.screen.width,window.screen.height)*(devicePixelRatio||1)>2200,BGS=['ruins_overhead','tree_overhead','gate_overhead'].map(n=>`assets/bg_${n}${HI?'_4k':''}.webp`),BGI={};
 if(HI)document.documentElement.classList.add('hi');
 BGS.forEach((u,k)=>{const im=new Image();im.className='bg bgimg';im.alt='';im.decoding='async';im.src=u;BGI[k]=im});
 const biome=f=>f>=10?2:f>=5?1:0;
@@ -407,7 +548,7 @@ function bgMount(st){const im=BGI[biome(G.floor)],L=st.querySelector('.bgL');if(
 function banner(sub,title){if(RM)return;const d=document.createElement('div');d.className='banner';d.style.zoom=Z;d.innerHTML=`${sub?`<small>${sub}</small>`:''}<b></b>`;d.querySelector('b').textContent=title;document.body.appendChild(d);setTimeout(()=>d.remove(),2200)}
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
 let Z=1;const ZOK='zoom' in document.documentElement.style;
-function setZoom(){Z=ZOK&&innerWidth>1300?Math.max(1,Math.min(2.6,innerWidth/1250,innerHeight/860)):1;['#app','#modal'].forEach(q=>{const e=$(q);if(e)e.style.zoom=Z===1?'':Z})}
+function setZoom(){Z=screen!='combat'&&ZOK&&innerWidth>1300?Math.max(1,Math.min(2.6,innerWidth/1250,innerHeight/860)):1;['#app','#modal'].forEach(q=>{const e=$(q);if(e)e.style.zoom=Z===1?'':Z})}
 
 /* ---------- data ---------- */
 let PT=null;
@@ -418,8 +559,8 @@ defend:{n:'Defend',c:1,t:'skl',r:0,d:u=>`Gain ${u?8:5} Block.`,f:u=>blk(u?8:5)},
 bash:{n:'Bash',c:2,t:'atk',r:0,tg:1,d:u=>`Deal ${D(u?10:8)} damage. Apply ${u?3:2} Vulnerable.`,f:(u,e)=>{atk(e,u?10:8);debuff(e,'vuln',u?3:2)}},
 cleave:{n:'Cleave',c:1,t:'atk',r:1,d:u=>`Deal ${D(u?11:8)} damage to ALL enemies.`,f:u=>alive().forEach(e=>atk(e,u?11:8))},
 iron:{n:'Iron Wave',c:1,t:'atk',r:1,tg:1,d:u=>`Gain ${u?7:5} Block. Deal ${D(u?7:5)} damage.`,f:(u,e)=>{blk(u?7:5);atk(e,u?7:5)}},
-pommel:{n:'Pommel Strike',c:1,t:'atk',r:1,tg:1,d:u=>`Deal ${D(u?10:9)} damage. Draw ${u?2:1}.`,f:(u,e)=>{atk(e,u?10:9);draw(u?2:1)}},
-shrug:{n:'Shrug Off',c:1,t:'skl',r:1,d:u=>`Gain ${u?11:8} Block. Draw 1.`,f:u=>{blk(u?11:8);draw(1)}},
+pommel:{n:'Pommel Strike',c:1,t:'atk',r:1,tg:1,d:u=>`Deal ${D(u?10:9)} damage. Draw ${u?2:1}.`,drawCount:u=>u?2:1,f:(u,e,c)=>{atk(e,u?10:9);draw(cardDrawCount(c))}},
+shrug:{n:'Shrug Off',c:1,t:'skl',r:1,d:u=>`Gain ${u?11:8} Block. Draw 1.`,drawCount:1,f:(u,e,c)=>{blk(u?11:8);draw(cardDrawCount(c))}},
 twin:{n:'Twin Slash',c:1,t:'atk',r:1,tg:1,d:u=>`Deal ${D(u?7:5)} damage twice.`,f:(u,e)=>{atk(e,u?7:5);atk(e,u?7:5)}},
 stab:{n:'Venom Stab',c:1,t:'atk',r:1,tg:1,d:u=>`Deal ${D(u?8:6)} damage. Apply ${u?4:3} Poison.`,f:(u,e)=>{atk(e,u?8:6);debuff(e,'poison',u?4:3)}},
 toxin:{n:'Toxin Dart',c:1,t:'skl',r:1,tg:1,d:u=>`Apply ${u?8:5} Poison.`,f:(u,e)=>debuff(e,'poison',u?8:5)},
@@ -430,35 +571,35 @@ upper:{n:'Uppercut',c:2,t:'atk',r:2,tg:1,d:u=>`Deal ${D(13)} damage. Apply ${u?2
 heavy:{n:'Heavy Blade',c:2,t:'atk',r:2,tg:1,d:u=>`Deal ${D(14,u?5:3)} damage. Strength counts ${u?5:3} times.`,f:(u,e)=>atk(e,14,u?5:3)},
 catalyst:{n:'Catalyst',c:1,t:'skl',r:2,tg:1,x:1,d:u=>`${u?'Triple':'Double'} the target's Poison. Exhaust.`,f:(u,e)=>{e.st.poison=(e.st.poison||0)*(u?3:2)}},
 blood:{n:'Bloodletting',c:0,t:'skl',r:2,d:u=>`Lose 3 HP. Gain ${u?3:2} Energy.`,f:u=>{loseHp(3);C.energy+=u?3:2}},
-trance:{n:'Battle Trance',c:0,t:'skl',r:2,d:u=>`Draw ${u?4:3} cards.`,f:u=>draw(u?4:3)},
+trance:{n:'Battle Trance',c:0,t:'skl',r:2,d:u=>`Draw ${u?4:3} cards.`,drawCount:u=>u?4:3,f:(u,e,c)=>draw(cardDrawCount(c))},
 metal:{n:'Metallicize',c:1,t:'pow',r:2,d:u=>`At the end of your turn, gain ${u?4:3} Block.`,f:u=>buff('metal',u?4:3)},
 cloud:{n:'Toxic Cloud',c:[2,1],t:'pow',r:2,d:()=>`At the start of your turn, apply 2 Poison to ALL enemies.`,f:()=>buff('cloud',2)},
 imperv:{n:'Impervious',c:2,t:'skl',r:3,x:1,d:u=>`Gain ${u?40:30} Block. Exhaust.`,f:u=>blk(u?40:30)},
 demon:{n:'Demon Form',c:3,t:'pow',r:3,d:u=>`At the start of your turn, gain ${u?3:2} Strength.`,f:u=>buff('demon',u?3:2)},
 bludgeon:{n:'Bludgeon',c:3,t:'atk',r:3,tg:1,d:u=>`Deal ${D(u?42:32)} damage.`,f:(u,e)=>atk(e,u?42:32)},
-adren:{n:'Adrenaline',c:0,t:'skl',r:3,x:1,d:u=>`Gain ${u?2:1} Energy. Draw 2. Exhaust.`,f:u=>{C.energy+=u?2:1;draw(2)}},
+adren:{n:'Adrenaline',c:0,t:'skl',r:3,x:1,d:u=>`Gain ${u?2:1} Energy. Draw 2. Exhaust.`,drawCount:2,f:(u,e,c)=>{C.energy+=u?2:1;draw(cardDrawCount(c))}},
 /* ---- The Oathbound (v0.4 card library) ---- */
 guard:{h:'oath',n:'Guard',c:1,t:'skl',r:0,d:u=>`Gain ${B(u?8:5)} Block.`,f:u=>blk(u?8:5)},
-invoke:{h:'oath',n:'Invoke',c:1,t:'skl',r:0,d:u=>`Draw ${u?2:1} card${u?'s':''}. Divine Draw 1.`,f:u=>{draw(u?2:1);ddFx(1)}},
+invoke:{h:'oath',n:'Invoke',c:1,t:'skl',r:0,d:u=>`Draw ${u?2:1} card${u?'s':''}. Divine Draw 1.`,drawCount:u=>u?2:1,divineCount:1,f:(u,e,c)=>{draw(cardDrawCount(c));ddFx(KD(c).divineCount)}},
 lay:{h:'oath',m:1,n:'Lay on Hands',c:1,t:'skl',r:0,d:()=>`Gain ${B(4)} Block. Heal 1 HP. Sanctify.`,f:(u,e,c)=>{blk(4);cheal(1,c,e)}},
 judgment:{h:'oath',m:1,n:'Judgment',c:2,t:'atk',r:0,tg:1,d:()=>`Deal ${D(12)} damage. Apply 1 Vulnerable. Sanctify.`,f:(u,e)=>{atk(e,12);debuff(e,'vuln',1)}},
-penance:{h:'oath',m:1,n:'Penance',c:0,t:'skl',r:1,d:()=>`Lose 2 HP. Draw 2 cards. Sanctify.`,f:()=>{sac(2);draw(2)}},
+penance:{h:'oath',m:1,n:'Penance',c:0,t:'skl',r:1,d:()=>`Lose 2 HP. Draw 2 cards. Sanctify.`,drawCount:2,f:(u,e,c)=>{sac(2);draw(cardDrawCount(c))}},
 reprisal:{h:'oath',m:1,n:'Reprisal',c:1,t:'atk',r:1,tg:1,d:()=>`Deal ${D(5)} damage. Gain ${B(4)} Block. Sanctify.`,f:(u,e)=>{atk(e,5);blk(4)}},
-prayer:{h:'oath',m:1,n:'Prayer',c:1,t:'skl',r:2,d:()=>`Draw 2 cards. Sanctify.`,f:()=>draw(2)},
+prayer:{h:'oath',m:1,n:'Prayer',c:1,t:'skl',r:2,d:()=>`Draw 2 cards. Sanctify.`,drawCount:2,f:(u,e,c)=>draw(cardDrawCount(c))},
 offering:{h:'oath',m:1,n:'Offering',c:0,t:'skl',r:2,once:1,d:()=>`Lose 3 HP. Gain 1 Energy. Once per combat. Sanctify.`,f:()=>{sac(3);C.energy++}},
 ocleave:{h:'oath',n:'Cleave',c:1,t:'atk',r:1,d:u=>`Deal ${D(u?10:7)} damage to ALL enemies.`,f:u=>alive().forEach(e=>atk(e,u?10:7))},
 reckon:{h:'oath',n:'Reckoning',c:2,t:'atk',r:1,tg:1,d:u=>`Deal ${D(u?22:17)} damage.`,f:(u,e)=>atk(e,u?22:17)},
 spommel:{h:'oath',n:'Sword Pommel',c:0,t:'atk',r:1,tg:1,x:1,d:u=>`Deal ${D(u?5:3)} damage. Apply ${u?2:1} Weak. Exhaust.`,f:(u,e)=>{atk(e,u?5:3);debuff(e,'weak',u?2:1)}},
 sfaith:{h:'oath',n:'Shield of Faith',c:1,t:'skl',r:1,d:u=>`Gain ${B(u?11:8)} Block.`,f:u=>blk(u?11:8)},
 standfirm:{h:'oath',n:'Stand Firm',c:2,t:'skl',r:1,d:u=>`Gain ${B(u?18:14)} Block.`,f:u=>blk(u?18:14)},
-vigil:{h:'oath',n:'Vigilance',c:1,t:'skl',r:1,d:u=>`Gain ${B(u?6:4)} Block. Draw 1 card.`,f:u=>{blk(u?6:4);draw(1)}},
+vigil:{h:'oath',n:'Vigilance',c:1,t:'skl',r:1,d:u=>`Gain ${B(u?6:4)} Block. Draw 1 card.`,drawCount:1,f:(u,e,c)=>{blk(u?6:4);draw(cardDrawCount(c))}},
 bastion:{h:'oath',n:'Last Bastion',c:1,t:'skl',r:2,d:u=>`Gain ${B(u?14:10)} Block. Lose 1 Strength this turn.`,f:u=>{blk(u?14:10);tmp('tstr',-1)}},
 sacret:{h:'oath',n:'Sacred Retribution',c:1,t:'atk',r:2,tg:1,d:u=>`Deal damage equal to your Block, up to ${u?20:15}${C?' ('+D(Math.min(u?20:15,C.p.block))+')':''}.`,f:(u,e)=>atk(e,Math.min(u?20:15,C.p.block))},
 convict:{h:'oath',n:'Conviction',c:1,t:'pow',r:2,d:u=>`Gain ${u?3:2} Strength.`,f:u=>buff('str',u?3:2)},
-condemn:{h:'oath',n:'Condemnation',c:1,t:'skl',r:2,tg:1,d:u=>`Apply ${u?3:2} Vulnerable to an enemy and 1 Vulnerable to yourself.`,f:(u,e)=>{debuff(e,'vuln',u?3:2);C.p.st.vuln=(C.p.st.vuln||0)+1}},
+condemn:{h:'oath',n:'Condemnation',c:1,t:'skl',r:2,tg:1,d:u=>`Apply ${u?3:2} Vulnerable to an enemy and 1 Vulnerable to yourself.`,f:(u,e)=>{debuff(e,'vuln',u?3:2);meDebuff(null,'vuln',1)}},
 laststand:{h:'oath',n:'Last Stand',c:2,t:'atk',r:3,tg:1,d:u=>`Deal ${D(u?20:16)} damage. Double it while below 25% HP.`,f:(u,e)=>atk(e,(u?20:16)*(G.hp<G.maxHp*.25?2:1))},
 forbid:{h:'oath',n:'Forbidden Invocation',c:[1,0],t:'skl',r:3,x:1,d:()=>`Draw a random card from a Dormant Sanctum. Exhaust.`,f:()=>{if(!ddraw(1,1))fx('#hero','Nothing stirs','')}},
-freewill:{h:'oath',n:'Free Will',c:1,t:'skl',r:1,d:u=>`Gain ${B(u?9:6)} Block. If Unsworn, draw 1 card.`,f:u=>{blk(u?9:6);if(!SWN())draw(1)}},
+freewill:{h:'oath',n:'Free Will',c:1,t:'skl',r:1,d:u=>`Gain ${B(u?9:6)} Block. If Unsworn, draw 1 card.`,drawCount:()=>SWN()?0:1,f:(u,e,c)=>{blk(u?9:6);if(!SWN())draw(cardDrawCount(c))}},
 mresolve:{h:'oath',n:'Mortal Resolve',c:1,t:'atk',r:1,tg:1,d:u=>`Deal ${D(u?11:8)} damage. If Unsworn, gain 1 Strength this turn.`,f:(u,e)=>{atk(e,u?11:8);if(!SWN())tmp('tstr',1)}},
 defiance:{h:'oath',n:'Defiance',c:2,t:'atk',r:2,tg:1,d:u=>`Deal ${D(u?19:15)} damage. If Unsworn, apply 2 Weak.`,f:(u,e)=>{atk(e,u?19:15);if(!SWN())debuff(e,'weak',2)}},
 fsteel:{h:'oath',n:'Faith in Steel',c:[2,1],t:'pow',r:3,d:()=>`Gain 1 Strength and 1 Dexterity. If Unsworn, gain 1 more of each.`,f:()=>{const n=SWN()?1:2;buff('str',n);buff('dex',n)}},
@@ -474,7 +615,7 @@ sacredground:{h:'oath',g:'orun',n:'Sacred Ground',c:1,t:'skl',r:1,d:u=>`Gain ${B
 monument:{h:'oath',g:'orun',n:'Monument',c:1,t:'skl',r:2,d:u=>`Gain ${u?6:4} Block plus 2 per card in the Reliquary, up to ${u?16:12}${C?' ('+monu(u)+')':''}.`,f:u=>blk(monu(u))},
 stoneshatter:{h:'oath',g:'orun',n:'Stone Shatter',c:1,t:'skl',r:2,tg:1,req:()=>ST('resolve')?null:'Needs 1 Resolve to consume.',d:u=>`Consume 1 Resolve. Deal ${u?15:11} divine damage.`,f:(u,e)=>{C.p.st.resolve--;ddmg(e,u?15:11)}},
 livingfort:{h:'oath',g:'orun',n:'Living Fortress',c:[2,1],t:'pow',r:3,d:()=>`The first time Resolve prevents damage each turn, gain 3 Block.`,f:()=>buff('fort',3)},
-lastrites:{h:'oath',g:'mora',n:'Last Rites',c:1,t:'atk',r:1,tg:1,d:u=>`Deal ${D(u?12:9)} damage. If lethal, draw 1 card.`,f:(u,e)=>{atk(e,u?12:9);if(e&&e.hp<=0)draw(1)}},
+lastrites:{h:'oath',g:'mora',n:'Last Rites',c:1,t:'atk',r:1,tg:1,d:u=>`Deal ${D(u?12:9)} damage. If lethal, draw 1 card.`,drawCount:1,drawIfLethal:true,f:(u,e,c)=>{atk(e,u?12:9);if(e&&e.hp<=0)draw(cardDrawCount(c))}},
 requiem:{h:'oath',g:'mora',n:'Requiem',c:2,t:'atk',r:2,tg:1,d:u=>`Deal ${D(u?8:5)} damage plus 2 per unique card Exhausted this combat, up to ${u?24:21}${C?' ('+C.exU.length+' Exhausted)':''}.`,f:(u,e)=>atk(e,Math.min(u?24:21,(u?8:5)+2*C.exU.length))},
 echo:{h:'oath',g:'mora',n:'Echo of Death',c:[1,0],t:'skl',r:2,x:1,rs:1,ch:()=>[{k:'restore'}],req:()=>restorable().length?null:'No Exhausted card can be Restored.',d:()=>`Restore an eligible Exhausted card. Exhaust.`,f:(u,e,c)=>restoreCh(c,0)},
 queen:{h:'oath',g:'mora',n:"Queen's Embrace",c:[2,1],t:'pow',r:3,d:()=>`The first time you Offer a card each turn, gain 1 Soulbound.`,f:()=>buff('queen',1)},
@@ -506,7 +647,7 @@ orun:[{n:'Stone Blessing',d:()=>`Gain ${B(7)} Block.`,f:()=>blk(7)},
  {n:'Hand of the Mountain',d:()=>`Gain ${B(9)} Block. Gain 2 Resolve.`,f:()=>{blk(9);gain('resolve',2)}}],
 mora:[{n:'Funeral Grace',d:()=>`Gain ${B(5)} Block. Gain 1 Soulbound.`,f:()=>{blk(5);gain('soul',1)}},
  {n:'Mercy of the Veil',d:()=>`Gain ${B(6)} Block. Gain 2 Soulbound.`,f:()=>{blk(6);gain('soul',2)}},
- {n:'Hand of Eternity',d:()=>`Gain ${B(7)} Block. Gain 2 Soulbound. Divine Draw 1.`,f:()=>{blk(7);gain('soul',2);ddFx(1)}}]},
+ {n:'Hand of Eternity',d:()=>`Gain ${B(7)} Block. Gain 2 Soulbound. Divine Draw 1.`,divineCount:1,f:(u,e,c)=>{blk(7);gain('soul',2);ddFx(KD(c).divineCount)}}]},
 judgment:{
 aurel:[{n:'Divine Verdict',tg:1,d:()=>`Deal ${D(13)} damage. Gain 1 Anointed.`,f:(u,e)=>{atk(e,13);gain('anoint',1)}},
  {n:'Solar Judgment',tg:1,d:()=>`Deal ${D(15)} damage. Deal 4 more if Anointed${C&&ST('anoint')?' (active)':''}.`,f:(u,e)=>atk(e,ST('anoint')?19:15)},
@@ -521,18 +662,18 @@ mora:[{n:'Final Sentence',tg:1,d:()=>`Deal ${D(14)} damage. Gain 1 Soulbound if 
  {n:"Death's Verdict",tg:1,ch:()=>[offQ('Offer a card to deal 6 more damage?',1,1)],d:()=>`Deal ${D(16)} damage. You may Offer a card to deal 6 more.`,f:(u,e,c)=>{const o=offerCh(c,0);atk(e,16+(o?6:0))}},
  {n:'Finality',tg:1,ch:()=>[offQ('Offer a card to hit ALL enemies for 8?',1,1)],d:()=>`Deal ${D(18)} damage. You may Offer a card to deal ${D(8)} damage to ALL enemies.`,f:(u,e,c)=>{const o=offerCh(c,0);atk(e,18);if(o)alive().forEach(x=>atk(x,8))}}]},
 penance:{
-aurel:[{n:'Absolution',ch:()=>[{k:'hand',sc:1,q:'Exhaust a Status or Curse'}],d:()=>`Exhaust a Status or Curse from your hand. Draw 1 card.`,f:(u,e,c)=>{handEx(c,0);draw(1)}},
- {n:'Purification',ch:()=>[{k:'hand',sc:1,q:'Exhaust a Status or Curse'}],d:()=>`Exhaust a Status or Curse from your hand. Draw 1 card. Gain 1 Anointed.`,f:(u,e,c)=>{handEx(c,0);draw(1);gain('anoint',1)}},
- {n:'Immaculate Soul',ch:()=>[{k:'hand',sc:1,q:'Exhaust a Status or Curse'}],d:()=>`Exhaust a Status or Curse from your hand. Draw 2 cards. Gain 1 Anointed.`,f:(u,e,c)=>{handEx(c,0);draw(2);gain('anoint',1)}}],
+aurel:[{n:'Absolution',ch:()=>[{k:'hand',sc:1,q:'Exhaust a Status or Curse'}],d:()=>`Exhaust a Status or Curse from your hand. Draw 1 card.`,drawCount:1,f:(u,e,c)=>{handEx(c,0);draw(cardDrawCount(c))}},
+ {n:'Purification',ch:()=>[{k:'hand',sc:1,q:'Exhaust a Status or Curse'}],d:()=>`Exhaust a Status or Curse from your hand. Draw 1 card. Gain 1 Anointed.`,drawCount:1,f:(u,e,c)=>{handEx(c,0);draw(cardDrawCount(c));gain('anoint',1)}},
+ {n:'Immaculate Soul',ch:()=>[{k:'hand',sc:1,q:'Exhaust a Status or Curse'}],d:()=>`Exhaust a Status or Curse from your hand. Draw 2 cards. Gain 1 Anointed.`,drawCount:2,f:(u,e,c)=>{handEx(c,0);draw(cardDrawCount(c));gain('anoint',1)}}],
 varran:[{n:'Blood Tribute',d:()=>`Lose 2 HP. Gain 1 Bloodlust.`,f:()=>{sac(2);gain('blust',1)}},
  {n:'Ritual Scars',d:()=>`Lose 2 HP. Gain 2 Bloodlust.`,f:()=>{sac(2);gain('blust',2)}},
- {n:'Blood Ascension',d:()=>`Lose 3 HP. Gain 2 Bloodlust. Draw 1 card.`,f:()=>{sac(3);gain('blust',2);draw(1)}}],
+ {n:'Blood Ascension',d:()=>`Lose 3 HP. Gain 2 Bloodlust. Draw 1 card.`,drawCount:1,f:(u,e,c)=>{sac(3);gain('blust',2);draw(cardDrawCount(c))}}],
 orun:[{n:'Endurance',d:()=>`Gain ${B(3)} Block.`,f:()=>blk(3)},
  {n:'Steadfast',d:()=>`Gain ${B(3)} Block. Gain 1 Resolve.`,f:()=>{blk(3);gain('resolve',1)}},
  {n:'Unbreakable Will',d:()=>`Gain ${B(5)} Block. Gain 1 Resolve.`,f:()=>{blk(5);gain('resolve',1)}}],
-mora:[{n:'Last Offering',ch:()=>[{k:'hand',q:'Exhaust a card from your hand'}],d:()=>`Exhaust another card from your hand. Draw 1 card.`,f:(u,e,c)=>{handEx(c,0);draw(1)}},
- {n:'Soul Sacrifice',ch:()=>[{k:'hand',q:'Exhaust a card from your hand'}],d:()=>`Exhaust another card from your hand. Draw 1 card. Gain 1 Soulbound.`,f:(u,e,c)=>{handEx(c,0);draw(1);gain('soul',1)}},
- {n:'Death Transcended',ch:()=>[{k:'hand',q:'Exhaust a card from your hand'}],d:()=>`Exhaust another card from your hand. Draw 2 cards. Gain 1 Soulbound.`,f:(u,e,c)=>{handEx(c,0);draw(2);gain('soul',1)}}]},
+mora:[{n:'Last Offering',req:moraPenanceReq,ch:()=>[{k:'hand',required:true,q:'Exhaust a card from your hand'}],d:()=>`Exhaust another card from your hand. Draw 1 card.`,f:(u,e,c)=>{handEx(c,0);draw(1)}},
+ {n:'Soul Sacrifice',req:moraPenanceReq,ch:()=>[{k:'hand',required:true,q:'Exhaust a card from your hand'}],d:()=>`Exhaust another card from your hand. Draw 1 card. Gain 1 Soulbound.`,f:(u,e,c)=>{handEx(c,0);draw(1);gain('soul',1)}},
+ {n:'Death Transcended',req:moraPenanceReq,ch:()=>[{k:'hand',required:true,q:'Exhaust a card from your hand'}],d:()=>`Exhaust another card from your hand. Draw 2 cards. Gain 1 Soulbound.`,f:(u,e,c)=>{handEx(c,0);draw(2);gain('soul',1)}}]},
 reprisal:{
 aurel:[{n:'Righteous Blade',tg:1,d:()=>`Deal ${D(6)} damage. Gain ${B(5)} Block.`,f:(u,e)=>{atk(e,6);blk(5)}},
  {n:'Righteous Wrath',tg:1,d:()=>`Deal ${D(7)} damage. Gain ${B(6)} Block if Anointed.`,f:(u,e)=>{atk(e,7);if(ST('anoint'))blk(6)}},
@@ -547,22 +688,22 @@ mora:[{n:'Soul Reprisal',tg:1,d:()=>`Deal ${D(6)} damage. Gain 1 Soulbound.`,f:(
  {n:'Revenant Blade',tg:1,d:()=>`Deal ${D(7)} damage. Gain ${B(4)} Block if you Offered a card this turn${C&&offd()?' (active)':''}.`,f:(u,e)=>{atk(e,7);if(offd())blk(4)}},
  {n:'Spectral Vengeance',tg:1,d:()=>`Deal ${D(8)} damage. If you Offered a card this turn, gain ${B(6)} Block and 1 Soulbound${C&&offd()?' (active)':''}.`,f:(u,e)=>{atk(e,8);if(offd()){blk(6);gain('soul',1)}}}]},
 prayer:{
-aurel:[{n:'Communion',d:()=>`Draw 1 card. Divine Draw 1.`,f:()=>{draw(1);ddFx(1)}},
+aurel:[{n:'Communion',d:()=>`Draw 1 card. Divine Draw 1.`,drawCount:1,divineCount:1,f:(u,e,c)=>{draw(cardDrawCount(c));ddFx(KD(c).divineCount)}},
  {n:'Guiding Light',ch:()=>[{k:'recall',t:'skl'}],d:()=>`Gain ${B(3)} Block. Recall a Skill.`,f:(u,e,c)=>{blk(3);recallCh(c,0)}},
  {n:'Answered Prayer',ch:()=>[{k:'recall',t:'skl'}],d:()=>`Gain ${B(4)} Block. Recall a Skill. Gain 1 Anointed.`,f:(u,e,c)=>{blk(4);recallCh(c,0);gain('anoint',1)}}],
-varran:[{n:'War Chant',d:()=>`Divine Draw 2.`,f:()=>ddFx(2)},
- {n:'Call to Arms',d:()=>`Gain 1 Bloodlust. Divine Draw 2.`,f:()=>{gain('blust',1);ddFx(2)}},
- {n:'Voice of Conquest',d:()=>`Gain 2 Bloodlust. Divine Draw 2.`,f:()=>{gain('blust',2);ddFx(2)}}],
-orun:[{n:'Ancient Hymn',d:()=>`Gain ${B(4)} Block. Divine Draw 1.`,f:()=>{blk(4);ddFx(1)}},
+varran:[{n:'War Chant',d:()=>`Divine Draw 2.`,divineCount:2,f:(u,e,c)=>ddFx(KD(c).divineCount)},
+ {n:'Call to Arms',d:()=>`Gain 1 Bloodlust. Divine Draw 2.`,divineCount:2,f:(u,e,c)=>{gain('blust',1);ddFx(KD(c).divineCount)}},
+ {n:'Voice of Conquest',d:()=>`Gain 2 Bloodlust. Divine Draw 2.`,divineCount:2,f:(u,e,c)=>{gain('blust',2);ddFx(KD(c).divineCount)}}],
+orun:[{n:'Ancient Hymn',d:()=>`Gain ${B(4)} Block. Divine Draw 1.`,divineCount:1,f:(u,e,c)=>{blk(4);ddFx(KD(c).divineCount)}},
  {n:"Mountain's Memory",ch:()=>[{k:'recall',t:'skl'}],d:()=>`Gain ${B(5)} Block. Recall a Skill.`,f:(u,e,c)=>{blk(5);recallCh(c,0)}},
  {n:'Eternal Vigil',ch:()=>[{k:'recall',t:'skl'}],d:()=>`Gain ${B(7)} Block. Recall a Skill. Gain 1 Resolve if you took no HP damage during the last enemy turn.`,f:(u,e,c)=>{blk(7);recallCh(c,0);if(!C.lostPrev)gain('resolve',1)}}],
-mora:[{n:'Whisper of the Dead',d:()=>`Divine Draw 2.`,f:()=>ddFx(2)},
- {n:'Funeral Hymn',req:needOff(),ch:()=>[offQ('Offer a card')],d:()=>`Offer a card. Divine Draw 2. Gain 1 Soulbound.`,f:(u,e,c)=>{offerCh(c,0);ddFx(2);gain('soul',1)}},
- {n:'Beyond the Veil',rs:1,ch:()=>[{k:'restore'}],d:()=>`Restore one eligible Exhausted card. Divine Draw 2.`,f:(u,e,c)=>{restoreCh(c,0);ddFx(2)}}]},
+mora:[{n:'Whisper of the Dead',d:()=>`Divine Draw 2.`,divineCount:2,f:(u,e,c)=>ddFx(KD(c).divineCount)},
+ {n:'Funeral Hymn',req:needOff(),ch:()=>[offQ('Offer a card')],d:()=>`Offer a card. Divine Draw 2. Gain 1 Soulbound.`,divineCount:2,f:(u,e,c)=>{offerCh(c,0);ddFx(KD(c).divineCount);gain('soul',1)}},
+ {n:'Beyond the Veil',rs:1,ch:()=>[{k:'restore'}],d:()=>`Restore one eligible Exhausted card. Divine Draw 2.`,divineCount:2,f:(u,e,c)=>{restoreCh(c,0);ddFx(KD(c).divineCount)}}]},
 offering:{
 aurel:[{n:'Sacrament',req:needSt('anoint'),d:c=>`Consume 1 Anointed. Gain 1 Energy.`,f:(u,e,c)=>{C.p.st.anoint--;eg(c,1)}},
  {n:'Sacred Covenant',req:needSt('anoint'),d:()=>`Consume 1 Anointed. Gain 1 Energy and ${B(3)} Block.`,f:(u,e,c)=>{C.p.st.anoint--;eg(c,1);blk(3)}},
- {n:'Grace of Aurel',req:needSt('anoint'),d:()=>`Consume 1 Anointed. Gain 1 Energy. Divine Draw 1.`,f:(u,e,c)=>{C.p.st.anoint--;eg(c,1);ddFx(1)}}],
+ {n:'Grace of Aurel',req:needSt('anoint'),d:()=>`Consume 1 Anointed. Gain 1 Energy. Divine Draw 1.`,divineCount:1,f:(u,e,c)=>{C.p.st.anoint--;eg(c,1);ddFx(KD(c).divineCount)}}],
 varran:[{n:'Blood Pact',d:()=>`Lose 3 HP. Gain 1 Energy.`,f:(u,e,c)=>{sac(3);eg(c,1)}},
  {n:'Altar of War',req:needOff(),ch:()=>[offQ('Offer a card')],d:()=>`Lose 3 HP. Offer a card. Gain 2 Energy.`,f:(u,e,c)=>{sac(3);offerCh(c,0);eg(c,2)}},
  {n:'Price of Victory',req:needOff(),ch:()=>[offQ('Offer a card')],d:()=>`Lose 2 HP. Offer a card. Gain 2 Energy and 1 Bloodlust.`,f:(u,e,c)=>{sac(2);offerCh(c,0);eg(c,2);gain('blust',1)}}],
@@ -574,7 +715,7 @@ mora:[{n:'Funeral Rite',req:needOff(),ch:()=>[offQ('Offer a card')],d:()=>`Offer
  {n:"Oblivion's Gift",req:needOff(2),ch:()=>[offQ('Offer two cards',2)],d:()=>`Offer two cards. Gain 2 Energy and 1 Soulbound.`,f:(u,e,c)=>{offerCh(c,0);eg(c,2);gain('soul',1)}}]}};
 /* evolved Offering cards: the Energy part works once per combat per card */
 ['aurel','varran','orun','mora'].forEach(g=>FORMS.offering[g].forEach(f=>{const d=f.d;f.d=(u,c)=>d(u,c)+egT(c)}));
-const FK={};for(const id in FORMS){FK[id]={};for(const g in FORMS[id])FK[id][g]=FORMS[id][g].map(f=>Object.assign({},K[id],{ch:null,req:null,once:0,tg:0,m:0},f))}
+const FK={};for(const id in FORMS){FK[id]={};for(const g in FORMS[id])FK[id][g]=FORMS[id][g].map(f=>Object.assign({},K[id],{ch:null,req:null,once:0,tg:0,m:0,divineCount:0,drawCount:0,drawIfLethal:false},f))}
 const KD=c=>c.tier&&FK[c.id]&&FK[c.id][c.g]?FK[c.id][c.g][c.tier-1]:K[c.id];
 const ACT=g=>!!(G&&G.oaths&&G.oaths.includes(g));
 const SWN=()=>!!(G&&G.oaths&&G.oaths.length);
@@ -591,7 +732,7 @@ const blB=()=>3+(has('bloodstone')&&C.bsT!=C.turn?2:0);
 const B=n=>{if(!C)return n;const v=Math.max(0,n+X());return v==n?v:`<b class="${v>n?'up':'dn'}">${v}</b>`};
 const tmp=(k,n)=>{C.p.st[k]=(C.p.st[k]||0)+n};
 function gain(k,n){if(!C)return;const o=C.p.st[k]||0,v=Math.min(cap(),o+n);C.p.st[k]=v;if(v>o)fx('#hero','+'+(v-o)+' '+SNAME[k],'o o-'+SGOD[k])}
-function ddmg(e,n){if(!e||e.hp<=0)return;n=Math.max(0,Math.floor(n));const ab=Math.min(e.block,n);e.block-=ab;const m=n-ab;e.hp=Math.max(0,e.hp-m);fx('#f'+e.i,m?'-'+m:'Blocked',m?'o':'b');fx('#f'+e.i+' .spr','','','hitR');fx('#f'+e.i+' .spr','','','vfx:pillar');fell(e)}
+function ddmg(e,n){if(!e||e.hp<=0)return;n=Math.max(0,Math.floor(n));const ab=Math.min(e.block,n);e.block-=ab;const m=n-ab;e.hp=Math.max(0,e.hp-m);fx('#f'+e.i,m?'-'+m:'Blocked',m?'o':'b');EnemyRigs.cue(e,'hit');fx('#f'+e.i+' .spr','','','hitR');fx('#f'+e.i+' .spr','','','vfx:pillar');fell(e)}
 function cheal(n,c,e){if(C.healed.includes(c.u))return;C.healed.push(c.u);
  if(ACT('varran')){const t=e&&e.hp>0?e:alive()[0];if(t)ddmg(t,n*2);return}
  const h=Math.min(n,G.maxHp-G.hp),ex=n-h;if(h){heal(h);fx('#hero','+'+h+' HP','p')}if(ex&&ACT('aurel'))blk(ex*2,1)}
@@ -609,9 +750,11 @@ function offer(u){const c=takeS(u);if(!c)return 0;fx('#hero','Offered '+name(c),
  if(C.p.st.soul>0){C.p.st.soul--;alive().forEach(e=>ddmg(e,4));if(has('mbell')&&!C.mb){C.mb=1;C.energy++}}
  if(C.p.st.queen&&C.qT!=C.turn){C.qT=C.turn;gain('soul',1)}return 1}
 const offerCh=(c,i)=>((c._ch&&c._ch[i])||[]).reduce((n,u)=>n+offer(u),0);
-function ddraw(n,dorm){const gods=dorm?dormGods():SWN()?G.oaths:has('faithless')?dormGods():[];let k=0;const t=performance.now();
+const divineGods=dorm=>dorm?dormGods():SWN()?G.oaths:has('faithless')?dormGods():[];
+function ddraw(n,dorm){const gods=divineGods(dorm);let k=0;const t=performance.now();
  for(let i=0;i<n;i++){if(C.hand.length>=10)break;const el=[].concat(...gods.map(g=>C.sanc[g])).filter(x=>x.dturn!==C.turn);if(!el.length)break;const c=takeS(pick(el).u);c.dturn=C.turn;c.dt=t+k++*85;C.hand.push(c)}return k}
-function ddFx(n){if(G.oaths&&G.oaths.length==1&&has('covenant')&&!C.cov){C.cov=1;n++}ddraw(n)}
+const covenantBonus=()=>G.oaths?.length===1&&has('covenant')&&!C.cov;
+function ddFx(n){if(covenantBonus()){C.cov=1;n++}ddraw(n)}
 const recallable=t=>actSanc().filter(x=>x.dturn!==C.turn&&(!t||KD(x).t==t));
 function recallCh(c,i){const u=c._ch&&c._ch[i];if(u==null||C.hand.length>=10)return;const x=takeS(u);if(!x)return;x.dturn=C.turn;x.dt=performance.now();C.hand.push(x)}
 const restorable=()=>C.exh.filter(x=>{const g=godOf(x),k=KD(x);return g&&k.t!='pow'&&k.t!='curse'&&!k.rs});
@@ -636,20 +779,23 @@ const ascList=from=>G.deck.filter(c=>c.tier==from&&FK[c.id]);
 function ascend(c){c.tier++;toast(KD(c).n+' rises to T'+c.tier+', '+TIERN[c.tier]+'.')}
 /* player choices are made before a card resolves, so previews and the card itself stay synchronous */
 const CANCEL={};
+function handChoices(c,statusOnly){return C.hand.filter(x=>x.u!==c.u&&(!statusOnly||['curse','status'].includes(KD(x).t)))}
+function moraPenanceReq(u,c){return handChoices(c).length?null:'Needs another card in your hand to Exhaust.'}
 async function resolveCh(s,c){
  if(s.k=='yes'){if(s.ok&&!s.ok())return false;return (await chooseP(name(c),s.q,['Yes','No']))===0}
  let list=[],title=s.q||'';
  if(s.k=='offer')list=offerable();
  else if(s.k=='recall'){list=recallable(s.t);title='Recall a '+(s.t?TN[s.t]:'card')+' from your Sanctum'}
  else if(s.k=='restore'){list=restorable();title='Restore an Exhausted card to its Sanctum'}
- else if(s.k=='hand')list=C.hand.filter(x=>x!==c&&(!s.sc||['curse','status'].includes(KD(x).t)));
+ else if(s.k=='hand')list=handChoices(c,s.sc);
  if(s.k=='offer'){const n=s.n||1,out=[];if(!s.opt&&list.length==n)return list.map(x=>x.u);if(s.opt&&!list.length)return [];
   for(let i=0;i<n;i++){const x=await pickP(title+(n>1?` (${i+1} of ${n})`:''),list.filter(y=>!out.includes(y.u)),s.opt?'Skip':'Cancel');if(!x)return s.opt?[]:CANCEL;out.push(x.u)}return out}
- if(!list.length)return null;
- const x=await pickP(title,list,'Skip');return x?x.u:null}
+ if(!list.length)return s.required?CANCEL:null;
+ const x=await pickP(title,list,s.required?'Cancel':'Skip');return x?x.u:s.required?CANCEL:null}
 const chDef=s=>s.k=='offer'?(s.opt?[]:offerable().slice(0,s.n||1).map(x=>x.u)):s.k=='yes'?false:null;
 function pickP(title,list,cancel){return new Promise(res=>{openPick(title,list,c=>res(c),cancel);MD.onClose=()=>res(null)})}
 function chooseP(title,q,opts){return new Promise(res=>{MD={ask:res};$('#modal').innerHTML=`<div class="modal ask" role="dialog" aria-label="${title}"><div class="mhead"><h2>${title}</h2></div><p class="sub">${q}</p><div class="opts">${opts.map((o,i)=>`<button class="btn opt" data-a="mask" data-v="${i}">${o}</button>`).join('')}</div></div>`})}
+const START_GOLD=99;
 const HEROES={aether:{n:'The Aetherwright',s:'Aetherwright',hp:70,relic:'heart',deck:()=>[...Array(5)].map(()=>mk('strike')).concat([...Array(4)].map(()=>mk('defend')),[mk('bash')]),b:'An aether-punk gunslinger. Strength, poison and raw firepower.'},
 oath:{n:'The Oathbound',s:'Oathbound',hp:80,relic:'unbroken',deck:()=>[...Array(4)].map(()=>mk('strike')).concat([...Array(3)].map(()=>mk('guard')),[mk('judgment'),mk('lay'),mk('invoke')]),b:'A wandering knight. Swear an Oath at a Divine shrine and his cards evolve under that god, or stay Unsworn and trust his steel.'}};
 let SIM=false;
@@ -665,9 +811,6 @@ warden:{n:'Stone Warden',hp:[82,86],col:'#a0a6ad',s:'golem',big:1,rig:'stoneward
 jugg:{n:'Juggernaut',hp:[90,96],col:'#9a7fb0',s:'golem',big:1,rig:'juggernaut',actionPoses:true,paintedIdle:true,w:168,pas:['Overpressure','At half HP its canister vents: +2 Strength and 10 Block (once).'],ai:t=>[{n:'Crushing Fist',a:13},{n:'Hammerfall',a:6,x:2,vuln:1},{n:'Vent',str:2,b:8}][t%3]},
 hex:{n:'Hex Mother',pas:['Witch','Curses you, then strikes.'],hp:[68,72],col:'#d0607a',s:'ghost',big:1,ai:t=>[{n:'Hexblade',a:9,vuln:2},{n:'Thousand Cuts',a:6,x:3},{n:'Dark Rite',weak:2,str:3}][t%3]},
 king:{n:'The Hollow King',pas:['Hollow Crown','Builds Strength and Block over the fight.'],hp:[180,180],col:'#e8c86a',s:'king',big:1,boss:1,ai:t=>[{n:'Crown of Thorns',b:10,str:2},{n:'Twin Edicts',a:8,x:2},{n:'Hollow Verdict',a:22},{n:'Decree',weak:2,vuln:2,b:8}][t%4]}};
-/* cut-out rigs, built from the parts sheets, facing left. A part is [file, left %, top %, width %, idle animation, pivot];
-   a group {g,a,o,p} moves its parts together (a limb swinging from its shoulder, a body breathing over planted legs) */
-const RIGS={"scrapclaw":{"ar":1.131,"p":[["canister",57.45,0.0,29.15,"glow","50% 60%"],["cloak",39.36,9.03,40.96,"sway","15% 4%"],["leg_b",59.57,54.15,25.32,"","50% 50%"],["arm_back",47.87,34.9,52.13,"claw2","8% 9%"],["pelvis",43.62,54.15,22.77,"","50% 50%"],["torso",40.43,18.05,32.66,"","50% 50%"],["leg_a",28.72,54.39,28.3,"","50% 50%"],["arm_front",0.0,36.1,47.23,"claw","92% 8%"],["head",18.09,19.25,38.09,"nod","75% 70%"]]},"aethertick":{"ar":1.139,"p":[{"g":"lb","a":"leg","o":"66.4% 58.0%","p":[["p14",73.12,60.42,16.57,"","50% 50%"],["p09",64.08,50.79,25.61,"","50% 50%"]]},["p00",32.79,0.0,67.21,"pulse","45% 85%"],{"g":"lm","a":"leg2","o":"55.4% 62.7%","p":[["p15",57.36,64.38,15.87,"","50% 50%"],["p11",54.11,56.07,19.93,"","50% 50%"]]},["p01",25.84,33.91,48.78,"","50% 50%"],{"g":"lf","a":"leg","o":"49.0% 64.0%","p":[["p12",29.78,63.59,15.3,"","50% 50%"],["p10",28.62,57.12,22.25,"","50% 50%"]]},["p08",0.0,49.47,30.82,"claw","85% 12%"],["p02",14.48,33.25,29.66,"nod","85% 55%"],["p03",17.73,62.93,6.95,"chew","60% 8%"]]},"veilmask":{"ar":1.159,"p":[["p01",1.74,6.32,40.68,"sway","90% 70%"],["p03",62.16,11.76,37.84,"sway2","5% 20%"],["p05",13.85,61.19,44.93,"sway","90% 10%"],["p00",71.1,0.0,28.57,"flick","30% 90%"],["p00_2",0.0,53.35,22.46,"flick2","50% 90%"],["p02",31.19,9.36,38.5,"hover","50% 50%"],["p04",58.12,54.74,21.81,"sway2","10% 10%"],["p06",51.15,77.37,5.23,"drift","50% 50%"],["p08",86.7,68.27,6.11,"drift2","50% 50%"],["p09",38.5,85.46,4.36,"drift3","50% 50%"]]},"rustjaw":{"ar":1.079,"p":[["p07",71.89,40.49,26.9,"","50% 50%"],["p11",76.96,81.9,23.04,"","50% 50%"],{"g":"body","a":"breathe","o":"54.0% 52.7%","p":[["p06",42.94,38.67,19.78,"","50% 50%"]]},["p09",44.39,62.89,14.48,"","50% 50%"],["p13",42.22,82.42,22.44,"","50% 50%"],{"g":"body","a":"breathe","o":"54.0% 52.7%","p":[["p00",21.95,0.0,64.05,"","50% 50%"],["p04",58.02,6.38,25.81,"sway","20% 3%"]]},["p08",64.17,42.45,23.28,"","50% 50%"],["p12",67.55,83.59,21.11,"","50% 50%"],{"g":"body","a":"breathe","o":"54.0% 52.7%","p":[["p03",21.11,8.2,22.44,"sway2","80% 50%"],["p05",31.85,38.41,20.14,"","50% 50%"]]},["p10",33.05,65.36,14.35,"","50% 50%"],["p14",29.67,83.72,22.07,"","50% 50%"],{"g":"body","a":"breathe","o":"54.0% 52.7%","p":[["p02",0.0,14.19,38.12,"claw","85% 45%"]]}]},"sporeling":{"ar":0.795,"p":[["p06",15.71,71.32,21.7,"","50% 50%"],["p05",63.12,71.32,25.43,"","50% 50%"],["p00",8.92,0.0,91.08,"cap","60% 95%"],["p02",76.7,39.79,22.1,"sway","40% 95%"],["p01",0.0,39.47,18.38,"sway2","60% 95%"],["p04",21.57,49.84,55.26,"nod","50% 80%"],["p03",6.92,29.21,84.29,"sway2","50% 20%"],["p07",53.13,79.47,23.97,"","50% 50%"],["p08",24.77,81.27,19.44,"","50% 50%"]]},"stonewarden":{"ar":1.27,"p":[["p11",46.94,51.21,27.58,"","50% 50%"],["p12",24.07,52.36,27.08,"","50% 50%"],["p10",37.71,50.19,22.77,"","50% 50%"],{"g":"core","a":"breathe","o":"49.6% 56.6%","p":[["p00",30.49,0.0,38.31,"","50% 50%"],["p04",31.09,12.74,37.11,"pulse","50% 90%"]]},{"g":"armL","a":"claw","o":"69.7% 27.3%","p":[["p05",59.68,18.09,18.05,"","50% 50%"],["p06",66.2,35.67,15.95,"","50% 50%"],["p08",70.21,48.92,14.94,"","50% 50%"],["p01",72.62,8.15,27.38,"","50% 50%"]]},{"g":"armR","a":"claw2","o":"29.1% 27.3%","p":[["p03",20.56,16.18,19.06,"","50% 50%"],["p07",17.15,35.67,15.85,"","50% 50%"],["p09",14.44,48.92,14.34,"","50% 50%"],["p02",0.0,12.99,24.97,"","50% 50%"]]}]},"juggernaut":{"ar":0.748,"p":[{"g":"body","a":"breathe","o":"48.4% 47.2%","p":[["p00",48.85,0.0,45.28,"glow","50% 60%"]]},{"g":"armB","a":"claw2","o":"69.1% 23.9%","p":[["p04",64.52,19.64,28.34,"","50% 50%"],["p07",79.72,38.59,20.28,"","50% 50%"]]},["p14",47.24,72.87,29.95,"","50% 50%"],["p10",50.69,63.22,18.43,"","50% 50%"],["p13",21.2,72.78,29.03,"","50% 50%"],["p09",28.0,63.48,20.05,"","50% 50%"],["p06",30.88,40.31,35.14,"sway","50% 5%"],{"g":"body","a":"breathe","o":"48.4% 47.2%","p":[["p01",22.93,13.61,50.92,"","50% 50%"],["p02",36.64,6.72,21.2,"nod","60% 90%"]]},{"g":"armF","a":"claw","o":"27.6% 23.1%","p":[["p03",0.0,19.64,36.64,"","50% 50%"]]}]}};
 const EASY=[['spore'],['tick','tick'],['scrap']];
 const HARD=[['rustjaw'],['spore','tick'],['mask'],['scrap','spore'],['mask','tick'],['rustjaw','tick'],['spore','spore']];
 const ELITE=[['warden'],['hex'],['jugg']];
@@ -699,7 +842,8 @@ const cost=c=>{const k=KD(c).c;return Array.isArray(k)?k[c.up?1:0]:k};
 const name=c=>KD(c).n+(c.up?'+':'');
 const has=k=>G&&G.relics.includes(k);
 const heal=n=>{G.hp=Math.min(G.maxHp,G.hp+n)};
-const upgradable=()=>G.deck.filter(c=>!c.up&&K[c.id].r>=0&&!K[c.id].m&&!c.tier);
+const canSmith=c=>!c.up&&K[c.id].r>=0&&!K[c.id].m&&!c.tier;
+const upgradable=()=>G.deck.filter(canSmith);
 const randRelic=()=>{const a=Object.keys(RELICS).filter(k=>!G.relics.includes(k)&&!RELICS[k].st&&(!RELICS[k].h||RELICS[k].h==G.hero));if(!a.length)return null;const W={c:6,u:4,r:2,l:.5},w=k=>W[RELICS[k].r||'c'];let x=Math.random()*a.reduce((t,k)=>t+w(k),0);for(const k of a){x-=w(k);if(x<=0)return k}return a[a.length-1]};
 const gainRelic=k=>{G.relics.push(k);if(k=='moss'){G.maxHp+=8;G.hp+=8}
  if(k=='legacy'){const el=ascList(2);if(el.length)openPick("Saint's Legacy: Exalt a card (T2 to T3)",el,c=>{ascend(c);render()},'Later');else toast('No T2 card to Exalt yet.')}
@@ -718,13 +862,51 @@ function flush(){const q=Q;Q=[];q.forEach(([sel,txt,cls,an])=>{const el=$(sel);i
 const alive=()=>C.foes.filter(e=>e.hp>0);
 const rage=e=>{if(e.k=='rustjaw'&&!e.rg&&e.hp>0&&e.hp*2<e.max){e.rg=1;e.st.str=(e.st.str||0)+3;fx('#f'+e.i,'Bloodscent +3 Str','')}
  if(e.k=='jugg'&&!e.rg&&e.hp>0&&e.hp*2<e.max){e.rg=1;e.st.str=(e.st.str||0)+2;e.block+=10;fx('#f'+e.i,'Overpressure!','i');fx('#f'+e.i+' .spr','','','oc')}};
-const fell=e=>{rage(e);if(e.hp<=0&&!e.dieAt){e.dieAt=performance.now();if(e.k=='spore')forLivingHeroes(()=>meDebuff(null,'poison',2));fx('#f'+e.i+' .spr','','','burst');fx('#f'+e.i+' .spr','','','vfx:shards')}};
-function atk(e,b,m=1){if(!e||e.hp<=0)return;let d=b+S()*m+(C.bl||0);if(C.p.st.weak)d*=.75;if(e.st.vuln)d*=1.5;if(priceOn('orun'))d*=.8;d=Math.max(0,Math.floor(d));const ab=Math.min(e.block,d);e.block-=ab;const n=d-ab;e.hp=Math.max(0,e.hp-n);fx('#f'+e.i,n?'-'+n:'Blocked',n?'':'b');fx('#f'+e.i+' .spr','','','hitR');fx('#f'+e.i+' .spr','','','vfx:slash');if(n>=15)fx('.stage','','','quake');fell(e)}
+const fell=e=>{rage(e);if(e.hp<=0&&!e.dieAt){e.dieAt=performance.now();EnemyRigs.cue(e,'death');if(e.k=='spore')forLivingHeroes(()=>meDebuff(null,'poison',2));fx('#f'+e.i+' .spr','','','burst');fx('#f'+e.i+' .spr','','','vfx:shards')}};
+function atk(e,b,m=1){if(!e||e.hp<=0)return;let d=b+S()*m+(C.bl||0);if(C.p.st.weak)d*=.75;if(e.st.vuln)d*=1.5;if(priceOn('orun'))d*=.8;d=Math.max(0,Math.floor(d));const ab=Math.min(e.block,d);e.block-=ab;const n=d-ab;e.hp=Math.max(0,e.hp-n);fx('#f'+e.i,n?'-'+n:'Blocked',n?'':'b');EnemyRigs.cue(e,'hit');fx('#f'+e.i+' .spr','','','hitR');fx('#f'+e.i+' .spr','','','vfx:slash');if(n>=15)fx('.stage','','','quake');fell(e)}
 const blk=(n,raw)=>{if(!raw)n=Math.max(0,n+X());C.p.block+=n;fx('#hero','+'+n+' Block','b');fx('#hero .spr','','','vfx:ripple')};
 const debuff=(e,k,n)=>{if(e&&e.hp>0){e.st[k]=(e.st[k]||0)+n;if(k=='poison')fx('#f'+e.i+' .spr','','','vfx:poison')}};
 const buff=(k,n)=>{C.p.st[k]=(C.p.st[k]||0)+n;if(C&&!C.busy&&['str','dex','metal','cloud','demon','crownl','conqw','fort','queen'].includes(k)){fx('#hero .spr','','','vfx:rune');fx('#hero .spr','','','vfx:pillar')}};
 const loseHp=n=>{G.hp=Math.max(1,G.hp-n);fx('#hero','-'+n,'');fx('#hero .spr','','','hitL')};
-function draw(n){const t=performance.now();let k=0;for(let i=0;i<n;i++){if(C.hand.length>=10)break;if(!C.draw.length){if(!C.disc.length)break;C.draw=shuf(C.disc);C.disc=[]}const c=C.draw.pop();c.dt=t+k++*85;C.hand.push(c)}}
+function cardDrawCount(c){const rule=KD(c).drawCount;return typeof rule==='function'?rule(c.up):rule||0}
+function planDraw(n,handSize){
+ const room=Math.max(0,10-handSize);
+ const count=Math.min(n,room,C.draw.length+C.disc.length);
+ const first=Math.min(C.draw.length,count);
+ return {count,first,shuffled:count-first,full:room<n&&count===room};
+}
+function draw(n){
+ const {count}=planDraw(n,C.hand.length),t=performance.now();
+ for(let i=0;i<count;i++){
+  if(!C.draw.length){C.draw=shuf(C.disc);C.disc=[]}
+  const c=C.draw.pop();c.dt=t+i*85;C.hand.push(c);
+ }
+}
+function drawForecast(c){
+ const n=cardDrawCount(c),k=KD(c),size=C.hand.length-1;
+ if(!n&&!k.divineCount)return '';
+ const describe=size=>{
+  const p=planDraw(n,size);
+  let text=p.shuffled?(p.first?'Draw '+p.first+', then reshuffle and draw ':'Reshuffle and draw ')+p.shuffled:'Draw '+p.count;
+  if(p.full)text+=' · hand limit';
+  else if(p.count<n)text+=' · piles empty';
+  return text;
+ };
+ const choice=k.ch?.(c.up,c).find(s=>s.k==='hand');
+ const canExhaust=choice&&C.hand.some(x=>x!==c&&(!choice.sc||['curse','status'].includes(KD(x).t)));
+ const base=describe(size),after=canExhaust&&describe(size-1);
+ const parts=[];
+ if(n)parts.push((k.drawIfLethal?'If lethal · ':'')+base+(after&&after!==base?' / after exhausting: '+after:''));
+ if(k.divineCount){
+  if(k.ch)parts.push('Divine Draw depends on your choice');
+  else{
+   const eligible=divineGods(false).flatMap(g=>C.sanc[g]).filter(x=>x.dturn!==C.turn).length;
+   const room=10-size-planDraw(n,size).count;
+   parts.push('Divine Draw '+Math.min(room,eligible,k.divineCount+Number(!!covenantBonus())));
+  }
+ }
+ return parts.join(' · ');
+}
 const dec=s=>['weak','vuln'].forEach(k=>{if(s[k])s[k]--});
 let combatParty=[], combatEnemyPhase=false;
 function focusCombatSeat(seat){
@@ -831,12 +1013,13 @@ function nextPlayerOrEnemies(){
 }
 async function enemyTurn(){
  for(const e of C.foes){if(e.hp<=0)continue;
-  if(e.st.poison){e.hp=Math.max(0,e.hp-e.st.poison);fx('#f'+e.i,'-'+e.st.poison,'p');fx('#f'+e.i+' .spr','','','hitR');fx('#f'+e.i+' .spr','','','vfx:poison');e.st.poison--;fell(e);render();await sleep(380);if(e.hp<=0)continue}
+  if(e.st.poison){e.hp=Math.max(0,e.hp-e.st.poison);fx('#f'+e.i,'-'+e.st.poison,'p');EnemyRigs.cue(e,'hit');fx('#f'+e.i+' .spr','','','hitR');fx('#f'+e.i+' .spr','','','vfx:poison');e.st.poison--;fell(e);render();await sleep(380);if(e.hp<=0)continue}
   const d=EN[e.k];e.block=d.keep?Math.floor(e.block/2):0;e.reflected={};const n=e.int;if(n.n)fx('#f'+e.i,n.n,'i');if(n.str||n.poison||n.b>=12||n.n=='Charge'||n.n=='Phase')fx('#f'+e.i+' .spr','','','oc');
+  if(n.n=='Charge'||n.str||n.poison)EnemyRigs.cue(e,'charge');else if(n.b)EnemyRigs.cue(e,'defend');
   if(n.str){e.st.str=(e.st.str||0)+n.str;fx('#f'+e.i,'+'+n.str+' Str','')}
   if(n.b){e.block+=n.b;fx('#f'+e.i,'+'+n.b+' Block','b')}
   if(n.a)for(let h=0;h<(n.x||1);h++){
-   if(!RM){fx('#f'+e.i+' .spr','','','outL');render();await sleep(110)}
+   EnemyRigs.cue(e,'attack');if(!RM){fx('#f'+e.i+' .spr','','','outL');render();await sleep(110)}
    const attack=n.a+(n.slam?e.block:0);
    let dealt=0;
    forLivingHeroes(()=>{dealt+=hitMe(e,attack)});
@@ -918,14 +1101,10 @@ function thresholdCombatWon(){if(G.threshold&&G.threshold.combatRemaining>0)G.th
 function merchantPrice(n){const t=G.threshold,b=t&&blessingById(t.selected);return t&&t.applied&&t.merchantRemaining>0&&b&&b.benefit.type==='merchant'?Math.round(n*(1-b.benefit.discount)):n}
 
 /* ---------- run and map ---------- */
-function roll(f,h,rng=Math.random){const r=rng();if(h=='oath'&&f>=4&&r<.1)return 'shrine';if(f<4)return r<.68?'fight':r<.88?'event':'shop';return r<.44?'fight':r<.6?'event':r<.73?'elite':r<.85?'rest':'shop'}
-function genMap(h,rng=Math.random){const F=13,m=[],r=n=>Math.floor(rng()*n);
- for(let f=0;f<F-1;f++)m.push([0,1,2,3].map(()=>({t:f==0?'fight':f==F-2?'rest':f==6?'chest':h=='oath'&&f==2?'shrine':roll(f,h,rng),next:[],jx:r(17)-8,jy:r(13)-6})));
- for(let f=0;f<F-2;f++)m[f].forEach((n,l)=>{n.next=[l];if(rng()<.55){const o=l+(rng()<.5?-1:1);if(o>=0&&o<4&&!(o==l-1&&m[f][o].next.includes(l)))n.next.push(o)}});
- m[F-2].forEach(n=>n.next=[0]);m.push([{t:'boss',next:[],jx:0,jy:0}]);return m}
-function avail(){const m=G.map;if(!G.pos)return m[0].map((n,l)=>[0,l]);const{f,l}=G.pos;return f>=m.length-1?[]:m[f][l].next.map(nl=>[f+1,nl])}
+const genMap = (hero, seed) => ActMap.generate(hero, seed);
+const avail = () => ActMap.available(G);
 function newRun(h){return newRunSeed(h,newSeed())}
-function newRunSeed(h,seed){if(!HEROES[h]){screen='pick';return render()}uid=1;const H=HEROES[h];G={hero:h,seed:seed>>>0,hp:H.hp,maxHp:H.hp,gold:99,deck:H.deck(),relics:[H.relic],oaths:[],map:genMap(h,seedRng(seed^0x4d415000)),pos:null,path:[],floor:0};initThreshold();C=null;screen='threshold';save();render()}
+function newRunSeed(h,seed){if(!HEROES[h]){screen='pick';return render()}uid=1;const H=HEROES[h];G={hero:h,seed:seed>>>0,hp:H.hp,maxHp:H.hp,gold:START_GOLD,deck:H.deck(),relics:[H.relic],oaths:[],mapSeed:(seed^0x4d415000)>>>0,map:genMap(h,(seed^0x4d415000)>>>0),pos:null,path:[],floor:0};initThreshold();C=null;screen='threshold';save();render()}
 let partyDraft=null,roomVisits=null;
 function partySize(){return G?.party?.length||1}
 function activeSeat(){return G?.seat||0}
@@ -960,10 +1139,10 @@ function chooseClimber(h){
  uid=1;
  const party=partyDraft.heroes.map(hero=>{
   const H=HEROES[hero];
-  return {hero,hp:H.hp,maxHp:H.hp,gold:99,deck:H.deck(),relics:[H.relic],oaths:[]}
+  return {hero,hp:H.hp,maxHp:H.hp,gold:START_GOLD,deck:H.deck(),relics:[H.relic],oaths:[]}
  });
- const seed=newSeed();
- G=bindParty({party,seat:0,seed,map:genMap(partyDraft.heroes.includes('oath')?'oath':party[0].hero,seedRng(seed^0x4d415000)),pos:null,path:[],floor:0});
+ const seed=newSeed(),mapSeed=(seed^0x4d415000)>>>0;
+ G=bindParty({party,seat:0,seed,mapSeed,map:genMap(partyDraft.heroes.includes('oath')?'oath':party[0].hero,mapSeed),pos:null,path:[],floor:0});
  for(let seat=0;seat<party.length;seat++){selectSeat(seat);initThreshold()}selectSeat(0);
  partyDraft=null;goMap()
 }
@@ -979,7 +1158,7 @@ function resumeRun(party){
  uid=1+Math.max(0,...members.flatMap(member=>member.deck.map(c=>c.u||0)));
  goMap()
 }
-function goMap(){const pending=G.party?G.party.findIndex(p=>p.threshold&&!p.threshold.applied):-1;if(pending>=0)selectSeat(pending);if(G.threshold&&!G.threshold.applied){screen='threshold';save();return render()}if(screen==='shop'&&G.threshold&&G.threshold.merchantRemaining>0)G.threshold.merchantRemaining--;closeModal();roomVisits=null;C=null;selectSeat(livingSeats()[0]);screen='map';save();render()}
+function goMap(){selectedNode=null;const pending=G.party?G.party.findIndex(p=>p.threshold&&!p.threshold.applied):-1;if(pending>=0)selectSeat(pending);if(G.threshold&&!G.threshold.applied){screen='threshold';save();return render()}if(screen==='shop'&&G.threshold&&G.threshold.merchantRemaining>0)G.threshold.merchantRemaining--;closeModal();roomVisits=null;C=null;selectSeat(livingSeats()[0]);screen='map';save();render()}
 function mkShop(){const ids=[];[1,1,2,2,3].forEach(t=>{let id,g=0;do{id=pick(POOL[t])}while(ids.includes(id)&&g++<20);ids.push(id)});
  const r=randRelic();return{cards:ids.map(id=>({id,p:merchantPrice({1:50,2:75,3:145}[K[id].r]+R(11)-5),sold:0})),relic:r?{k:r,p:merchantPrice(140+R(21)),sold:0}:null,removed:0}}
 function enter(f,l){if(screen!=='map'||(G.threshold&&!G.threshold.applied))return;if(!avail().some(([a,b])=>a==f&&b==l))return;G.pos={f,l};G.path.push([f,l]);G.floor=f+1;const t=G.map[f][l].t;
@@ -1035,7 +1214,8 @@ const hudIcon=(name,size)=>`<img class="hud-icon" alt="" src="assets/ui/hud/${na
 const statusArt={str:'strength',vuln:'vulnerable',weak:'weak',poison:'poison'};
 const oathArt={aurel:'radiance',varran:'conquest',orun:'protection',mora:'twilight'};
 const stV=st=>Object.keys(st).filter(k=>st[k]&&STN[k]).map(k=>`<span class="chip ${STN[k][1]}" title="${STN[k][2]}">${statusArt[k]?hudIcon("status-"+statusArt[k],16):""}${STN[k][0]} ${st[k]}</span>`).join('');
-function cardV(c,attrs='',cls=''){const k=KD(c),description=k.d(c.up,c),co=cost(c),g=godOf(c),dorm=g&&G&&G.hero=='oath'&&!ACT(g)&&!c.seal&&!c.tmpS;return `<button class="card t-${k.t} r${k.r}${description.length>32?' wordy':''}${c.up?' up':''}${g?' g-'+g:''}${c.tier?' tr'+c.tier:''}${dorm?' dorm':''}${K[c.id].m&&!c.tier?' mal':''} ${cls}" ${attrs}>${co>=0?`<span class="cost">${co}</span>`:''}${c.tier?`<span class="tier" title="${TIERN[c.tier]}">T${c.tier}</span>`:''}<span class="nm">${name(c)}</span><span class="art">${c.id==="strike"?`<img alt="" src="assets/ui/cards/${G?.hero==="oath"?"dawn":"aetherwright"}-strike.png">`:ART[k.t]}</span><span class="ds"><span>${description}</span></span><span class="ty">${TN[k.t]}${g?' · '+GODS[g].n:K[c.id].m?' · Malleable':''}${dorm?' · Dormant':''}</span></button>`}
+const cardArt=(c,hero)=>c.id==="strike"?`<img alt="" src="assets/ui/cards/${hero==="oath"?"dawn":"aetherwright"}-strike.png">`:ART[KD(c).t];
+function cardV(c,attrs='',cls=''){const k=KD(c),description=k.d(c.up,c),co=cost(c),g=godOf(c),dorm=g&&G&&G.hero=='oath'&&!ACT(g)&&!c.seal&&!c.tmpS;return `<button class="card t-${k.t} r${k.r}${description.length>32?' wordy':''}${c.up?' up':''}${g?' g-'+g:''}${c.tier?' tr'+c.tier:''}${dorm?' dorm':''}${K[c.id].m&&!c.tier?' mal':''} ${cls}" ${attrs}>${co>=0?`<span class="cost">${co}</span>`:''}${c.tier?`<span class="tier" title="${TIERN[c.tier]}">T${c.tier}</span>`:''}<span class="nm">${name(c)}</span><span class="art">${cardArt(c,G?.hero)}</span><span class="ds"><span>${keywordText(description)}</span></span><span class="ty">${TN[k.t]}${g?' · '+GODS[g].n:K[c.id].m?' · Malleable':''}${dorm?' · Dormant':''}</span></button>`}
 function intV(e){const n=e.int,o=[],d0=EN[e.k];if(n.a){const bl=n.slam&&d0.keep?Math.floor(e.block/2):0;let d=n.a+bl+(e.st.str||0);if(e.st.weak)d*=.75;if(C.p.st.vuln)d*=1.5;o.push(`<span class="it a" title="${G.party?'Attacks all living climbers. Damage shown for the active climber.':'Attack'}">${G.party?'All · ':''}${hudIcon("intent-attack",14)}${Math.floor(d)}${n.x>1?'×'+n.x:''}</span>`)}
  if(n.b)o.push(`<span class="it b" title="Block">${hudIcon("intent-block",14)}${n.b}</span>`);if(n.str)o.push(`<span class="it u" title="Buff">${hudIcon("intent-buff",14)}</span>`);if(n.weak||n.vuln||n.poison)o.push(`<span class="it d" title="Debuff">${hudIcon("intent-debuff",14)}${n.poison||''}</span>`);return (n.n?`<span class="iname">${n.n}</span>`:'')+`<span class="irow">${o.join('')}</span>`}
 const relicArtwork={
@@ -1058,39 +1238,81 @@ function partyHUD(){
 }
 function topV(){return `${partyHUD()}<div class="top"><span class="stat hp">${ICO.heart}${G.hp}/${G.maxHp}</span><span class="stat gd">${ICO.coin}${G.gold}</span><span class="stat">Floor ${G.floor}/13</span><span class="relics">${G.relics.map(k=>`<button class="rel" data-a="rel" data-v="${k}" aria-label="${RELICS[k].n}">${relicIcon(k)}</button>`).join('')}</span><button class="btn sm" data-a="deck"><img class="deck-back" alt="" src="assets/ui/cards/${({aether:"aetherwright",oath:"oathbound"})[G.hero]||"universal"}-back.png">Deck ${G.deck.length}</button></div>`}
 function partyMenuV(){return `<div class="panel"><h2>Multiplayer</h2><h3>Share one device</h3><p class="sub">Choose your party size. Each climber takes a turn before enemies attack the party. Enemy health scales with the starting party size.</p><div class="row">${[2,3,4].map(n=>`<button class="btn pri" data-a="party" data-v="${n}">${n} players</button>`).join('')}</div><div class="row" data-online-menu></div><button class="btn sm" data-a="title">Back</button></div>`}
-function pickV(){return `<div class="panel pick"><h2>${partyDraft?'Player '+(partyDraft.heroes.length+1)+' of '+partyDraft.size+' · Choose your climber':'Choose your climber'}</h2><p class="sub">Each hero has their own starting deck, relic and cards to find on the way up.</p><div class="heroes">${Object.entries(HEROES).map(([k,h])=>`<button class="hcard" data-a="hero" data-v="${k}"><span class="hp"><img src="${PSET[k].idle}" alt=""></span><b>${h.n}</b><span class="hb">${h.b}</span><span class="hs">${h.hp} HP · ${RELICS[h.relic].n}</span>${k=='oath'?`<span class="oaths">${Object.entries(GODS).map(([o,v])=>`<i class="o-${o}">${v.oath}</i>`).join('')}</span>`:''}</button>`).join('')}</div>${partyDraft?.online?'':'<button class="btn sm" data-a="title">Back</button>'}</div>`}
+let selectedHero='oath';
+function pickV(){if(partyDraft)return partyPickV();const k=HEROES[selectedHero]?selectedHero:'oath',h=HEROES[k],r=RELICS[h.relic],oath=k==='oath';return `<section class="ascent-select" aria-label="Choose your climber">
+<header class="select-head"><span class="select-brand">Hollow Ascent / Choose your path</span><button class="btn sm" data-a="title">Back</button></header>
+<div class="select-body"><figure class="select-scene${oath?'':' neutral'}"><img src="${oath?'assets/bg_oath_select.webp':PSET[k].idle}" alt="${oath?'The Oathbound kneels in a ruined circular temple before the gold sun, red warrior, blue mountain and water, and purple moon gods.':h.n+' — existing character artwork'}"><figcaption>${oath?'Four gods. One wandering knight.':'The Aetherwright'}</figcaption></figure>
+<div class="select-info"><p class="eyebrow">Choose your climber</p><h1>${h.n}</h1><p class="tagline">${oath?'Swear an Oath. Or trust your steel.':'Strength. Poison. Firepower.'}</p><p>${h.b}</p><div class="select-stats"><span>${h.hp} starting HP</span><span>${START_GOLD} starting gold</span></div>
+<div class="select-relic"><strong>${r.n}</strong><p>${r.d}</p></div>
+${oath?`<div class="select-laws" aria-label="Inspect the four Oaths">${Object.entries(GODS).map(([id,g])=>`<details><summary>${g.n} · ${g.oath}</summary><p>${g.law}</p><p>Price: ${g.price}</p></details>`).join('')}</div>`:''}
+<button class="btn" data-a="startdeck">Inspect starting deck</button><button class="btn pri" data-a="begin">Begin Ascent</button></div></div>
+<nav class="select-roster" aria-label="Character selection">${Object.entries(HEROES).map(([id,hero])=>`<button class="select-portrait" data-a="hero" data-v="${id}" aria-pressed="${id===k}"><img src="${PSET[id].idle}" alt=""><span>${hero.s}<small>${id===k?'Selected':'Select character'}</small></span></button>`).join('')}<button class="select-portrait" disabled aria-label="Duelist — unavailable"><span class="portrait-blank" aria-hidden="true">—</span><span>Duelist<small>Not yet available</small></span></button></nav></section>`}
+// Preview the same deck factory as newRun without consuming IDs or reading a previous combat.
+function inspectStartingDeck(){const prior={uid,G,C};try{G={hero:selectedHero,relics:[],oaths:[]};C=null;openPick(HEROES[selectedHero].n+' — starting deck',HEROES[selectedHero].deck(),null);const app=$('#app'),trigger=document.activeElement;app.inert=true;MD.onClose=()=>{app.inert=false;trigger?.focus()};$('#modal .btn').focus()}finally{uid=prior.uid;G=prior.G;C=prior.C}}
+function partyPickV(){return `<div class="panel pick"><h2>${partyDraft?'Player '+(partyDraft.heroes.length+1)+' of '+partyDraft.size+' · Choose your climber':'Choose your climber'}</h2><p class="sub">Each hero has their own starting deck, relic and cards to find on the way up.</p><div class="heroes">${Object.entries(HEROES).map(([k,h])=>`<button class="hcard" data-a="hero" data-v="${k}"><span class="hp"><img src="${PSET[k].idle}" alt=""></span><b>${h.n}</b><span class="hb">${h.b}</span><span class="hs">${h.hp} HP · ${RELICS[h.relic].n}</span>${k=='oath'?`<span class="oaths">${Object.entries(GODS).map(([o,v])=>`<i class="o-${o}">${v.oath}</i>`).join('')}</span>`:''}</button>`).join('')}</div>${partyDraft?.online?'':'<button class="btn sm" data-a="title">Back</button>'}</div>`}
 function oathPreviewV(){const h=HEROES.oath;return `<section class="oath-preview" aria-label="Selected character: The Oathbound"><div class="oath-art" role="img" aria-label="The Oathbound kneels before the four gods"></div><div class="oath-summary"><h1>${h.n}</h1><p class="sub">${h.b}</p><span class="hs">${h.hp} HP · ${RELICS[h.relic].n}</span><div class="oaths">${Object.entries(GODS).map(([o,v])=>`<i class="o-${o}">${v.oath}</i>`).join('')}</div><div class="row"><button class="btn" data-a="pickback">Back to characters</button><button class="btn pri" data-a="oathstart">${partyDraft?'Confirm Oathbound':'Begin ascent'}</button></div></div></section>`}
 function titleV(){const s=load(),partySave=load(true);let emb='';for(let i=0;i<14;i++)emb+=`<circle class="emb" cx="${(i*67)%400}" cy="${200+(i*37)%40}" r="${1+(i%3)*.6}" fill="#ff5a36" style="animation-delay:${-(i*.53).toFixed(2)}s"/>`;
  return `<div class="title"><div class="hero" role="img" aria-label="A sealed aether gate in overgrown ruins"><div class="tmark"><h1>Hollow Ascent</h1><p class="kick">A roguelike deckbuilder</p></div></div>
- <div class="tbody"><p class="lede">Climb thirteen floors, shape your deck one card at a time, and topple the Hollow King at the top.</p><div class="row"><button class="btn pri" data-a="new">Single Player</button><button class="btn" data-a="partymenu">Multiplayer</button>${partySave?`<button class="btn" data-a="contparty">Continue party · Floor ${partySave.floor}</button>`:''}${s?`<button class="btn" data-a="cont">Continue ${s.threshold&&!s.threshold.applied?'at the Threshold':'solo from floor '+s.floor}</button>`:''}</div>
- <details class="how"><summary>How to play</summary><ul><li>Tap a card to play it. If several enemies are alive, attacks ask you to tap a target.</li><li>Each turn you get 3 energy and draw 5 cards. Block fades at the start of your turn.</li><li>Enemy intents show their next move: red attacks, teal blocks, gold buffs, violet debuffs.</li><li>Vulnerable takes 50% more damage, Weak deals 25% less, Poison ticks every turn.</li><li>After fights, add a card or skip. A lean deck is often stronger. Rest sites heal or upgrade.</li><li>On a keyboard: 1 to 9 plays cards, E ends your turn.</li></ul></details></div></div>`}
-function mapV(){const m=G.map,F=m.length,H=(F-1)*64+92;
- const xy=(f,l)=>f==F-1?[180,48]:[60+l*80+m[f][l].jx,H-38-f*64+m[f][l].jy];
- const av=new Set(avail().map(a=>a.join())),vis=new Set(G.path.map(a=>a.join())),ed=new Set(G.path.map((p,k)=>k?G.path[k-1].join()+'>'+p.join():''));
- const cf=G.pos?G.pos.f:-1;let ln='',nd='';
- m.forEach((row,f)=>row.forEach((n,l)=>{const[x,y]=xy(f,l);
-  n.next.forEach(nl=>{const[x2,y2]=xy(f+1,nl);ln+=`<line x1="${x}" y1="${y}" x2="${x2}" y2="${y2}" class="${ed.has(f+','+l+'>'+(f+1)+','+nl)?'on':''}"/>`});
-  const k=f+','+l,can=av.has(k),v=vis.has(k),dim=f<=cf&&!v,b=n.t=='boss',r=b?30:19;
-  nd+=`<g class="node${can?' can':''}${v?' vis':''}${dim?' dim':''}${b?' boss':''}" transform="translate(${x} ${y})"${can?` data-a="go" data-v="${k}" role="button" aria-label="${TL[n.t]}"`:''}><circle class="hit" r="${r+9}"/><circle class="c" r="${r}"/>${b?`<g transform="scale(1.7)">${NI.boss}</g>`:NI[n.t]}</g>`}));
- return `<div class="mapv"><div class="maphead"><h2>${G.pos?'Choose your path':'Begin the ascent'}</h2><p>${G.pos?'Tap a glowing node to move up a floor.':'Pick any starting room on the bottom floor.'}</p></div><div class="legend">${Object.keys(TL).filter(t=>t!='shrine'||(G.party||[G]).some(m=>m.hero==='oath')).map(t=>`<span><svg viewBox="-12 -12 24 24" width="22" height="22" aria-hidden="true">${NI[t]}</svg>${TL[t]}</span>`).join('')}</div><svg class="map" viewBox="0 0 360 ${H}">${ln}${nd}</svg></div>`}
+ <div class="tbody"><p class="lede">Climb thirteen floors, shape your deck one card at a time, and topple the Hollow King at the top.</p><div class="row"><button class="btn pri" data-a="new">Single Player</button><button class="btn" data-a="partymenu">Multiplayer</button>${partySave?`<button class="btn" data-a="contparty">Continue party · Floor ${partySave.floor}</button>`:''}${s?`<button class="btn" data-a="cont">Continue solo ${s.threshold&&!s.threshold.applied?'at the Threshold':'from floor '+s.floor}</button>`:''}</div>
+ <a class="btn" href="?gallery=1">Reference gallery</a><a class="btn" href="enemy-lab.html">Enemy Animation Lab</a><details class="how"><summary>How to play</summary><ul><li>Tap a card to play it. If several enemies are alive, attacks ask you to tap a target.</li><li>Each turn you get 3 energy and draw 5 cards. Block fades at the start of your turn.</li><li>Enemy intents show their next move: red attacks, teal blocks, gold buffs, violet debuffs.</li><li>Vulnerable takes 50% more damage, Weak deals 25% less, Poison ticks every turn.</li><li>After fights, add a card or skip. A lean deck is often stronger. Rest sites heal or upgrade.</li><li>On a keyboard: 1 to 9 plays cards, E ends your turn.</li></ul></details><button class="btn sm" data-a="maplab">Map Lab</button></div></div>`}
+let selectedNode=null, labRun=null, travelling=false;
+function mapV(){return ActMap.render(G,selectedNode)}
+function setupLab(seed,hero){
+ labRun={hero,mapSeed:seed,map:genMap(hero,seed),pos:null,path:[]};
+ selectedNode=null;screen='maplab';render()
+}
+function labArtV(){
+ const {art,root}=ActMap.act;
+ return `<details class="lab-art"><summary>Act I asset registry</summary>${Object.entries(art).map(([group,entries])=>
+  `<h3>${group}</h3><div>${Object.entries(entries).map(([key,path])=>
+   `<figure><img loading="lazy" src="${root+path}" alt=""><figcaption>${key.replaceAll('_',' ')}</figcaption></figure>`).join('')}</div>`).join('')}</details>`
+}
+function labV(){return `<section class="lab-tools" aria-label="Map Lab">
+ <strong>Map Lab</strong><label>Seed <input id="lab-seed" type="number" min="0" max="4294967295" value="${labRun.mapSeed}"></label>
+ <label>Hero <select id="lab-hero">${Object.entries(HEROES).map(([id,h])=>`<option value="${id}" ${id===labRun.hero?'selected':''}>${h.s}</option>`).join('')}</select></label>
+ <button class="btn" data-a="labApply">Generate</button><button class="btn" data-a="title">Back to title</button></section>`+labArtV()+ActMap.render(labRun,selectedNode)}
+function previewNode(key){
+ if(travelling||!['map','maplab'].includes(screen))return;
+ const run=screen==='map'?G:labRun;
+ if(!ActMap.available(run).some(p=>p.join()===key))return;
+ selectedNode=key;
+ render();$('.node.selected')?.scrollIntoView({block:'center'});$('.route-preview button')?.focus({preventScroll:true})
+}
+async function travel(){
+ if(travelling||!selectedNode||!['map','maplab'].includes(screen))return;
+ const lab=screen==='maplab',run=lab?labRun:G;
+ const dest=ActMap.available(run).find(p=>p.join()===selectedNode);
+ if(!dest)return;
+ travelling=true;
+ try{
+  $('.node.selected')?.classList.add('travel');
+  if(!RM){$('.journey-marker animateTransform')?.beginElement?.();await sleep(320)}
+  if(screen!==(lab?'maplab':'map')||(lab?labRun:G)!==run)return;
+  selectedNode=null;
+  const [f,l]=dest;
+  if(!lab)return enter(f,l);
+  run.pos={f,l};run.path.push(dest);render();($('.node.can')||$('.node.completed:last-of-type'))?.scrollIntoView({block:'center'});
+  if(f===run.map.length-1)toast('Act I route complete')
+ }finally{travelling=false}
+}
 function heroV(now){const p=C.p;return `<div class="unit hero${p.block?' guard':''}" id="hero"><span class="spr"><i class="gshadow"></i></span><span class="info"><span class="fn">${HEROES[G.hero||'aether'].s}</span><span class="bar"><i style="width:${G.hp/G.maxHp*100}%"></i></span><span class="hpt">${G.hp}/${G.maxHp}${p.block?` <span class="chip blk">${hudIcon("intent-block",14)}${p.block}</span>`:''}</span><span class="chips">${(G.oaths||[]).map(g=>`<button class="chip oath o-${g}" data-a="oinfo" data-v="${g}" title="${GODS[g].law}">${hudIcon("oath-"+oathArt[g],20)}${GODS[g].oath}</button>`).join('')}${stV(p.st)}</span></span></div>`}
-function rigV(d,e,now){const R0=RIGS[d.rig],dl=(now+e.i*900)%2600|0,P=(q,j)=>Array.isArray(q)?`<img class="rp${q[4]?' a-'+q[4]:''}" src="assets/enemies/${d.rig}/${q[0]}.webp" alt="" draggable="false" style="left:${q[1]}%;top:${q[2]}%;width:${q[3]}%;transform-origin:${q[5]};animation-delay:-${(dl+j*370+e.i*610)%4000}ms">`:`<span class="rgp a-${q.a}" style="transform-origin:${q.o};animation-delay:-${(dl+q.g.length*530+e.i*610)%4000}ms">${q.p.map((c,k)=>P(c,j*7+k)).join('')}</span>`;
+function rigV(d){
  const pose=(name,cls)=>`<img class="${cls}" src="assets/enemies/${d.rig}/${name}.webp" alt="" draggable="false">`;
- const idle=d.paintedIdle?pose('idle','enemy-idle bob'):
-  `<span class="rg bob${d.actionPoses?' enemy-idle':''}${d.fly?' fly':''}" style="animation-delay:-${dl}ms">${R0.p.map(P).join('')}</span>`;
+ const idle=d.paintedIdle?pose('idle','enemy-idle bob'):`<svg class="${d.actionPoses?'enemy-idle':''}" data-rig="${d.rig}" aria-hidden="true"></svg>`;
  const actions=d.actionPoses?pose('attack','enemy-action enemy-attack')+pose('hurt','enemy-action enemy-hurt'):'';
  return `<span class="spr paint">${idle}${actions}</span>`}
 function foeV(e,tg,now){const d=EN[e.k],dead=e.hp<=0,el=dead?now-(e.dieAt||0):0,st=dead?(el<800?' dying':' dead'):'';
- return `<button class="unit${d.big?' big':''}${d.img||d.rig?' pw':''}${tg&&!dead?' tgt':''}${st}" id="f${e.i}" data-a="foe" data-v="${e.i}" aria-label="${d.n}" style="${d.img||d.rig?`--w:${d.w};--h:${(d.w/(d.rig?RIGS[d.rig].ar:d.ar)).toFixed(1)};`:''}${st==' dying'?`animation-delay:-${el|0}ms`:''}"><span class="ints">${dead?'':intV(e)}</span>${d.rig?rigV(d,e,now):d.img?`<span class="spr paint"><img class="bob${d.fly?' fly':''}" src="assets/enemies/${d.img}.webp" alt="" draggable="false" style="animation-delay:-${(now+e.i*900)%2600|0}ms"></span>`:`<span class="spr"><svg class="bob${d.s=='moth'||d.s=='ghost'?' fly':''}" viewBox="0 0 120 100" style="animation-delay:-${(now+e.i*900)%2600|0}ms" aria-hidden="true">${d.mir?`<g transform="matrix(-1 0 0 1 120 0)">${SPR[d.s](d.col)}</g>`:SPR[d.s](d.col)}</svg></span>`}<span class="info"><span class="fn"${d.pas?` title="${d.pas[0]}: ${d.pas[1]}"`:''}>${d.n}${d.pas?'<i class="pas">◆</i>':''}</span><span class="bar"><i style="width:${e.hp/e.max*100}%"></i></span><span class="hpt">${e.hp}/${e.max}${e.block?` <span class="chip blk">${hudIcon("intent-block",14)}${e.block}</span>`:''}</span><span class="chips">${stV(e.st)}</span></span></button>`}
+ return `<button class="unit${d.big?' big':''}${d.img||d.rig?' pw':''}${tg&&!dead?' tgt':''}${st}" id="f${e.i}" data-a="foe" data-v="${e.i}" aria-label="${d.n}" style="${d.img||d.rig?`--w:${d.w};--h:${(d.w/(d.rig?EnemyRigData[d.rig].size[0]/EnemyRigData[d.rig].size[1]:d.ar)).toFixed(1)};`:''}${st==' dying'?`animation-delay:-${el|0}ms`:''}"><span class="ints">${dead?'':intV(e)}</span>${d.rig?rigV(d):d.img?`<span class="spr paint"><img class="bob${d.fly?' fly':''}" src="assets/enemies/${d.img}.webp" alt="" draggable="false" style="animation-delay:-${(now+e.i*900)%2600|0}ms"></span>`:`<span class="spr"><svg class="bob${d.s=='moth'||d.s=='ghost'?' fly':''}" viewBox="0 0 120 100" style="animation-delay:-${(now+e.i*900)%2600|0}ms" aria-hidden="true">${d.mir?`<g transform="matrix(-1 0 0 1 120 0)">${SPR[d.s](d.col)}</g>`:SPR[d.s](d.col)}</svg></span>`}<span class="info"><span class="fn"${d.pas?` title="${d.pas[0]}: ${d.pas[1]}"`:''}>${d.n}${d.pas?'<i class="pas">◆</i>':''}</span><span class="bar"><i style="width:${e.hp/e.max*100}%"></i></span><span class="hpt">${e.hp}/${e.max}${e.block?` <span class="chip blk">${hudIcon("intent-block",14)}${e.block}</span>`:''}</span><span class="chips">${stV(e.st)}</span></span></button>`}
 function handV(){const n=C.hand.length;if(!n)return '<p class="empty">No cards in hand</p>';const mid=(n-1)/2,now=performance.now();
  return C.hand.map((c,i)=>{const o=i-mid,rot=n>1?o*Math.min(4,12/n):0,y=Math.min(24,o*o*Math.min(3.2,16/n)),dl=c.dt?c.dt-now:-999,an=dl>-420&&!RM?`;animation:deal .42s ease-out ${dl|0}ms backwards`:'';
   return cardV(c,`data-a="card" data-v="${i}" style="--offset:${o};--gaps:${Math.max(1,n-1)};--r:${rot.toFixed(2)}deg;--y:${y.toFixed(1)}px;z-index:${i+1}${an}"`,(i==C.sel?'sel ':'')+(playable(c)?'':'no'))}).join('')}
 function combatV(){const tg=C.sel>=0,now=performance.now();
- return `<div class="stage">${scene(G.floor)}<p class="hint">${C.won?'Victory':combatEnemyPhase?'Enemy turn':C.busy?'Ending turn':tg?'Drag to an enemy, or tap one':'Your turn '+C.turn}</p><div class="actors">${heroV(now)}<div class="foes">${C.foes.map(e=>foeV(e,tg,now)).join('')}</div></div>${fgV(G.floor)}</div>
+ return `<div class="stage biome-${biome(G.floor)}">${scene(G.floor)}<div class="foreground-soften" aria-hidden="true"></div><p class="hint">${C.won?'Victory':combatEnemyPhase?'Enemy turn':C.busy?'Ending turn':tg?'Drag to an enemy, or tap one':'Your turn '+C.turn}</p><output class="draw-forecast" aria-live="polite">${C.sel>=0?drawForecast(C.hand[C.sel]):''}</output><div class="actors">${heroV(now)}<div class="foes">${C.foes.map(e=>foeV(e,tg,now)).join('')}</div></div>${fgV(G.floor)}</div>
  <div class="hand">${handV()}</div>
- <div class="ctl"><div class="orb" title="Energy"><b>${C.energy}</b><small>of 3</small></div><span class="piles">${hudIcon("pile-draw",24)}Draw ${C.draw.length} · ${hudIcon("pile-discard",24)}Discard ${C.disc.length}${G.hero=='oath'&&SWN()?'<br>'+G.oaths.map(g=>`<img class="sanctum-art" src="assets/ui/sanctums/${g}.png" alt="">${GODS[g].sanc}`).join(' + ')+' '+actSanc().length:''}${C.exh.length?'<br>'+hudIcon('pile-exhaust',24)+'Exhausted '+C.exh.length:''}</span>${has('key')&&!C.keyUsed&&!C.busy&&dormGods().some(g=>C.sanc[g].length)?`<button class="btn sm" data-a="key" title="${RELICS.key.d}">Key</button>`:''}<button class="btn pri" data-a="end" ${C.busy?'disabled':''}>End turn</button></div>`}
+ <div class="ctl"><div class="orb" title="Energy"><b>${C.energy}</b><small>of 3</small></div><div class="piles">${pileControls()}</div>${has('key')&&!C.keyUsed&&!C.busy&&dormGods().some(g=>C.sanc[g].length)?`<button class="btn sm" data-a="key" title="${RELICS.key.d}">Key</button>`:''}<button class="btn pri" data-a="end" ${C.busy?'disabled':''}>End turn</button></div>`}
+const copiesOwned=id=>G.deck.filter(c=>c.id===id&&!c.tier).length;
 function rewardV(){const r=RW.relic&&RELICS[RW.relic];return `<div class="panel"><h2>${RW.title||'Victory'}</h2>${RW.gold?`<p class="sub">You found ${RW.gold} gold.</p>`:''}${r?`<button class="btn relbtn" data-a="rrelic"><span class="rel">${relicIcon(RW.relic)}</span><span>Take ${r.n}: ${r.d}</span></button>`:''}
- ${RW.cards.length?`<h3>${RW.ascDone&&!RW.asc.free?'You chose an Ascension':RW.taken?'Card added to your deck':'Choose a card to add'}</h3><div class="row">${RW.cards.map((id,i)=>cardV({id,up:0},RW.taken?'disabled':`data-a="rcard" data-v="${i}"`,RW.taken?'no':'')).join('')}</div>`:''}
+ ${RW.cards.length?`<h3>${RW.ascDone&&!RW.asc.free?'You chose an Ascension':RW.taken?'Card added to your deck':'Choose a card to add'}</h3><div class="row">${RW.cards.map((id,i)=>`<div class="ware">${cardV({id,up:0},RW.taken?'disabled':`data-a="inspectreward" data-v="${i}"`,RW.taken?'no':'')}<span>${copiesOwned(id)} in deck</span></div>`).join('')}</div>`:''}
  ${RW.asc&&!RW.ascDone&&(RW.asc.free||!RW.taken)?`<div class="opts"><button class="btn opt" data-a="rasc">${RW.asc.free?'A divine light rests on the chest. Exalt a card':'Instead of a card, Ascend one'} (T${RW.asc.from} to T${RW.asc.from+1})</button></div>`:''}
  <button class="btn pri" data-a="map">${RW.cards.length&&!RW.taken?'Skip card and continue':'Continue'}</button></div>`}
 function shrineV(){const cur=G.oaths||[],mx=has('twin')?2:1,o=[];
@@ -1101,40 +1323,269 @@ function shrineV(){const cur=G.oaths||[],mx=has('twin')?2:1,o=[];
   if(SR.ex&&ascList(2).length)o.push(`<button class="btn opt" data-a="sasc" data-v="2">Kneel: Exalt a card (T2 Ascended to T3 Exalted)</button>`)}
  return `<div class="panel shrine"><svg class="pic" viewBox="0 0 200 120" aria-hidden="true"><ellipse cx="100" cy="112" rx="70" ry="7" fill="#000" opacity=".5"/><path d="M70 112V60H130V112Z" fill="#1a1210" stroke="#e8c86a" stroke-width="3"/>${Object.values(GODS).map((v,i)=>`<circle cx="${64+i*24}" cy="34" r="8" fill="${v.hex}" opacity=".85"/>`).join('')}<path class="flame" d="M100 66C110 78 110 88 104 96H96C90 88 90 78 100 66Z" fill="#e8c86a"/></svg><h2>${SR.ex?'Exalted shrine':'Divine shrine'}</h2>
  <p class="sub">${SR.msg||(cur.length?'You are sworn to '+cur.map(g=>GODS[g].full).join(' and ')+'.':'You are Unsworn. Four altars wait, each lit by a different god.')+' There is time for one rite.'}</p>${SR.done?'':`<div class="opts">${o.join('')}</div>`}<button class="btn${SR.done?' pri':''}" data-a="map">${SR.done?'Continue':'Walk on'}</button></div>`}
-function shopV(){return `<div class="panel"><h2>The Merchant</h2><p class="sub">Everything has a price. You have ${G.gold} gold.</p><div class="row">${SH.cards.map((s,i)=>`<div class="ware">${cardV({id:s.id,up:0},s.sold?'disabled':`data-a="buy" data-v="${i}"`,s.sold?'no':'')}<span class="price${!s.sold&&G.gold<s.p?' poor':''}">${s.sold?'Sold':s.p+' gold'}</span></div>`).join('')}</div>
+function shopV(){return `<div class="panel"><h2>The Merchant</h2><p class="sub">Everything has a price. You have ${G.gold} gold.</p><div class="row">${SH.cards.map((s,i)=>`<div class="ware">${cardV({id:s.id,up:0},s.sold?'disabled':`data-a="inspectware" data-v="${i}"`,s.sold?'no':'')}<span class="price${!s.sold&&G.gold<s.p?' poor':''}">${s.sold?'Sold':s.p+' gold'}</span></div>`).join('')}</div>
  <div class="opts">${SH.relic?`<button class="btn opt" data-a="buyrel" ${SH.relic.sold?'disabled':''}>${SH.relic.sold?'Relic sold':`Relic, ${SH.relic.p} gold: ${RELICS[SH.relic.k].n}. ${RELICS[SH.relic.k].d}`}</button>`:''}<button class="btn opt" data-a="remove" ${SH.removed?'disabled':''}>${SH.removed?'Card removed':'Remove a card from your deck: '+merchantPrice(75)+' gold'}</button></div><button class="btn pri" data-a="map">Leave the shop</button></div>`}
+const restHealing=()=>Math.min(G.maxHp-G.hp,Math.round(G.maxHp*.3));
 function restV(){return `<div class="panel"><img class="rest-art" src="assets/scenes/rest-site.webp" alt=""><h2>Rest site</h2><p class="sub">${RS.msg||'The fire is warm. There is time for one thing before you climb on.'}</p>
- ${RS.done?'':`<div class="row"><button class="btn" data-a="rheal">Rest: heal ${Math.round(G.maxHp*.3)} HP</button><button class="btn" data-a="rsmith">Smith: upgrade a card</button></div>`}<button class="btn${RS.done?' pri':''}" data-a="map">${RS.done?'Continue':'Skip'}</button></div>`}
+ ${RS.done?'':`<div class="row"><button class="btn" data-a="rheal" ${restHealing()?'':'disabled'}>Rest · ${restHealing()?'Heal '+restHealing()+' HP ('+G.hp+' → '+(G.hp+restHealing())+')':'Full HP'}</button><button class="btn" data-a="rsmith">Smith: upgrade a card</button></div>`}<button class="btn${RS.done?' pri':''}" data-a="map">${RS.done?'Continue':'Skip'}</button></div>`}
 function eventV(){const e=EV.e;return `<div class="panel"><svg class="pic" viewBox="0 0 200 120" aria-hidden="true"><ellipse cx="100" cy="114" rx="70" ry="6" fill="#000" opacity=".5"/><path d="M58 114V58C58 31 77 14 100 14S142 31 142 58V114Z" fill="#0d0807" stroke="#e8c86a" stroke-width="3"/><circle cx="100" cy="68" r="22" fill="#ff5a36" opacity=".25"/><circle cx="100" cy="68" r="9" fill="#ff5a36"/><text x="100" y="74" text-anchor="middle" font-family="Cinzel,serif" font-weight="800" font-size="16" fill="#1a0d09">?</text></svg><h2>${e.n}</h2><p class="sub">${EV.msg||e.t}</p>
  ${EV.done?`<button class="btn pri" data-a="map">Continue</button>`:`<div class="opts">${e.o.map((o,i)=>`<button class="btn opt" data-a="evo" data-v="${i}" ${o.ok&&!o.ok()?'disabled':''}>${o.l}</button>`).join('')}</div>`}</div>`}
-function thresholdV(){const t=G.threshold,p=t.pending,b=blessingById(t.selected);return `<section class="threshold" aria-label="The Threshold"><h1>The Threshold</h1><p class="sub">${G.party?`Player ${activeSeat()+1} of ${partySize()} · `:""}Choose what you carry into the ascent.</p>${p?`<h2>${b.n}</h2><p class="sub">${b.d}</p><div class="row">${p.choices.map(v=>{const c=p.type==='card'?{id:v,up:0}:G.deck.find(x=>x.u===v);return c?cardV(c,`data-a="blessresolve" data-v="${v}"`):''}).join('')}</div>`:`<div class="threshold-offers">${t.offers.map((id,i)=>{const a=blessingById(id);return `<button class="threshold-offer" style="--delay:${i*130}ms" data-a="bless" data-v="${id}"><span class="threshold-art">${ICO[a.icon]}</span><b>${a.n}</b><span>${a.d}</span><i>${a.flavor}</i><strong>Accept offering</strong></button>`}).join('')}</div>`}</section>`}
 function endV(){const w=screen=='win';return `<div class="panel end"><svg class="pic" viewBox="0 0 200 120" aria-hidden="true">${w?`<g transform="translate(100 64) scale(4.2)">${NI.boss}</g>`:`<g transform="translate(100 62) scale(4.2)">${NI.elite}</g>`}</svg><h1>${w?'The King falls':'Your climb ends'}</h1><p class="sub">${G.party?(w?`Your ${partySize()} climbers defeated the Hollow King.`:`Your party fell on floor ${G.floor} of 13.`):w?`You toppled the Hollow King with a deck of ${G.deck.length} cards and ${G.relics.length} relics.`:`You fell on floor ${G.floor} of 13 with ${G.deck.length} cards in your deck.`}</p><button class="btn pri" data-a="${G.party?'title':'new'}">${G.party?'Return to title':'Start a new run'}</button></div>`}
+function thresholdV(){const t=G.threshold,p=t.pending,b=blessingById(t.selected);return `<section class="threshold" aria-label="The Threshold"><h1>The Threshold</h1><p class="sub">${G.party?`Player ${activeSeat()+1} of ${partySize()} · `:""}Choose what you carry into the ascent.</p>${p?`<h2>${b.n}</h2><p class="sub">${b.d}</p><div class="row">${p.choices.map(v=>{const c=p.type==='card'?{id:v,up:0}:G.deck.find(x=>x.u===v);return c?cardV(c,`data-a="blessresolve" data-v="${v}"`):''}).join('')}</div>`:`<div class="threshold-offers">${t.offers.map((id,i)=>{const a=blessingById(id);return `<button class="threshold-offer" style="--delay:${i*130}ms" data-a="bless" data-v="${id}"><span class="threshold-art">${ICO[a.icon]}</span><b>${a.n}</b><span>${a.d}</span><i>${a.flavor}</i><strong>Accept offering</strong></button>`}).join('')}</div>`}</section>`}
 const VIEWS={threshold:thresholdV,map:mapV,combat:combatV,reward:rewardV,shop:shopV,rest:restV,shrine:shrineV,event:eventV,dead:endV,win:endV};
-function render(){PT=null;PV.key='';$('#app').innerHTML=screen=='title'?titleV():screen=='partymenu'?partyMenuV():screen=='pick'?pickV():screen=='oathpreview'?oathPreviewV():topV()+VIEWS[screen]();
+function render(){hideKeyword();setZoom();PT=null;PV.key='';$('#app').innerHTML=screen=='title'?titleV():screen=='maplab'?labV():screen=='partymenu'?partyMenuV():screen=='pick'?pickV():screen=='oathpreview'?oathPreviewV():topV()+VIEWS[screen]();
  if(screen=='map'){const n=$('.node.can');if(n)try{n.scrollIntoView({block:'center'})}catch(e){}}else if(screen!='combat')window.scrollTo(0,0);
- if(screen=='combat'){const st=$('.stage');if(st){bgMount(st);ptMount(st)}const hs=$('#hero .spr');if(hs)rigMount(hs)}
+ EnemyRigs.clear();
+ if(screen=='combat'){for(const e of C.foes){
+  const svg=document.querySelector('#f'+e.i+' [data-rig]');
+  if(svg)EnemyRigs.mount(svg,svg.dataset.rig,e);
+ }const st=$('.stage');if(st){bgMount(st);ptMount(st)}const hs=$('#hero .spr');if(hs)rigMount(hs)}
  flush();if(screen=='combat'&&C&&C.sel>=0&&!aimOn){aimOn=true;requestAnimationFrame(aimTick)}}
 function openPick(title,cards,cb,cancel){const list=cb?cards:[...cards].sort((a,b)=>KD(a).t.localeCompare(KD(b).t)||KD(a).n.localeCompare(KD(b).n));MD={cards:list,cb};
  $('#modal').innerHTML=`<div class="modal" role="dialog" aria-label="${title}"><div class="mhead"><h2>${title}</h2><button class="btn" data-a="mclose">${cb?(cancel||'Cancel'):'Close'}</button></div><div class="grid">${list.map((c,i)=>cardV(c,cb?`data-a="mpick" data-v="${i}"`:'')).join('')||'<p class="sub">No cards to choose.</p>'}</div></div>`}
-function closeModal(){const m=MD;MD=null;$('#modal').innerHTML='';if(m&&m.onClose)m.onClose();if(m&&m.ask)m.ask(null)}
+const PILE_NAMES={draw:'Draw',disc:'Discard',exh:'Exhaust'};
+function pileControls(){
+ const button=(id,label)=>`<button class="pile-btn" data-a="pile" data-v="${id}" ${C.busy||C.lock?'disabled':''}>${label}</button>`;
+ const controls=Object.entries(PILE_NAMES).map(([id,label])=>button(id,label+' '+C[id].length));
+ if(G.hero==='oath')controls.push(button('sanctums','Sanctums '+Object.values(C.sanc).reduce((n,p)=>n+p.length,0)));
+ return controls.join('');
+}
+function pileCards(cards){
+ const groups=new Map();
+ for(const card of cards){
+  const face=cardV(card,'tabindex="-1" aria-disabled="true"');
+  const used=!!(godOf(card)&&card.dturn===C.turn);
+  const label=used?'Divine Draw used this turn':'';
+  const key=JSON.stringify([face,label,retS(card),C.once.includes(card.u)]);
+  if(groups.has(key))groups.get(key).count++;
+  else groups.set(key,{face,label,count:1,name:name(card),key});
+ }
+ const sorted=[...groups.values()].sort((a,b)=>a.name.localeCompare(b.name)||a.key.localeCompare(b.key));
+ return sorted.map(g=>`<figure>${g.face}<figcaption>${g.count>1?'×'+g.count:''} ${g.label}</figcaption></figure>`).join('')||'<p>Empty</p>';
+}
+function inspectPile(id){
+ if(screen!=='combat'||!C||C.busy||C.lock||MD)return;
+ const sanctums=id==='sanctums'&&G.hero==='oath';
+ if(!sanctums&&!Object.hasOwn(PILE_NAMES,id))return;
+ const title=sanctums?'Sanctums':PILE_NAMES[id]+' pile';
+ const content=sanctums?Object.entries(C.sanc).map(([g,cards])=>`<section><h3>${GODS[g].sanc} · ${ACT(g)?'Active':'Dormant'} · ${cards.length}</h3><div class="grid">${pileCards(cards)}</div></section>`).join(''):`<div class="grid">${pileCards(C[id])}</div>`;
+ MD={pile:id,onClose:()=>$('[data-a="pile"][data-v="'+id+'"]')?.focus()};
+ $('#modal').innerHTML=`<div class="modal pile-view" role="dialog" aria-modal="true" aria-label="${title}"><div class="mhead"><h2>${title}</h2><button class="btn" data-a="mclose">Close</button></div>${id==='draw'?'<p class="sub">Shown alphabetically</p>':''}${content}</div>`;
+ $('#modal [data-a="mclose"]').focus();
+}
+function openSmith(){
+ if(screen!=='rest'||RS.done)return;
+ const cards=upgradable();
+ if(!cards.length)return toast('No cards can be upgraded here.');
+ MD={smith:cards,index:-1,onClose:()=>$('[data-a="rsmith"]')?.focus()};
+ $('#modal').innerHTML=`<div class="modal smith-dialog" role="dialog" aria-modal="true" aria-label="Upgrade a card">
+ <div class="mhead"><h2>Upgrade a card</h2><button class="btn" data-a="mclose">Cancel</button></div>
+ <div class="smith-pair" aria-live="polite"></div><div class="smith-list">${cards.map((c,i)=>`<button class="btn" aria-pressed="false" data-a="smithpreview" data-v="${i}">${name(c)}</button>`).join('')}</div>
+ <button class="btn pri" data-a="smithconfirm"></button></div>`;
+ const list=$('.smith-list');
+ const inspect=e=>{const item=e.target.closest('[data-a="smithpreview"]');if(item)previewSmith(Number(item.dataset.v))};
+ list.addEventListener('pointerover',e=>{if(e.pointerType==='mouse')inspect(e)});
+ list.addEventListener('focusin',inspect);
+ previewSmith(0);list.firstElementChild.focus();
+}
+// Match unchanged words in order so multiple independent edits stay legible.
+function markSmithChanges(before,after){
+ const tokens=el=>el.textContent.match(/\s+|[\p{L}\p{N}]+|[^\s]/gu)||[];
+ const a=tokens(before),b=tokens(after);
+ const matches=Array.from({length:a.length+1},()=>new Uint16Array(b.length+1));
+ for(let i=a.length-1;i>=0;i--)for(let j=b.length-1;j>=0;j--)
+  matches[i][j]=a[i]===b[j]?1+matches[i+1][j+1]:Math.max(matches[i+1][j],matches[i][j+1]);
+ const keptA=new Set(),keptB=new Set();
+ for(let i=0,j=0;i<a.length&&j<b.length;){
+  if(a[i]===b[j]){keptA.add(i++);keptB.add(j++)}
+  else if(matches[i+1][j]>=matches[i][j+1])i++;else j++;
+ }
+ function paint(el,words,kept){el.replaceChildren(...words.map((word,i)=>{
+  if(kept.has(i)||!word.trim())return word;
+  const mark=document.createElement('mark');mark.textContent=word;return mark;
+ }))}
+ if(keptA.size!==a.length||keptB.size!==b.length){paint(before,a,keptA);paint(after,b,keptB)}
+}
+function previewSmith(i){
+ const card=MD?.smith?.[i];if(!card||MD.index===i)return;
+ MD.index=i;
+ showComparison(card,'Current');
+ for(const btn of $('.smith-list').children)btn.setAttribute('aria-pressed',String(Number(btn.dataset.v)===i));
+ $('[data-a="smithconfirm"]').textContent='Upgrade '+name(card);
+}
+function showComparison(card,label){
+ const pair=$('.smith-pair');
+ const face=(label,c)=>`<figure><figcaption>${label}</figcaption>${cardV(c,'tabindex="-1" aria-disabled="true"')}</figure>`;
+ pair.innerHTML=face(label,card)+(canSmith(card)?face('Upgraded',{...card,up:1}):'');
+ for(const selector of ['.cost','.ds>span']){
+  const [before,after]=pair.querySelectorAll(selector);
+  if(before&&after){
+   markSmithChanges(before,after);
+   if(selector==='.ds>span')for(const face of [before,after]){
+    if(!face.querySelector('[data-keyword]'))face.innerHTML=keywordText(face.innerHTML);
+   }
+  }
+ }
+}
+const rewardTerms=[
+ ['Strength','str'],['Dexterity','dex'],['Anointed','anoint'],['Bloodlust','blust'],
+ ['Resolve','resolve'],['Soulbound','soul'],['Vulnerable','vuln'],['Weak','weak'],['Poison','poison']
+].map(([term,key])=>[term,STN[key][2].split(': ').pop()]).concat([
+ ['Block','Absorbs incoming attack damage. Normally clears at the start of your next turn.'],
+ ['Exhaust','Moves a card to the Exhaust pile for this combat. It stays in your deck for later fights.','Exhaust(?:ed)?'],
+ ['Draw','Move cards into your hand. An empty draw pile reshuffles from Discard. Your hand holds up to 10.'],
+ ['Divine Draw','Draw a random eligible card from a Sanctum. Each card can be drawn this way once per turn.'],
+ ['Energy','Pay this resource to play a card. Its cost appears in the upper corner.'],
+ ['Sanctify','While sworn, playing this card permanently transforms it into a card of your god and places it in their Sanctum. Your ordinary deck must keep at least 8 cards.'],
+ ['Unsworn','You have no active oath.'],
+ ['Sworn','This card normally returns to its god’s Sanctum after play or discard.'],
+ ['Dormant Sanctum','A god’s card pile while their oath is inactive.'],
+ ['Reliquary','Orun’s Sanctum, a separate pile for his cards.'],
+ ['Offer','Exhaust a chosen card from an active Sanctum.'],
+ ['Recall','Choose an eligible card from an active Sanctum and put it in your hand.'],
+ ['Restore','Return an eligible Exhausted divine card to its god’s Sanctum.'],
+ ['Divine damage','Ignores Strength, Weak and Vulnerable. Enemy Block still absorbs it.'],
+ ['Lethal','This attack reduces its target to zero HP.'],
+ ['Once per combat','Each copy can use this effect once in a fight.'],
+ ['Sacrifice','Spend HP directly, bypassing Block. A sacrifice leaves at least 1 HP.','sacrific(?:e|ed)'],
+ ['Status','A card type for combat conditions such as Burden. It occupies a slot when drawn.'],
+ ['Curse','A harmful card in your deck, such as Doubt.'],
+ ['Unplayable','This card cannot be played from your hand.'],
+ ['Debuff','A harmful status such as Weak, Vulnerable or Poison.']
+]);
+const cardKeywords=[...rewardTerms].sort((a,b)=>b[0].length-a[0].length);
+const keywordPattern=new RegExp('\\b(?:'+cardKeywords.map(([term,,pattern])=>'('+ (pattern||term)+')').join('|')+')\\b','gi');
+const keywordGroups={
+ status:['Weak','Vulnerable','Debuff'],poison:['Poison'],guard:['Block','Resolve','Dexterity'],
+ attack:['Strength','Bloodlust','Lethal','Sacrifice'],divine:['Divine Draw','Divine damage','Unsworn','Sworn','Dormant Sanctum','Reliquary','Sanctify','Anointed','Soulbound','Restore','Recall','Offer']
+};
+function scanKeywords(html,format){
+ // Preserve inline markup used for modified damage and upgrade highlights.
+ return html.split(/(<[^>]+>)/g).map(part=>part.startsWith('<')?part:part.replace(keywordPattern,(word,...args)=>{
+  const index=args.slice(0,cardKeywords.length).findIndex(value=>value!==undefined);
+  return format(word,index);
+ })).join('');
+}
+function keywordText(html){
+ return scanKeywords(html,(word,index)=>{
+  const group=Object.keys(keywordGroups).find(key=>keywordGroups[key].includes(cardKeywords[index][0]))||'action';
+  return `<span class="card-keyword kw-${group}" data-keyword="${index}">${word}</span>`;
+ });
+}
+function rewardDefinitions(rules){
+ const indices=new Set();
+ scanKeywords(rules,(word,index)=>{indices.add(index);return word});
+ return [...indices].map(index=>{const [term,meaning]=cardKeywords[index];return `<dt>${term}</dt><dd>${meaning}</dd>`}).join('');
+}
+let keywordAnchor=null,keywordPinned=false;
+function hideKeyword(){
+ if(keywordAnchor)keywordAnchor.removeAttribute('aria-describedby');
+ keywordAnchor=null;keywordPinned=false;$('#card-keyword-tip')?.remove();
+}
+function explainKeyword(anchor,indices,pin=false){
+ hideKeyword();if(!indices.length)return;
+ keywordAnchor=anchor;keywordPinned=pin;
+ const tip=document.createElement('div');tip.id='card-keyword-tip';tip.setAttribute('role','tooltip');
+ for(const index of new Set(indices)){
+  const [term,meaning]=cardKeywords[index],line=document.createElement('div'),label=document.createElement('strong');
+  label.textContent=term;line.append(label,' · '+meaning);tip.append(line);
+ }
+ document.body.append(tip);anchor.setAttribute('aria-describedby',tip.id);
+ const r=anchor.getBoundingClientRect(),box=tip.getBoundingClientRect();
+ tip.style.left=Math.max(8,Math.min(innerWidth-box.width-8,r.left))+'px';
+ tip.style.top=Math.max(8,Math.min(innerHeight-box.height-8,r.top>=box.height+12?r.top-box.height-6:r.bottom+6))+'px';
+}
+document.addEventListener('pointerover',e=>{
+ const word=e.target.closest('[data-keyword]');
+ if(e.pointerType==='mouse'&&word&&!keywordPinned&&!e.buttons)explainKeyword(word,[+word.dataset.keyword]);
+});
+document.addEventListener('pointerout',e=>{
+ if(!keywordPinned&&keywordAnchor===e.target&&!keywordAnchor.contains(e.relatedTarget))hideKeyword();
+});
+document.addEventListener('focusin',e=>{
+ const card=e.target.closest('.card');
+ if(card?.matches(':focus-visible'))explainKeyword(card,[...card.querySelectorAll('[data-keyword]')].map(w=>+w.dataset.keyword));
+});
+document.addEventListener('focusout',e=>{if(keywordAnchor===e.target)hideKeyword()});
+document.addEventListener('pointerdown',e=>{
+ if(e.target.closest('[data-keyword]')||keywordPinned)e.stopImmediatePropagation();
+},true);
+document.addEventListener('click',e=>{
+ const word=e.target.closest('[data-keyword]');
+ if(!word&&!keywordPinned)return;
+ e.preventDefault();e.stopImmediatePropagation();
+ if(word&&!(keywordPinned&&keywordAnchor===word))explainKeyword(word,[+word.dataset.keyword],true);
+ else hideKeyword();
+},true);
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'&&keywordAnchor){hideKeyword();e.preventDefault();e.stopImmediatePropagation()}
+},true);
+addEventListener('resize',hideKeyword);
+document.addEventListener('scroll',hideKeyword,true);
+function inspectReward(v){
+ const index=Number(v),offer=RW;
+ if(screen!=='reward'||MD||!offer||offer.taken||!Number.isInteger(index)||!offer.cards[index])return;
+ const id=offer.cards[index],card={id,up:0},k=KD(card),rules=k.d(card.up,card);
+ const source=$('[data-a="inspectreward"][data-v="'+index+'"]');
+ MD={reward:{offer,index,id},onClose:()=>{$('#app').inert=false;source?.focus()}};
+ const defs=rewardDefinitions(rules);
+ $('#modal').innerHTML=`<div class="modal reward-inspect" role="dialog" aria-modal="true" aria-labelledby="reward-title"><div class="reward-sheet">
+ <div class="mhead"><h2 id="reward-title">${k.n}</h2><button class="btn" data-a="mclose">Back to rewards</button></div>
+ <div class="reward-detail"><div aria-hidden="true">${cardV(card,'disabled')}</div>
+ <div><p class="reward-rules">${keywordText(rules)}</p>${defs?`<dl>${defs}</dl>`:''}</div></div>
+ <button class="btn pri" data-a="rcard">Take ${k.n}</button></div></div>`;
+ $('#app').inert=true;$('#modal [data-a="mclose"]').focus();
+}
+function inspectWare(v){
+ const item=SH?.cards[v];if(screen!=='shop'||MD||!item||item.sold)return;
+ const card={id:item.id,up:0},left=G.gold-item.p;
+ MD={ware:item,onClose:()=>$('[data-a="inspectware"][data-v="'+v+'"]')?.focus()};
+ $('#modal').innerHTML=`<div class="modal smith-dialog" role="dialog" aria-modal="true" aria-label="Inspect ${name(card)}">
+ <div class="mhead"><h2>${name(card)}</h2><button class="btn" data-a="mclose">Close</button></div>
+ <div class="smith-pair"></div><p>${copiesOwned(item.id)} in deck${K[item.id].m?' · Malleable · can Sanctify':''}</p>
+ <button class="btn pri" data-a="buy" ${left<0?'disabled':''}>${left<0?'Need '+(-left)+' more gold':'Buy for '+item.p+' gold · '+left+' left'}</button></div>`;
+ showComparison(card,'For sale');$('#modal [data-a="mclose"]').focus();
+}
+function closeModal(){hideKeyword();const m=MD;MD=null;$('#modal').innerHTML='';if(m&&m.onClose)m.onClose();if(m&&m.ask)m.ask(null)}
 
 /* ---------- input ---------- */
 const A={
+pile:inspectPile,
  bless:selectBlessing,blessresolve:resolveBlessing,
-new:()=>{partyDraft=null;newRun()},partymenu:()=>{screen='partymenu';render()},party:v=>openPartySetup(v),hero:v=>{if(v==='oath'){screen='oathpreview';render()}else chooseClimber(v)},pickback:()=>{screen='pick';render()},oathstart:()=>chooseClimber('oath'),title:()=>{partyDraft=null;screen='title';render()},oinfo:v=>toast(GODS[v].oath+' ('+GODS[v].full+'). Law: '+GODS[v].law+' Price: '+(halo(v)?'lifted.':GODS[v].price)),
+new:()=>{partyDraft=null;selectedHero='oath';newRun()},partymenu:()=>{screen='partymenu';render()},party:v=>openPartySetup(v),begin:()=>newRun(selectedHero),startdeck:inspectStartingDeck,hero:v=>{if(!HEROES[v])return;if(!partyDraft){selectedHero=v;return render()}if(v==='oath'){screen='oathpreview';render()}else chooseClimber(v)},pickback:()=>{screen='pick';render()},oathstart:()=>chooseClimber('oath'),title:()=>{partyDraft=null;screen='title';render()},oinfo:v=>toast(GODS[v].oath+' ('+GODS[v].full+'). Law: '+GODS[v].law+' Price: '+(halo(v)?'lifted.':GODS[v].price)),
 cont:()=>resumeRun(false),contparty:()=>resumeRun(true),
 deck:()=>openPick('Your deck ('+G.deck.length+' cards)',G.deck,null),
 rel:v=>toast(RELICS[v].n+': '+RELICS[v].d),
-go:v=>{const[f,l]=v.split(',').map(Number);enter(f,l)},
+maplab:()=>setupLab(1,'aether'),labApply:()=>{const seed=$('#lab-seed');if(!seed.value||!seed.reportValidity())return;setupLab(seed.valueAsNumber,$('#lab-hero').value)},
+previewNode,travel,
 card:v=>tapCard(+v),foe:v=>tapFoe(+v),end:()=>endTurn(),
-rcard:v=>{if(RW.taken)return;G.deck.push(mk(RW.cards[+v]));RW.taken=true;render()},
+inspectreward:inspectReward,
+rcard:()=>{
+ const chosen=MD?.reward;
+ if(screen!=='reward'||!chosen||chosen.offer!==RW||RW.taken||RW.cards[chosen.index]!==chosen.id)return;
+ G.deck.push(mk(chosen.id));RW.taken=true;closeModal();render();
+ ($('[data-a="rrelic"]')||$('[data-a="rasc"]')||$('[data-a="map"]'))?.focus();
+},
 rrelic:()=>{if(!RW.relic)return;gainRelic(RW.relic);toast('Gained '+RELICS[RW.relic].n);RW.relic=null;render()},
 map:advanceRoom,
-buy:v=>{const s=SH.cards[+v];if(s.sold)return;if(G.gold<s.p)return toast('Not enough gold.');G.gold-=s.p;s.sold=1;G.deck.push(mk(s.id));render()},
+inspectware:inspectWare,
+buy:()=>{
+ const item=MD?.ware;
+ if(screen!=='shop'||!item||item.sold||!SH.cards.includes(item)||G.gold<item.p)return;
+ G.gold-=item.p;item.sold=1;G.deck.push(mk(item.id));closeModal();render();
+ ($('[data-a="inspectware"]')||$('[data-a="map"]'))?.focus();
+},
 buyrel:()=>{const r=SH.relic;if(!r||r.sold)return;if(G.gold<r.p)return toast('Not enough gold.');G.gold-=r.p;r.sold=1;gainRelic(r.k);render()},
 remove:()=>{if(SH.removed)return;const p=merchantPrice(75);if(G.gold<p)return toast('Not enough gold.');openPick('Remove a card ('+p+' gold)',G.deck,c=>{G.gold-=p;SH.removed=1;G.deck.splice(G.deck.indexOf(c),1);toast(name(c)+' removed.');render()})},
-rheal:()=>{if(RS.done)return;const n=Math.round(G.maxHp*.3),b=G.hp;heal(n);RS.done=1;RS.msg='You rest by the fire and recover '+(G.hp-b)+' HP.';render()},
-rsmith:()=>{if(RS.done)return;if(!upgradable().length)return toast('Every card is already upgraded.');openPick('Upgrade a card',upgradable(),c=>{c.up=1;RS.done=1;RS.msg='You hammer '+name(c)+' into shape.';render()})},
+rheal:()=>{if(RS.done||!restHealing())return;const b=G.hp;heal(restHealing());RS.done=1;RS.msg='You rest by the fire and recover '+(G.hp-b)+' HP.';render()},
+rsmith:openSmith,
+smithpreview:v=>previewSmith(Number(v)),
+smithconfirm:()=>{
+ const card=MD?.smith?.[MD.index];
+ if(screen!=='rest'||RS.done||!card||!upgradable().includes(card))return;
+ card.up=1;RS.done=1;RS.msg='You hammer '+name(card)+' into shape.';
+ closeModal();render();$('[data-a="map"]')?.focus();
+},
 evo:v=>{if(EV.done)return;const o=EV.e.o[+v];if(o.ok&&!o.ok())return;const m=o.f();if(m!=null){EV.msg=m;EV.done=1}render()},
 mpick:v=>{const c=MD.cards[+v],cb=MD.cb;MD.onClose=null;closeModal();if(cb)cb(c)},
 mask:v=>{const r=MD&&MD.ask;MD=null;$('#modal').innerHTML='';if(r)r(+v)},
@@ -1149,7 +1600,7 @@ renounce:()=>{if(SR.done||ordinaryCount([],G.deck)<8)return;const was=G.oaths.ma
 sasc:v=>{if(SR.done)return;const f=+v;openPick((f==1?'Ascend':'Exalt')+` a card (T${f} to T${f+1})`,ascList(f),c=>{ascend(c);SR.done=1;SR.msg=name(c)+' rises to '+TIERN[c.tier]+'.';render()})},
 mclose:closeModal};
 document.addEventListener('click',e=>{if(performance.now()-ignoreClick<350)return;const b=e.target.closest('[data-a]');if(!b&&C&&C.sel>=0&&screen=='combat'&&e.target.closest('.stage')){C.sel=-1;return render()}if(!b||b.disabled)return;const f=A[b.dataset.a];if(f)f(b.dataset.v)});
-document.addEventListener('keydown',e=>{if(MD&&e.key=='Escape')return closeModal();if(screen!='combat'||!C||MD)return;
+document.addEventListener('keydown',e=>{if(!MD&&e.target.matches?.('.node.can')&&['Enter',' '].includes(e.key)){e.preventDefault();return previewNode(e.target.dataset.v)}if(MD?.pile&&e.key==='Tab'){e.preventDefault();return $('#modal [data-a="mclose"]').focus()}if(MD&&e.key=='Escape')return closeModal();if(screen!='combat'||!C||MD)return;
  if(e.key>='1'&&e.key<='9')tapCard(+e.key-1,true);else if(e.key=='e'||e.key=='E')endTurn();else if(e.key=='Escape'&&C.sel>=0){C.sel=-1;render()}});
 /* ---------- hero rig: painted art on a deforming WebGL mesh ---------- */
 const RIG={cv:null,gl:null,img:{},wt:{},tex:{},buf:{},pose:'idle',until:0,whip:0,flash:0,loop:false,fail:false,last:0,oath:null,surge:0,gi:0,gc:[1,1,1]};
@@ -1251,10 +1702,25 @@ rigLoad();
 /* ---------- damage preview ---------- */
 const PV={key:''};
 function simCard(c,ti){const orig=C,gh=G.hp,ql=Q.length;let res=null;SIM=true;try{C=structuredClone(orig);const e=ti==null?null:C.foes[ti];const k=KD(c);c._ch=(k.ch?k.ch(c.up,c):[]).map(chDef);runCard(c,e);res={loss:C.foes.map((f,i)=>Math.max(0,orig.foes[i].hp-f.hp)),blk:C.p.block-orig.p.block}}catch(err){}SIM=false;C=orig;G.hp=gh;Q.length=ql;return res}
+function showDrawForecast(card){
+ const output=$('.draw-forecast');if(output)output.textContent=card?drawForecast(card):'';
+}
+for(const event of ['pointerover','focusin','pointerdown']){
+ document.addEventListener(event,e=>{
+  const btn=e.target.closest('.hand [data-a="card"]');
+  if(btn&&C&&!C.busy&&!C.lock&&!MD)showDrawForecast(C.hand[Number(btn.dataset.v)]);
+ });
+}
+for(const event of ['pointerout','focusout']){
+ document.addEventListener(event,e=>{
+  const btn=e.target.closest('.hand [data-a="card"]');
+  if(btn&&!btn.contains(e.relatedTarget)&&!drag)showDrawForecast(C?.hand[C.sel]);
+ });
+}
 function clearPreview(){document.querySelectorAll('.pv,.pvn').forEach(x=>x.remove());document.querySelectorAll('.unit.lethal').forEach(x=>x.classList.remove('lethal'))}
 function setPreview(ci,ti,cardEl){const key=ci<0?'':ci+':'+ti;if(key===PV.key)return;PV.key=key;clearPreview();const c=C&&C.hand[ci];
  PT=ti!=null&&ti!=='all'&&C?C.foes[ti]:null;
- const el=cardEl||$(`.hand .card[data-v="${ci}"]`);if(c&&el){const ds=el.querySelector('.ds');if(ds)ds.innerHTML='<span>'+KD(c).d(c.up,c)+'</span>'}
+ const el=cardEl||$(`.hand .card[data-v="${ci}"]`);if(c&&el){showDrawForecast(c);const ds=el.querySelector('.ds');if(ds)ds.innerHTML='<span>'+keywordText(KD(c).d(c.up,c))+'</span>'}
  if(!c||ti==null){PT=null;return}
  const r=simCard(c,ti==='all'?null:ti);PT=null;if(!r)return;
  r.loss.forEach((l,i)=>{const f=C.foes[i],u=$('#f'+i);if(!l||!u||f.hp<=0)return;const nh=f.hp-l,bar=u.querySelector('.bar'),hp=u.querySelector('.hpt');
@@ -1263,7 +1729,7 @@ function setPreview(ci,ti,cardEl){const key=ci<0?'':ci+':'+ti;if(key===PV.key)re
  if(r.blk>0){const hp=$('#hero .hpt');if(hp)hp.insertAdjacentHTML('beforeend',`<span class="pvn b">+${r.blk}</span>`)}}
 
 /* ---------- targeting arrow ---------- */
-let AP={x:0,y:0,moved:false},aimOn=false,drag=null,ignoreClick=0;
+let AP={x:0,y:0,moved:false},aimOn=false,drag=null,ignoreClick=-Infinity;
 const liveFoe='.unit[data-a=foe]:not(.dead):not(.dying)';
 function aimTick(){const svg=$('#aim'),on=screen=='combat'&&C&&C.sel>=0&&!C.busy&&!C.lock;
  if(!on){svg.style.display='none';document.querySelectorAll('.unit.aimed').forEach(u=>u.classList.remove('aimed'));if(PV.key&&!(drag&&drag.g))setPreview(-1);aimOn=false;return}
@@ -1281,7 +1747,7 @@ function aimTick(){const svg=$('#aim'),on=screen=='combat'&&C&&C.sel>=0&&!C.busy
 document.addEventListener('pointerdown',e=>{AP.x=e.clientX;AP.y=e.clientY;const b=e.target.closest('.hand .card[data-a=card]');if(!b||!C||C.busy||C.lock)return;const i=+b.dataset.v,c=C.hand[i];if(!c||!playable(c))return;drag={i,x:e.clientX,y:e.clientY,active:false,tg:!!KD(c).tg,el:b,lx:e.clientX,tilt:0}});
 function dragMove(){const d=drag;if(!d||!d.g)return;const vx=AP.x-d.lx;d.lx=AP.x;d.tilt=Math.max(-14,Math.min(14,d.tilt*.8+vx*.9));d.g.style.left=(AP.x-d.ox)/Z+'px';d.g.style.top=(AP.y-d.oy)/Z+'px';d.g.style.transform=`scale(1.08) rotate(${d.tilt.toFixed(1)}deg)`;
  const h=$('.hand'),ready=!!h&&AP.y<h.getBoundingClientRect().top+16;d.ready=ready;d.g.classList.toggle('ready',ready);setPreview(ready?d.i:-1,ready?'all':null,d.g);const st=$('.stage');if(st)st.classList.toggle('drop',ready);const hi=$('.hint');if(hi)hi.textContent=ready?'Release to play':'Drag up to play'}
-function endFree(){const st=$('.stage');if(st)st.classList.remove('drop');setPreview(-1)}
+function endFree(){showDrawForecast(null);const st=$('.stage');if(st)st.classList.remove('drop');setPreview(-1)}
 document.addEventListener('pointermove',e=>{AP.x=e.clientX;AP.y=e.clientY;if(C&&C.sel>=0)AP.moved=true;
  if(drag&&!drag.active&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>12){drag.active=true;if(!C||C.busy||C.lock){drag=null;return}
   if(drag.tg){C.sel=drag.i;AP.moved=true;render()}
@@ -1296,7 +1762,47 @@ document.addEventListener('pointerup',e=>{const d=drag;drag=null;if(!d||!d.activ
  if(C.busy||C.lock)return;const el=document.elementFromPoint(e.clientX,e.clientY),u=el&&el.closest(liveFoe);if(u&&C.sel>=0){const f=C.foes[+u.dataset.v];if(f&&f.hp>0)return play(C.sel,f)}C.sel=-1;AP.moved=false;render()});
 document.addEventListener('pointercancel',()=>{if(drag&&drag.g){drag.g.remove();drag.el.classList.remove('lifted');endFree()}drag=null});
 setZoom();let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{setZoom();if(screen=='combat'&&C&&!C.busy&&!C.lock)render()},150)});
-render();
+if (new URLSearchParams(location.search).get('gallery') === '1') {
+  screen = 'gallery';
+  import('./tools/reference-gallery.mjs').then(({mountGallery}) => mountGallery($('#app'), {
+    cards:K, forms:FK, relics:RELICS, gods:GODS, statuses:STN, statusArt, oathArt,
+    cardArt, relicIcon, hudIcon, definition:KD, cost, types:TN
+  })).catch(error => { $('#app').textContent = 'Gallery could not load: ' + error.message; });
+} else render();
+if (combatLab && screen !== "gallery") {
+  import('./tools/combat-lab.mjs').then(({mountLab}) => {
+    const encounters = [
+      ...[...EASY, ...HARD].map(keys => ({keys, kind:'fight'})),
+      ...ELITE.map(keys => ({keys, kind:'elite'})),
+      {keys:['king'], kind:'boss'}
+    ];
+    mountLab({
+      heroes:HEROES, gods:GODS, enemies:EN, encounters,
+      start(hero, oath, floor, encounter) {
+        newRun(hero);
+        delete G.threshold;
+        G.floor = floor;
+        G.pos = {f:floor - 1, l:0};
+        G.path = Array.from({length:floor}, (_, f) => [f, 0]);
+        G.map[floor - 1][0].t = encounter.kind;
+        G.oaths = oath ? [oath] : [];
+        startCombat(encounter.keys, encounter.kind);
+      },
+      mechanics:{
+        cardInfo:card => ({uid:card.u, id:card.id, name:name(card), cost:cost(card),
+          playable:playable(card), targeted:Boolean(KD(card).tg)}),
+        playCard:(uid, target) => play(C.hand.findIndex(card => card.u === uid), C.foes[target]),
+        endTurn,
+        choose:(action, value) => A[action](value)
+      },
+      snapshot:() => ({url:location.href, screen, run:G, combat:C})
+    });
+  }).catch(error => {
+    const message = document.createElement('p');
+    message.textContent = 'Combat Lab could not start: ' + error.message;
+    document.body.prepend(message);
+  });
+}
 })();
 </script>
 <script src="coop-online.js"></script></body></html>
