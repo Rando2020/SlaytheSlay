@@ -17,7 +17,7 @@ export function createPlaytester(snapshot, mechanics) {
     })) ?? [];
     if (dialog || screen === 'reward') {
       const root = dialog ?? document.querySelector('#app');
-      const allowed = dialog ? ['mpick','mask','mclose'] : ['rcard','rrelic','rasc','map'];
+      const allowed = dialog ? ['mpick','mask','mclose','rcard'] : ['inspectreward','rrelic','rasc','map'];
       for (const button of root.querySelectorAll('[data-a]:not(:disabled)')) {
         const {a, v} = button.dataset;
         if (allowed.includes(a)) actions.push({type:'choose', action:a, value:v ?? '', label:button.textContent.trim()});
@@ -32,7 +32,7 @@ export function createPlaytester(snapshot, mechanics) {
     const state = structuredClone({
       screen, hero:run?.hero, oaths:run?.oaths, turn:combat?.turn ?? null, hp:run?.hp, block:combat?.p.block,
       energy:combat?.energy, statuses:combat?.p.st, hand, enemies, actions,
-      dialog:dialog?.getAttribute('aria-label') ?? null,
+      dialog:dialog?.getAttribute('aria-label') ?? dialog?.querySelector('h2')?.textContent ?? null,
       busy:Boolean(combat?.busy || combat?.lock), deck:run?.deck, relics:run?.relics,
       sanctums:combat?.sanc, discard:combat?.disc, exhausted:combat?.exh, drawCount:combat?.draw.length
     });

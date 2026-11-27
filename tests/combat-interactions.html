@@ -64,8 +64,10 @@ async function runAether() {
   }
   check(struck && blocked && state.screen === 'reward', 'Combat resolves to rewards');
   const size = state.deck.length;
+  await act(a => a.action === 'inspectreward');
+  check(state.deck.length === size && state.dialog, 'Inspecting a reward leaves the deck unchanged');
   await act(a => a.action === 'rcard');
-  check(state.deck.length === size + 1 && !state.actions.some(a => a.action === 'rcard'), 'Reward adds one card and cannot be taken twice');
+  check(state.deck.length === size + 1 && !state.actions.some(a => a.action === 'inspectreward'), 'Reward adds one card and cannot be taken twice');
   await act(a => a.action === 'map');
   check(state.screen === 'map', 'Reward returns to the map');
 }

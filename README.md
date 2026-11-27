@@ -26,6 +26,20 @@ python3 -m http.server
 
 then visit `http://localhost:8000`.
 
+### Cooperative runs
+
+Choose **Single Player** to begin a solo run, or **Multiplayer** on the title screen to share one device with two to four players. Each player chooses a class and manages their own hand, energy, HP, Block, relics and rewards. The party follows one route. Each living hero takes a turn before the enemies act once.
+
+Every enemy attack targets every living hero. Each hit resolves against that hero's defenses. For example, a 6-damage attack against two heroes with 4 and 0 Block costs them 2 and 6 HP respectively. Player cards retain their individual targeting rules. Enemy starting and maximum HP use the rolled encounter HP multiplied by the starting party size, including bosses. A defeated hero stays down while surviving heroes continue.
+
+For separate devices, start the included room server with Node.js:
+
+```sh
+node tools/coop-server.cjs
+```
+
+Open `http://localhost:8787` on the host and choose **Multiplayer**, then **Play online**. On the same network, guests open the host computer's LAN address on port 8787 and enter the room code. For internet play, all devices need access to the same reachable server. The host tab runs the battle and must stay open. Guests use a turn controller to inspect cards, choose targets and take actions. The host browser keeps a separate party checkpoint on the map.
+
 ## What's in it
 
 - Branching 13-floor map: fights, elites, rest sites, shops, events, treasure and a boss
@@ -69,10 +83,19 @@ then visit `http://localhost:8000`.
 
 Enemies stand on the right, so they must face **left**. Generated art usually faces right; mirror it when cutting it out so the file on disk already faces left, then add `img`, `w` (display width in px) and `ar` (width / height) to its entry in `EN`.
 
-Enemies with a parts sheet are cut-out rigs: each part is its own WebP, and `RIGS` in `index.html` lists every part's position, width, idle animation (sway, nod, claw, leg, chew, glow, pulse, hover, flick, drift) and pivot. Give the enemy `rig:'<folder>'` instead of `img`. The claws strike on attacks, and the canister, crystal or flames flare on Overclock, Charge and Phase.
+Open **Enemy Animation Lab** on the title screen to play, scrub and tune the painted rigs. The shared bone and attachment registry lives in `assets/rigs/registry.js`. See [Enemy rig tools](tools/rigs/README.md) for authoring and validation.
 
 Next up: painted art for the Hex Mother and the Hollow King, then layered backgrounds and card illustrations.
 
+### Act I navigation and Map Lab
+
+Choose a gold-ringed room to preview it, then select **Enter room**. Keyboard players can Tab to an available room and press Enter or Space to preview it. Confirming follows the existing encounter transition. The map save stores the graph and the route taken. Older saves use their stored graphs directly.
+
+Open **Map Lab** on the title screen to generate a route for a hero and a 32-bit seed, inspect the art registry, or walk a full route without changing a saved run. Both screens call the renderer in `src/act-map.js`.
+
+The five PNGs from the Act I package live in `assets/maps/act01/source/`. Rebuild the runtime WebPs and their registry with `python tools/import_act01.py` (Pillow required). The importer checks each source against the SHA-256 manifest from the PR #10 handoff. Run `node --test tests/*.cjs` for graph, registry, save compatibility and character-selection checks.
+
+[Phone capture](docs/qa/act01/map-390.png) · [Desktop capture](docs/qa/act01/map-1440.png)
 ## Combat Lab
 
 Open [Combat Lab](./index.html?dev=combat) on the same static server as the game.
