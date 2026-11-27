@@ -1,0 +1,70 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Hollow Ascent interaction tests</title>
+<h1>Combat interaction tests</h1>
+<pre id="results" role="status">Starting combat lab...</pre>
+<iframe title="Game under test" width="960" height="600" src="../index.html?dev=combat&amp;hero=aether&amp;encounter=tick,tick&amp;floor=1"></iframe>
+<script type="module">
+const frame = document.querySelector('iframe');
+const output = document.querySelector('#results');
+const lines = [];
+function check(condition, label) {
+  if (!condition) throw Error(label);
+  lines.push('PASS ' + label);
+  output.textContent = lines.join('\n');
+}
+async function run() {
+  const deadline = Date.now() + 15000;
+  while (!frame.contentWindow.hollowLab) {
+    if (Date.now() > deadline) throw Error('Lab initialization timed out');
+    await new Promise(resolve => setTimeout(resolve, 50));
+  }
+  const lab = frame.contentWindow.hollowLab;
+  let state = lab.inspect();
+  const act = async predicate => {
+    const index = state.actions.findIndex(predicate);
+    if (index < 0) throw Error('Expected action missing on ' + state.screen);
+    state = await lab.act(state.revision, index);
+  };
+  const initial = state.revision;
+  await act(a => a.action === 'deck');
+  check(state.dialog && state.actions.every(a => a.action === 'mclose'), 'Deck picker restricts available actions');
+  let rejected = false;
+  try { await lab.act(initial, 0); } catch { rejected = true; }
+  check(rejected, 'Stale commands are rejected');
+  await act(a => a.action === 'mclose');
+  const target = 1;
+  let struck = false, blocked = false;
+  for (let step = 0; step < 60 && state.screen === 'combat'; step++) {
+    const before = state;
+    const foe = state.enemies[target].hp > 0 ? target : 0;
+    const attack = a => a.type === 'play' && a.target === foe;
+    const defend = a => a.type === 'play' && state.hand.find(c => c.uid === a.uid)?.id === 'defend';
+    if (!blocked && state.actions.some(defend)) {
+      await act(defend);
+      check(state.block > before.block && state.energy === before.energy - 1, 'Defend spends energy and gains block');
+      blocked = true;
+    } else if (state.actions.some(attack)) {
+      await act(attack);
+      if (!struck) {
+        check(state.enemies[foe].hp + state.enemies[foe].block < before.enemies[foe].hp + before.enemies[foe].block
+          && state.enemies[1-foe].hp === before.enemies[1-foe].hp, 'Attack resolves on the chosen enemy');
+        struck = true;
+      }
+    } else {
+      await act(a => a.type === 'endTurn');
+      if (state.screen === 'combat') check(state.turn === before.turn + 1, 'Enemy turn resolves and advances the turn');
+    }
+  }
+  check(struck && blocked && state.screen === 'reward', 'Combat resolves to rewards');
+  const size = state.deck.length;
+  await act(a => a.action === 'rcard');
+  check(state.deck.length === size + 1 && !state.actions.some(a => a.action === 'rcard'), 'Reward adds one card and cannot be taken twice');
+  await act(a => a.action === 'map');
+  check(state.screen === 'map', 'Reward returns to the map');
+}
+run().then(() => output.dataset.result = 'pass').catch(error => {
+  output.textContent += '\nFAIL ' + error.message;
+  output.dataset.result = 'fail';
+});
+</script>

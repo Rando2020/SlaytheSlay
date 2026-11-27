@@ -1,4 +1,6 @@
-export function mountLab({heroes, gods, enemies, encounters, start, snapshot}) {
+import {createPlaytester} from './combat-playtester.mjs';
+
+export function mountLab({heroes, gods, enemies, encounters, start, snapshot, mechanics}) {
   const params = new URLSearchParams(location.search);
   const panel = document.createElement('details');
   panel.id = 'combat-lab';
@@ -12,6 +14,7 @@ export function mountLab({heroes, gods, enemies, encounters, start, snapshot}) {
       <button type="submit">Launch fresh encounter</button>
     </form>
     <button type="button" id="lab-report">Download state report</button>
+    <a href="./tests/combat-interactions.html" target="_blank" rel="noopener">Run interaction tests</a>
     <a href="./index.html">Exit to game</a>`;
   const style = document.createElement('style');
   style.textContent = `
@@ -45,8 +48,10 @@ export function mountLab({heroes, gods, enemies, encounters, start, snapshot}) {
   const encounter = encounters.find(item => item.keys.join(',') === params.get('encounter'));
   panel.open = !encounter;
   if (encounter) start(fields.hero.value, fields.oath.disabled ? '' : fields.oath.value, Number(fields.floor.value), encounter);
+  const tester = createPlaytester(snapshot, mechanics);
+  window.hollowLab = tester;
   panel.querySelector('#lab-report').onclick = () => {
-    const report = new Blob([JSON.stringify(snapshot(), null, 2)], {type:'application/json'});
+    const report = new Blob([JSON.stringify({...snapshot(), actions:tester.history()}, null, 2)], {type:'application/json'});
     const link = document.createElement('a');
     link.href = URL.createObjectURL(report);
     link.download = 'hollow-ascent-combat-state.json';

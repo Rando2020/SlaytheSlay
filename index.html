@@ -1084,6 +1084,13 @@ if (combatLab) {
         G.oaths = oath ? [oath] : [];
         startCombat(encounter.keys, encounter.kind);
       },
+      mechanics:{
+        cardInfo:card => ({uid:card.u, id:card.id, name:name(card), cost:cost(card),
+          playable:playable(card), targeted:Boolean(KD(card).tg)}),
+        playCard:(uid, target) => play(C.hand.findIndex(card => card.u === uid), C.foes[target]),
+        endTurn,
+        choose:(action, value) => A[action](value)
+      },
       snapshot:() => ({url:location.href, screen, run:G, combat:C})
     });
   }).catch(error => {

@@ -81,3 +81,26 @@ lower left to launch a fresh fight or download a JSON report with the current ru
 turn, card piles, enemy intents and setup URL. Sharing the URL repeats the setup.
 Deck shuffles, HP rolls and rewards still use normal game randomness. Lab sessions
 skip player save reads, writes and deletion. **Exit to game** returns to the title.
+
+### Automated interaction testing
+
+Open [the browser interaction suite](./tests/combat-interactions.html) on the static
+server to exercise a real two-enemy fight, card targeting, block, enemy turns,
+modal dialogs and reward collection. The page displays each assertion and sets
+`#results[data-result]` to `pass` or `fail` when finished.
+
+A browser agent in a launched Combat Lab encounter can use the following API.
+Inspect returns a detached snapshot with the live hand, costs, targets, statuses
+and available actions. Act accepts the observed revision and action index and
+resolves at the next decision, including choices that interrupt card resolution.
+
+```js
+const state = window.hollowLab.inspect();
+const index = state.actions.findIndex(action => action.type === 'endTurn');
+const next = await window.hollowLab.act(state.revision, index);
+console.log(next.turn, next.energy, next.enemies);
+```
+
+Read the returned actions after each decision. Concurrent commands, stale
+revisions and invalid indices are rejected. The state report includes the most
+recent 200 agent actions. The API is available only in Combat Lab.
