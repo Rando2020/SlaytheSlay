@@ -448,6 +448,14 @@ body:has(#app>.stage){overflow:hidden}
 .threshold-offer{display:flex;flex-direction:column;align-items:center;gap:12px;min-height:270px;padding:24px 12px 16px;color:#f3e9d7;background:linear-gradient(150deg,#49382a,#211815 55%,#15100f);border:1px solid #9c8050;border-radius:9px;box-shadow:inset 0 0 0 4px #211815,0 12px 24px #0008;cursor:pointer;font:inherit;animation:threshold-reveal .45s both;animation-delay:var(--delay);transition:transform .2s,border-color .2s,box-shadow .2s}
 .threshold-offer:hover,.threshold-offer:focus-visible{transform:translateY(-4px);border-color:#ffe1a1;box-shadow:0 0 24px #e8c86a66;outline:2px solid #ffe1a1;outline-offset:3px}.threshold-offer:active{transform:scale(.97)}.threshold-art{display:grid;place-items:center;width:74px;height:74px;border:1px solid #a98a4c;border-radius:50%;background:radial-gradient(circle,#c59e4455,#271b16 70%);color:#f0d28b;box-shadow:0 0 24px #d3a94b33}.threshold-art svg{width:40px;height:40px}.threshold-offer b{font-size:1.15rem;color:#f1d99d}.threshold-offer i{font-size:.85rem;color:#c4b49c}.threshold-offer strong{margin-top:auto;color:#f1d99d;font-size:.83rem}.threshold .row{flex-wrap:wrap}
 @keyframes threshold-reveal{from{opacity:0;translate:0 16px}to{opacity:1;translate:0 0}}@media(max-width:600px){.threshold-offers{grid-template-columns:1fr;max-width:360px;margin:20px auto}.threshold-offer{min-height:180px;padding:14px}.threshold-art{width:50px;height:50px}.threshold-art svg{width:28px;height:28px}}@media(prefers-reduced-motion:reduce){.threshold-offer{animation:none;transition:none}}
+/* Center the encounter within the larger world, preserving the standing line. */
+@media(min-width:900px) and (min-height:601px){
+ #app>.stage .actors{left:50%;right:auto;transform:translateX(-50%);width:760px;max-width:100%;padding-inline:28px;gap:32px}
+ #app>.stage .actors:has(.foes>.unit:nth-child(3)){width:1060px}
+ #app>.stage .hero{flex-shrink:0}
+ #app>.stage .hero .info{order:-1}
+ #app>.stage .foes{flex-shrink:0}
+}
 </style><link rel="stylesheet" href="src/act-map.css">
 </head><body>
 <div id="app"></div><div id="modal"></div><svg id="aim" aria-hidden="true"><path id="aimP" fill="none" stroke="none"/><g id="aimG"></g></svg>
