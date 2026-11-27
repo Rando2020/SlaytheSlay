@@ -410,7 +410,7 @@ vigil:{h:'oath',n:'Vigilance',c:1,t:'skl',r:1,d:u=>`Gain ${B(u?6:4)} Block. Draw
 bastion:{h:'oath',n:'Last Bastion',c:1,t:'skl',r:2,d:u=>`Gain ${B(u?14:10)} Block. Lose 1 Strength this turn.`,f:u=>{blk(u?14:10);tmp('tstr',-1)}},
 sacret:{h:'oath',n:'Sacred Retribution',c:1,t:'atk',r:2,tg:1,d:u=>`Deal damage equal to your Block, up to ${u?20:15}${C?' ('+D(Math.min(u?20:15,C.p.block))+')':''}.`,f:(u,e)=>atk(e,Math.min(u?20:15,C.p.block))},
 convict:{h:'oath',n:'Conviction',c:1,t:'pow',r:2,d:u=>`Gain ${u?3:2} Strength.`,f:u=>buff('str',u?3:2)},
-condemn:{h:'oath',n:'Condemnation',c:1,t:'skl',r:2,tg:1,d:u=>`Apply ${u?3:2} Vulnerable to an enemy and 1 Vulnerable to yourself.`,f:(u,e)=>{debuff(e,'vuln',u?3:2);C.p.st.vuln=(C.p.st.vuln||0)+1}},
+condemn:{h:'oath',n:'Condemnation',c:1,t:'skl',r:2,tg:1,d:u=>`Apply ${u?3:2} Vulnerable to an enemy and 1 Vulnerable to yourself.`,f:(u,e)=>{debuff(e,'vuln',u?3:2);meDebuff(null,'vuln',1)}},
 laststand:{h:'oath',n:'Last Stand',c:2,t:'atk',r:3,tg:1,d:u=>`Deal ${D(u?20:16)} damage. Double it while below 25% HP.`,f:(u,e)=>atk(e,(u?20:16)*(G.hp<G.maxHp*.25?2:1))},
 forbid:{h:'oath',n:'Forbidden Invocation',c:[1,0],t:'skl',r:3,x:1,d:()=>`Draw a random card from a Dormant Sanctum. Exhaust.`,f:()=>{if(!ddraw(1,1))fx('#hero','Nothing stirs','')}},
 freewill:{h:'oath',n:'Free Will',c:1,t:'skl',r:1,d:u=>`Gain ${B(u?9:6)} Block. If Unsworn, draw 1 card.`,f:u=>{blk(u?9:6);if(!SWN())draw(1)}},
@@ -485,9 +485,9 @@ varran:[{n:'Blood Tribute',d:()=>`Lose 2 HP. Gain 1 Bloodlust.`,f:()=>{sac(2);ga
 orun:[{n:'Endurance',d:()=>`Gain ${B(3)} Block.`,f:()=>blk(3)},
  {n:'Steadfast',d:()=>`Gain ${B(3)} Block. Gain 1 Resolve.`,f:()=>{blk(3);gain('resolve',1)}},
  {n:'Unbreakable Will',d:()=>`Gain ${B(5)} Block. Gain 1 Resolve.`,f:()=>{blk(5);gain('resolve',1)}}],
-mora:[{n:'Last Offering',ch:()=>[{k:'hand',q:'Exhaust a card from your hand'}],d:()=>`Exhaust another card from your hand. Draw 1 card.`,f:(u,e,c)=>{handEx(c,0);draw(1)}},
- {n:'Soul Sacrifice',ch:()=>[{k:'hand',q:'Exhaust a card from your hand'}],d:()=>`Exhaust another card from your hand. Draw 1 card. Gain 1 Soulbound.`,f:(u,e,c)=>{handEx(c,0);draw(1);gain('soul',1)}},
- {n:'Death Transcended',ch:()=>[{k:'hand',q:'Exhaust a card from your hand'}],d:()=>`Exhaust another card from your hand. Draw 2 cards. Gain 1 Soulbound.`,f:(u,e,c)=>{handEx(c,0);draw(2);gain('soul',1)}}]},
+mora:[{n:'Last Offering',req:moraPenanceReq,ch:()=>[{k:'hand',required:true,q:'Exhaust a card from your hand'}],d:()=>`Exhaust another card from your hand. Draw 1 card.`,f:(u,e,c)=>{handEx(c,0);draw(1)}},
+ {n:'Soul Sacrifice',req:moraPenanceReq,ch:()=>[{k:'hand',required:true,q:'Exhaust a card from your hand'}],d:()=>`Exhaust another card from your hand. Draw 1 card. Gain 1 Soulbound.`,f:(u,e,c)=>{handEx(c,0);draw(1);gain('soul',1)}},
+ {n:'Death Transcended',req:moraPenanceReq,ch:()=>[{k:'hand',required:true,q:'Exhaust a card from your hand'}],d:()=>`Exhaust another card from your hand. Draw 2 cards. Gain 1 Soulbound.`,f:(u,e,c)=>{handEx(c,0);draw(2);gain('soul',1)}}]},
 reprisal:{
 aurel:[{n:'Righteous Blade',tg:1,d:()=>`Deal ${D(6)} damage. Gain ${B(5)} Block.`,f:(u,e)=>{atk(e,6);blk(5)}},
  {n:'Righteous Wrath',tg:1,d:()=>`Deal ${D(7)} damage. Gain ${B(6)} Block if Anointed.`,f:(u,e)=>{atk(e,7);if(ST('anoint'))blk(6)}},
@@ -591,17 +591,19 @@ const ascList=from=>G.deck.filter(c=>c.tier==from&&FK[c.id]);
 function ascend(c){c.tier++;toast(KD(c).n+' rises to T'+c.tier+', '+TIERN[c.tier]+'.')}
 /* player choices are made before a card resolves, so previews and the card itself stay synchronous */
 const CANCEL={};
+function handChoices(c,statusOnly){return C.hand.filter(x=>x.u!==c.u&&(!statusOnly||['curse','status'].includes(KD(x).t)))}
+function moraPenanceReq(u,c){return handChoices(c).length?null:'Needs another card in your hand to Exhaust.'}
 async function resolveCh(s,c){
  if(s.k=='yes'){if(s.ok&&!s.ok())return false;return (await chooseP(name(c),s.q,['Yes','No']))===0}
  let list=[],title=s.q||'';
  if(s.k=='offer')list=offerable();
  else if(s.k=='recall'){list=recallable(s.t);title='Recall a '+(s.t?TN[s.t]:'card')+' from your Sanctum'}
  else if(s.k=='restore'){list=restorable();title='Restore an Exhausted card to its Sanctum'}
- else if(s.k=='hand')list=C.hand.filter(x=>x!==c&&(!s.sc||['curse','status'].includes(KD(x).t)));
+ else if(s.k=='hand')list=handChoices(c,s.sc);
  if(s.k=='offer'){const n=s.n||1,out=[];if(!s.opt&&list.length==n)return list.map(x=>x.u);if(s.opt&&!list.length)return [];
   for(let i=0;i<n;i++){const x=await pickP(title+(n>1?` (${i+1} of ${n})`:''),list.filter(y=>!out.includes(y.u)),s.opt?'Skip':'Cancel');if(!x)return s.opt?[]:CANCEL;out.push(x.u)}return out}
- if(!list.length)return null;
- const x=await pickP(title,list,'Skip');return x?x.u:null}
+ if(!list.length)return s.required?CANCEL:null;
+ const x=await pickP(title,list,s.required?'Cancel':'Skip');return x?x.u:s.required?CANCEL:null}
 const chDef=s=>s.k=='offer'?(s.opt?[]:offerable().slice(0,s.n||1).map(x=>x.u)):s.k=='yes'?false:null;
 function pickP(title,list,cancel){return new Promise(res=>{openPick(title,list,c=>res(c),cancel);MD.onClose=()=>res(null)})}
 function chooseP(title,q,opts){return new Promise(res=>{MD={ask:res};$('#modal').innerHTML=`<div class="modal ask" role="dialog" aria-label="${title}"><div class="mhead"><h2>${title}</h2></div><p class="sub">${q}</p><div class="opts">${opts.map((o,i)=>`<button class="btn opt" data-a="mask" data-v="${i}">${o}</button>`).join('')}</div></div>`})}
@@ -726,6 +728,7 @@ async function endTurn(){if(!C||C.busy||C.lock)return;C.busy=true;C.sel=-1;
   if(n.str){e.st.str=(e.st.str||0)+n.str;fx('#f'+e.i,'+'+n.str+' Str','')}
   if(n.b){e.block+=n.b;fx('#f'+e.i,'+'+n.b+' Block','b')}
   if(n.a)for(let h=0;h<(n.x||1);h++){if(!RM){fx('#f'+e.i+' .spr','','','outL');render();await sleep(110)}hitMe(e,n.a);render();await sleep(300);if(G.hp<=0||e.hp<=0)break}
+  if(G.hp<=0)return die();
   if(e.hp<=0)continue;
   if(n.weak)meDebuff(e,'weak',n.weak);if(n.vuln)meDebuff(e,'vuln',n.vuln);
   dec(e.st);e.t++;e.int=EN[e.k].ai(e.t);render();await sleep(300);
