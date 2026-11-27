@@ -161,3 +161,19 @@ test('each party member resolves a persisted Threshold before the shared map', (
   resumed('A.map()');
   assert.equal(resumed('partyMember(1).threshold.merchantRemaining'),0);
 });
+
+test('solo Threshold resumes and combat blessings expire after three wins', () => {
+  const {run, storage} = launch(null);
+  run("A.new(); A.hero('aether')");
+  assert.equal(run('screen'), 'threshold');
+  const resumed = launch(null, storage).run;
+  resumed('A.cont()');
+  assert.equal(resumed('screen'), 'threshold');
+  resumed("for(let seed=0;!G.threshold.offers.includes('first-light');seed++)newRunSeed('aether',seed); A.bless('first-light')");
+  for (let i = 0; i < 4; i++) {
+    resumed("startCombat(['scrap'], 'fight')");
+    assert.equal(resumed('C.energy'), i < 3 ? 4 : 3);
+    resumed('winCombat(); A.map()');
+  }
+});
+
