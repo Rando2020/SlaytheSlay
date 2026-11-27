@@ -619,48 +619,48 @@ function setZoom(){Z=screen!='combat'&&ZOK&&innerWidth>1300?Math.max(1,Math.min(
 let PT=null;
 const D=(b,m=1)=>{if(!C)return b;let d=b+S()*m+(C.bl||(C.p.st.blust>0?blB():0));if(C.p.st.weak)d*=.75;if(PT&&PT.st.vuln)d*=1.5;if(priceOn('orun'))d*=.8;const v=Math.max(0,Math.floor(d));return v==b?v:`<b class="${v>b?'up':'dn'}">${v}</b>`};
 const K={
-strike:{n:'Strike',c:1,t:'atk',r:0,tg:1,d:u=>`Deal ${D(u?9:6)} damage.`,f:(u,e)=>atk(e,u?9:6)},
-defend:{n:'Defend',c:1,t:'skl',r:0,d:u=>`Gain ${u?8:5} Block.`,f:u=>blk(u?8:5)},
-bash:{n:'Bash',c:2,t:'atk',r:0,tg:1,d:u=>`Deal ${D(u?10:8)} damage. Apply ${u?3:2} Vulnerable.`,f:(u,e)=>{atk(e,u?10:8);debuff(e,'vuln',u?3:2)}},
-cleave:{n:'Cleave',c:1,t:'atk',r:1,d:u=>`Deal ${D(u?11:8)} damage to ALL enemies.`,f:u=>alive().forEach(e=>atk(e,u?11:8))},
+strike:{n:'Sidearm',c:1,t:'atk',r:0,tg:1,d:u=>`Deal ${D(u?9:6)} damage.`,f:(u,e)=>atk(e,u?9:6)},
+defend:{n:'Take Cover',c:1,t:'skl',r:0,d:u=>`Gain ${u?8:5} Block.`,f:u=>blk(u?8:5)},
+bash:{n:'Vent Shot',c:1,t:'atk',r:0,tg:1,ch:discardShotChoices,d:u=>`Deal ${D(u?9:6)} damage. You may discard another card for 4 more damage.`,f:(u,e,c)=>fireCartridge(c,e,u?9:6,4)},
+cleave:{n:'Scatterglass',c:1,t:'atk',r:1,tg:1,d:u=>`Deal ${D(u?9:6)} damage. Deal ${D(3)} damage to the next living enemy in formation, wrapping around.`,f:(u,e)=>{const line=alive(),next=line[(line.indexOf(e)+1)%line.length];atk(e,u?9:6);if(next!==e)atk(next,3)}},
 iron:{n:'Iron Wave',c:1,t:'atk',r:1,tg:1,d:u=>`Gain ${u?7:5} Block. Deal ${D(u?7:5)} damage.`,f:(u,e)=>{blk(u?7:5);atk(e,u?7:5)}},
-pommel:{n:'Pommel Strike',c:1,t:'atk',r:1,tg:1,d:u=>`Deal ${D(u?10:9)} damage. Draw ${u?2:1}.`,drawCount:u=>u?2:1,f:(u,e,c)=>{atk(e,u?10:9);draw(cardDrawCount(c))}},
+pommel:{n:'Cycle the Breech',c:1,t:'atk',r:1,tg:1,d:u=>`Deal ${D(u?10:7)} damage. If you discarded during an Attack this turn, draw ${u?2:1}.`,f:(u,e)=>{atk(e,u?10:7);if(C.dischargeTurn===C.turn)draw(u?2:1)}},
 shrug:{n:'Shrug Off',c:1,t:'skl',r:1,d:u=>`Gain ${u?11:8} Block. Draw 1.`,drawCount:1,f:(u,e,c)=>{blk(u?11:8);draw(cardDrawCount(c))}},
 twin:{n:'Twin Slash',c:1,t:'atk',r:1,tg:1,d:u=>`Deal ${D(u?7:5)} damage twice.`,f:(u,e)=>{atk(e,u?7:5);atk(e,u?7:5)}},
-stab:{n:'Venom Stab',c:1,t:'atk',r:1,tg:1,d:u=>`Deal ${D(u?8:6)} damage. Apply ${u?4:3} Poison.`,f:(u,e)=>{atk(e,u?8:6);debuff(e,'poison',u?4:3)}},
-toxin:{n:'Toxin Dart',c:1,t:'skl',r:1,tg:1,d:u=>`Apply ${u?8:5} Poison.`,f:(u,e)=>debuff(e,'poison',u?8:5)},
+stab:{n:'Burring Round',c:1,t:'atk',r:1,tg:1,d:u=>`Deal ${D(u?10:7)} damage. If the target has Block, apply 1 Weak first.`,f:(u,e)=>{if(e.block>0)debuff(e,'weak',1);atk(e,u?10:7)}},
+toxin:{n:'Loose Cartridge',c:0,t:'atk',r:1,tg:1,x:1,d:u=>`Deal ${D(u?6:3)} damage. If you discarded during an Attack this turn, draw 1. Exhaust.`,f:(u,e)=>{atk(e,u?6:3);if(C.dischargeTurn===C.turn)draw(1)}},
 thunder:{n:'Thunderclap',c:1,t:'atk',r:1,d:u=>`Deal ${D(u?7:4)} damage and 1 Vulnerable to ALL enemies.`,f:u=>alive().forEach(e=>{atk(e,u?7:4);debuff(e,'vuln',1)})},
 slam:{n:'Body Slam',c:[1,0],t:'atk',r:1,tg:1,d:()=>`Deal damage equal to your Block${C?' ('+D(C.p.block)+')':''}.`,f:(u,e)=>atk(e,C.p.block)},
 inflame:{n:'Inflame',c:1,t:'pow',r:2,d:u=>`Gain ${u?3:2} Strength.`,f:u=>buff('str',u?3:2)},
 upper:{n:'Uppercut',c:2,t:'atk',r:2,tg:1,d:u=>`Deal ${D(13)} damage. Apply ${u?2:1} Weak and ${u?2:1} Vulnerable.`,f:(u,e)=>{atk(e,13);debuff(e,'weak',u?2:1);debuff(e,'vuln',u?2:1)}},
 heavy:{n:'Heavy Blade',c:2,t:'atk',r:2,tg:1,d:u=>`Deal ${D(14,u?5:3)} damage. Strength counts ${u?5:3} times.`,f:(u,e)=>atk(e,14,u?5:3)},
-catalyst:{n:'Catalyst',c:1,t:'skl',r:2,tg:1,x:1,d:u=>`${u?'Triple':'Double'} the target's Poison. Exhaust.`,f:(u,e)=>{e.st.poison=(e.st.poison||0)*(u?3:2)}},
+catalyst:{n:'Crack the Ampoule',c:1,t:'atk',r:2,tg:1,ch:discardShotChoices,d:u=>`Deal ${D(u?10:7)} damage. You may discard another card to apply 2 Vulnerable after the hit.`,f:(u,e,c)=>fireCartridge(c,e,u?10:7,0,2)},
 blood:{n:'Bloodletting',c:0,t:'skl',r:2,d:u=>`Lose 3 HP. Gain ${u?3:2} Energy.`,f:u=>{loseHp(3);C.energy+=u?3:2}},
 trance:{n:'Battle Trance',c:0,t:'skl',r:2,d:u=>`Draw ${u?4:3} cards.`,drawCount:u=>u?4:3,f:(u,e,c)=>draw(cardDrawCount(c))},
 metal:{n:'Metallicize',c:1,t:'pow',r:2,d:u=>`At the end of your turn, gain ${u?4:3} Block.`,f:u=>buff('metal',u?4:3)},
-cloud:{n:'Toxic Cloud',c:[2,1],t:'pow',r:2,d:()=>`At the start of your turn, apply 2 Poison to ALL enemies.`,f:()=>buff('cloud',2)},
+cloud:{n:'Brass Catcher',c:[2,1],t:'pow',r:2,d:()=>`The first time each turn you discard during an Attack, draw 1 card.`,f:()=>buff('brass',1)},
 imperv:{n:'Impervious',c:2,t:'skl',r:3,x:1,d:u=>`Gain ${u?40:30} Block. Exhaust.`,f:u=>blk(u?40:30)},
-demon:{n:'Demon Form',c:3,t:'pow',r:3,d:u=>`At the start of your turn, gain ${u?3:2} Strength.`,f:u=>buff('demon',u?3:2)},
+demon:{n:'Split Breech',c:2,t:'pow',r:3,d:u=>`The first time each turn you discard during an Attack, deal ${u?7:5} damage to an enemy of your choice.`,f:u=>buff('breech',u?7:5)},
 bludgeon:{n:'Bludgeon',c:3,t:'atk',r:3,tg:1,d:u=>`Deal ${D(u?42:32)} damage.`,f:(u,e)=>atk(e,u?42:32)},
 adren:{n:'Adrenaline',c:0,t:'skl',r:3,x:1,d:u=>`Gain ${u?2:1} Energy. Draw 2. Exhaust.`,drawCount:2,f:(u,e,c)=>{C.energy+=u?2:1;draw(cardDrawCount(c))}},
 /* ---- The Oathbound (v0.4 card library) ---- */
 guard:{h:'oath',n:'Guard',c:1,t:'skl',r:0,d:u=>`Gain ${B(u?8:5)} Block.`,f:u=>blk(u?8:5)},
-invoke:{h:'oath',n:'Invoke',c:1,t:'skl',r:0,d:u=>`Draw ${u?2:1} card${u?'s':''}. Divine Draw 1.`,drawCount:u=>u?2:1,divineCount:1,f:(u,e,c)=>{draw(cardDrawCount(c));ddFx(KD(c).divineCount)}},
+invoke:{h:'oath',n:'Petition the Shrine',c:1,t:'skl',r:0,d:u=>`Draw ${u?2:1} card${u?'s':''}. Divine Draw 1.`,drawCount:u=>u?2:1,divineCount:1,f:(u,e,c)=>{draw(cardDrawCount(c));ddFx(KD(c).divineCount)}},
 lay:{h:'oath',m:1,n:'Lay on Hands',c:1,t:'skl',r:0,d:()=>`Gain ${B(4)} Block. Heal 1 HP. Sanctify.`,f:(u,e,c)=>{blk(4);cheal(1,c,e)}},
-judgment:{h:'oath',m:1,n:'Judgment',c:2,t:'atk',r:0,tg:1,d:()=>`Deal ${D(12)} damage. Apply 1 Vulnerable. Sanctify.`,f:(u,e)=>{atk(e,12);debuff(e,'vuln',1)}},
+judgment:{h:'oath',m:1,n:'Pronounce Sentence',c:2,t:'atk',r:0,tg:1,d:()=>`Deal ${D(12)} damage. Apply 1 Vulnerable. Sanctify.`,f:(u,e)=>{atk(e,12);debuff(e,'vuln',1)}},
 penance:{h:'oath',m:1,n:'Penance',c:0,t:'skl',r:1,d:()=>`Lose 2 HP. Draw 2 cards. Sanctify.`,drawCount:2,f:(u,e,c)=>{sac(2);draw(cardDrawCount(c))}},
 reprisal:{h:'oath',m:1,n:'Reprisal',c:1,t:'atk',r:1,tg:1,d:()=>`Deal ${D(5)} damage. Gain ${B(4)} Block. Sanctify.`,f:(u,e)=>{atk(e,5);blk(4)}},
 prayer:{h:'oath',m:1,n:'Prayer',c:1,t:'skl',r:2,d:()=>`Draw 2 cards. Sanctify.`,drawCount:2,f:(u,e,c)=>draw(cardDrawCount(c))},
 offering:{h:'oath',m:1,n:'Offering',c:0,t:'skl',r:2,once:1,d:()=>`Lose 3 HP. Gain 1 Energy. Once per combat. Sanctify.`,f:()=>{sac(3);C.energy++}},
-ocleave:{h:'oath',n:'Cleave',c:1,t:'atk',r:1,d:u=>`Deal ${D(u?10:7)} damage to ALL enemies.`,f:u=>alive().forEach(e=>atk(e,u?10:7))},
+ocleave:{h:'oath',n:'Reap the Line',c:1,t:'atk',r:1,d:u=>`Deal ${D(u?10:7)} damage to ALL enemies.`,f:u=>alive().forEach(e=>atk(e,u?10:7))},
 reckon:{h:'oath',n:'Reckoning',c:2,t:'atk',r:1,tg:1,d:u=>`Deal ${D(u?22:17)} damage.`,f:(u,e)=>atk(e,u?22:17)},
 spommel:{h:'oath',n:'Sword Pommel',c:0,t:'atk',r:1,tg:1,x:1,d:u=>`Deal ${D(u?5:3)} damage. Apply ${u?2:1} Weak. Exhaust.`,f:(u,e)=>{atk(e,u?5:3);debuff(e,'weak',u?2:1)}},
 sfaith:{h:'oath',n:'Shield of Faith',c:1,t:'skl',r:1,d:u=>`Gain ${B(u?11:8)} Block.`,f:u=>blk(u?11:8)},
 standfirm:{h:'oath',n:'Stand Firm',c:2,t:'skl',r:1,d:u=>`Gain ${B(u?18:14)} Block.`,f:u=>blk(u?18:14)},
-vigil:{h:'oath',n:'Vigilance',c:1,t:'skl',r:1,d:u=>`Gain ${B(u?6:4)} Block. Draw 1 card.`,drawCount:1,f:(u,e,c)=>{blk(u?6:4);draw(cardDrawCount(c))}},
+vigil:{h:'oath',n:'Night Watch',c:1,t:'skl',r:1,d:u=>`Gain ${B(u?6:4)} Block. Draw 1 card.`,drawCount:1,f:(u,e,c)=>{blk(u?6:4);draw(cardDrawCount(c))}},
 bastion:{h:'oath',n:'Last Bastion',c:1,t:'skl',r:2,d:u=>`Gain ${B(u?14:10)} Block. Lose 1 Strength this turn.`,f:u=>{blk(u?14:10);tmp('tstr',-1)}},
-sacret:{h:'oath',n:'Sacred Retribution',c:1,t:'atk',r:2,tg:1,d:u=>`Deal damage equal to your Block, up to ${u?20:15}${C?' ('+D(Math.min(u?20:15,C.p.block))+')':''}.`,f:(u,e)=>atk(e,Math.min(u?20:15,C.p.block))},
-convict:{h:'oath',n:'Conviction',c:1,t:'pow',r:2,d:u=>`Gain ${u?3:2} Strength.`,f:u=>buff('str',u?3:2)},
+sacret:{h:'oath',n:'The Stone Remembers',c:1,t:'atk',r:2,tg:1,d:u=>`Deal ${D(u?8:5)} damage plus the damage your Block absorbed from this enemy last enemy turn (max 8 extra).`,f:(u,e)=>atk(e,(u?8:5)+stoneBonus(e))},
+convict:{h:'oath',n:'Keep My Word',c:1,t:'pow',r:2,d:u=>`At turn end, gain ${u?5:3} Block if you played a Sanctified card, or if Unsworn and you played only ordinary cards.`,f:(u,e,c)=>addNeutralPower(c,{kind:'word',block:u?5:3})},
 condemn:{h:'oath',n:'Condemnation',c:1,t:'skl',r:2,tg:1,d:u=>`Apply ${u?3:2} Vulnerable to an enemy and 1 Vulnerable to yourself.`,f:(u,e)=>{debuff(e,'vuln',u?3:2);meDebuff(null,'vuln',1)}},
 laststand:{h:'oath',n:'Last Stand',c:2,t:'atk',r:3,tg:1,d:u=>`Deal ${D(u?20:16)} damage. Double it while below 25% HP.`,f:(u,e)=>atk(e,(u?20:16)*(G.hp<G.maxHp*.25?2:1))},
 forbid:{h:'oath',n:'Forbidden Invocation',c:[1,0],t:'skl',r:3,x:1,d:()=>`Draw a random card from a Dormant Sanctum. Exhaust.`,f:()=>{if(!ddraw(1,1))fx('#hero','Nothing stirs','')}},
@@ -685,7 +685,7 @@ requiem:{h:'oath',g:'mora',n:'Requiem',c:2,t:'atk',r:2,tg:1,d:u=>`Deal ${D(u?8:5
 echo:{h:'oath',g:'mora',n:'Echo of Death',c:[1,0],t:'skl',r:2,x:1,rs:1,ch:()=>[{k:'restore'}],req:()=>restorable().length?null:'No Exhausted card can be Restored.',d:()=>`Restore an eligible Exhausted card. Exhaust.`,f:(u,e,c)=>restoreCh(c,0)},
 queen:{h:'oath',g:'mora',n:"Queen's Embrace",c:[2,1],t:'pow',r:3,d:()=>`The first time you Offer a card each turn, gain 1 Soulbound.`,f:()=>buff('queen',1)},
 burden:{h:'oath',n:'Burden',c:-1,t:'status',r:-1,d:()=>`Unplayable. A weight laid on you by Mora.`,f:()=>{}},
-doubt:{n:'Doubt',c:-1,t:'curse',r:-1,d:()=>`Unplayable. Clogs your hand.`,f:()=>{}}};
+doubt:{n:'Unfinished Vow',c:-1,t:'curse',r:-1,d:()=>`Unplayable. Clogs your hand.`,f:()=>{}}};
 /* ---------- universal techniques: ordinary cards, never Divine Draw ---------- */
 const COLORLESS={
 exploit_opening:{n:'Exploit Opening',c:1,t:'atk',r:1,tg:1,d:u=>`Deal ${u?6:5} damage. If the enemy intends to attack, deal ${u?6:4} more.`,f:(u,e)=>atk(e,(u?6:5)+(intendsAttack(e)?u?6:4:0))},
@@ -697,7 +697,7 @@ preparation:{n:'Preparation',c:1,t:'skl',r:1,x:1,d:u=>`Next turn, gain 1 Energy 
 diversion:{n:'Diversion',c:1,t:'skl',r:1,tg:1,d:u=>`Apply 1 Weak. Gain ${u?6:3} Block.`,f:(u,e)=>{debuff(e,'weak',1);blk(u?6:3)}},
 recover:{n:'Recover',c:0,t:'skl',r:1,x:1,ch:()=>[{k:'neutralDiscard',q:'Recover an ordinary discard',required:1}],req:()=>safeDiscards().length?null:'No eligible discard (Recover and divine cards excluded).',d:u=>`Choose an ordinary discard other than Recover. ${u?'Put it into your hand':'Put it on top of your draw pile'}. Exhaust.`,f:(u,e,c)=>retrieveNeutral(c._ch?.[0],u?'hand':'draw')},
 feint:{n:'Feint',c:1,t:'skl',r:1,tg:1,d:u=>`Gain ${u?8:5} Block. If the selected enemy intends to attack, draw 1.`,f:(u,e)=>{blk(u?8:5);if(intendsAttack(e))draw(1)}},
-follow_through:{n:'Follow Through',c:1,t:'atk',r:1,tg:1,d:u=>`Deal ${u?8:6} damage, plus ${u?5:4} if the preceding card was an Attack.`,f:(u,e)=>atk(e,(u?8:6)+(neutralState().history.at(-1)==='atk'?u?5:4:0))},
+follow_through:{n:'Split Their Ranks',c:1,t:'atk',r:1,tg:1,d:u=>`Deal ${D(u?10:7)} damage. If your previous Attack this turn hit another enemy and missed this one, apply 1 Weak.`,f:(u,e)=>{const hits=C.previousAttack||[];atk(e,u?10:7);if(hits.length&&!hits.includes(e.i))debuff(e,'weak',1)}},
 improvised_defense:{n:'Improvised Defense',c:1,t:'skl',r:1,d:u=>`Gain ${u?6:4} Block plus 2 per unplayable card in hand (up to 6 extra).`,f:u=>blk((u?6:4)+Math.min(6,2*C.hand.filter(x=>cost(x)<0).length))},
 hesitation:{n:'Hesitation',c:0,t:'skl',r:1,x:1,ch:u=>[{k:'neutralHand',q:'Retain for this turn',n:u?2:1,optional:1}],d:u=>`Retain up to ${u?2:1} other card${u?'s':''} this turn. Exhaust.`,f:(u,e,c)=>{for(const id of c._ch?.[0]||[])neutralState().retained[id]=C.turn}},
 calculated_risk:{n:'Calculated Risk',c:0,t:'skl',r:2,x:1,d:u=>`Lose 3 HP. Draw ${u?3:2}. Exhaust.`,f:u=>{sac(3);draw(u?3:2)}},
@@ -721,7 +721,7 @@ burn_the_bridge:{n:'Burn the Bridge',c:1,t:'skl',r:3,x:1,d:u=>`Exhaust all other
 reinvention:{n:'Reinvention',c:1,t:'skl',r:3,x:1,d:u=>`Discard your remaining hand. Draw that many cards plus ${u?2:1}. Exhaust.`,f:u=>{const a=C.hand.splice(0);a.forEach(discardNeutral);draw(a.length+(u?2:1))}},
 final_word:{n:'Final Word',c:2,t:'atk',r:3,tg:1,d:u=>`Deal ${u?16:12} damage plus 3 per other card played this turn (up to 18 extra).`,f:(u,e)=>atk(e,(u?16:12)+Math.min(18,3*neutralState().history.length))},
 accept_the_cost:{n:'Accept the Cost',c:0,t:'skl',r:3,x:1,ch:()=>[{k:'neutralMode',q:'Choose one',opts:['Gain 2 Energy','Draw 3','Gain 15 Block']}],d:u=>`Lose ${u?3:5} HP. Choose: gain 2 Energy; draw 3; or gain 15 Block. Exhaust.`,f:(u,e,c)=>{sac(u?3:5);const a=c._ch?.[0];if(a===0)C.energy+=2;if(a===1)draw(3);if(a===2)blk(15)}},
-second_wind:{n:'Second Wind',c:[2,1],t:'pow',r:3,d:()=>`The first time you end a turn with an empty hand, draw 3 extra cards and gain 1 Energy next turn. Once per combat per player.`,f:(u,e,c)=>addNeutralPower(c,{kind:'wind'})},
+second_wind:{n:'Travel Light',c:[2,1],t:'pow',r:3,d:()=>`The first time you end a turn with an empty hand, draw 3 extra cards and gain 1 Energy next turn. Once per combat per player.`,f:(u,e,c)=>addNeutralPower(c,{kind:'wind'})},
 cover:{coop:1,n:'Cover',c:1,t:'skl',r:1,ch:()=>[{k:'neutralAlly'}],d:u=>`Give yourself or a living ally ${u?10:7} Block.`,f:(u,e,c)=>neutralBlock(c._ch?.[0]??neutralSelf(),u?10:7)},
 rally:{coop:1,n:'Rally',c:1,t:'skl',r:2,ch:()=>[{k:'neutralAlly'}],d:u=>`You or a living ally draws ${u?3:2} extra cards next turn.`,f:(u,e,c)=>delayNeutral(1,{draw:u?3:2},c._ch?.[0]??neutralSelf())},
 intercept:{coop:1,n:'Intercept',c:1,t:'skl',r:2,x:1,ch:()=>[{k:'neutralAlly',other:1}],d:u=>`Gain ${u?14:10} Block. Redirect the next single-target enemy attack on the selected ally to you. Solo: gain Block. Exhaust.`,f:(u,e,c)=>{blk(u?14:10);const id=c._ch?.[0];if(id!=null&&id!==neutralSelf())neutralState().redirects.push({from:id,to:neutralSelf(),turn:C.turn})}},
@@ -747,6 +747,19 @@ const safeOrdinary=c=>!godOf(c)&&!c.tier&&!c.tmpS&&!K[c.id].rs;
 const safeDiscards=()=>C.disc.filter(c=>c.id!=='recover'&&safeOrdinary(c));
 function neutralToHand(c){if(C.hand.length<10){c.dt=performance.now();C.hand.push(c)}else discardNeutral(c)}
 function retrieveNeutral(id,to,allowReturn=false){const i=C.disc.findIndex(c=>c.u===id&&safeOrdinary(c)&&(allowReturn||c.id!=='recover'));if(i<0)return;const c=C.disc.splice(i,1)[0];if(to==='draw')C.draw.push(c);else neutralToHand(c)}
+function stoneBonus(e){return Math.min(8,C.absorbedByFoe?.[e.i]||0)}
+function discardShotChoices(){return [{k:'hand',q:'Discard a card to empower the shot, or skip'},{k:'breechTarget'}]}
+function fireCartridge(c,e,damage,extra,vulnerable=0){
+ const spent=moveChosen(c,'discard');
+ atk(e,damage+(spent?extra:0));
+ if(!spent)return;
+ if(vulnerable)debuff(e,'vuln',vulnerable);
+ if(C.dischargeTurn===C.turn)return;
+ C.dischargeTurn=C.turn;
+ if(C.p.st.brass)draw(C.p.st.brass);
+ const target=C.foes.find(foe=>foe.i===c._ch?.[1]);
+ if(C.p.st.breech&&target?.hp>0)ddmg(target,C.p.st.breech);
+}
 function moveChosen(c,action,eligible=()=>true){const id=c._ch?.[0],i=C.hand.findIndex(x=>x.u===id&&x.u!==c.u&&eligible(x));if(i<0)return false;const x=C.hand.splice(i,1)[0];if(action==='exhaust')exhaust(x);else discardNeutral(x);return true}
 async function resolveNeutralChoice(s,c){
  if(s.k==='neutralMode'){const i=await chooseP(name(c),s.q,s.opts);return i==null?CANCEL:i}
@@ -758,10 +771,10 @@ async function resolveNeutralChoice(s,c){
  for(let i=0;i<n;i++){const x=await pickP(s.q+(n>1?` (${i+1}/${n})`:''),list.filter(x=>!out.includes(x.u)),s.optional?'Done':'Cancel');if(!x)return s.optional?out:CANCEL;out.push(x.u)}
  return s.n||s.optional?out:out[0]
 }
-function neutralAfterCard(c){const n=neutralState();n.history.push(KD(c).t);for(const p of n.powers)if(p.kind==='rhythm'&&p.last!==C.turn&&n.history.includes('atk')&&n.history.includes('skl')){p.last=C.turn;blk(p.block)}}
+function neutralAfterCard(c){const n=neutralState();if(c.tier)C.playedSanctified=true;if(!safeOrdinary(c))C.playedDivine=true;n.history.push(KD(c).t);for(const p of n.powers)if(p.kind==='rhythm'&&p.last!==C.turn&&n.history.includes('atk')&&n.history.includes('skl')){p.last=C.turn;blk(p.block)}}
 function neutralHpChanged(before,attack=false){const n=neutralState();if(before>=G.maxHp*.5&&G.hp<G.maxHp*.5)for(const p of n.powers)if(p.kind==='contingency'&&!p.used){p.used=true;blk(p.block);delayNeutral(1,{draw:2})}}
 function neutralStartTurn(){const n=neutralState();n.history=[];if(C.neutralPreTurnBlock){blk(C.neutralPreTurnBlock,1);delete C.neutralPreTurnBlock}let extra=0;const due=C.neutralIncoming||[];C.neutralIncoming=due.filter(x=>x.due>C.turn);for(const x of due.filter(x=>x.due<=C.turn)){C.energy+=x.energy||0;extra+=x.draw||0;if(x.block)blk(x.block);if(x.returnId!=null)retrieveNeutral(x.returnId,'hand',true)}for(const p of n.powers)if(p.kind==='long'&&C.turn>p.played&&(C.turn-p.played)%3===0){C.energy++;extra+=p.draw}C.energy=Math.max(0,C.energy);return extra}
-function neutralEndTurn(){const n=neutralState();for(const p of n.powers){if(p.last===C.turn)continue;p.last=C.turn;if(p.kind==='holdfast'&&C.energy>0)blk(p.block);if(p.kind==='patience'&&!n.history.includes('atk'))delayNeutral(1,{block:p.block});if(p.kind==='wind'&&!n.windUsed&&C.hand.length===0){n.windUsed=true;delayNeutral(1,{draw:3,energy:1})}}}
+function neutralEndTurn(){const n=neutralState();for(const p of n.powers){if(p.last===C.turn)continue;p.last=C.turn;if(p.kind==='word'&&(C.playedSanctified||(!SWN()&&n.history.length&&!C.playedDivine)))blk(p.block);if(p.kind==='holdfast'&&C.energy>0)blk(p.block);if(p.kind==='patience'&&!n.history.includes('atk'))delayNeutral(1,{block:p.block});if(p.kind==='wind'&&!n.windUsed&&C.hand.length===0){n.windUsed=true;delayNeutral(1,{draw:3,energy:1})}}}
 function neutralDiscardHand(){const n=neutralState(),a=C.hand.splice(0);for(const c of a){if(n.retained[c.u]===C.turn)C.hand.push(c);else discardNeutral(c)}n.retained={}}
 // Resolve a whole single-target attack action once, so multi-hit attacks stay together.
 function neutralAttackTarget(e){return e.int?.target??neutralSelf()}
@@ -925,7 +938,7 @@ function meDebuff(e,k,n){if(C.p.st.anoint>0){C.p.st.anoint--;fx('#hero','Anointe
   if(C.p.st.crownl&&C.clT!=C.turn){C.clT=C.turn;blk(C.p.st.crownl,1)}if(has('thorns')&&e)ddmg(e,4);return}buff(k,n)}
 function reqMsg(c){const k=KD(c);if(k.once&&C.once.includes(c.u))return 'Already used this combat.';return k.req?k.req(c.up,c):null}
 const playable=c=>{const co=cost(c);return co>=0&&co<=C.energy&&!reqMsg(c)};
-function runCard(c,e){const k=KD(c);if(k.t=='atk'&&C.p.st.blust>0){C.bl=blB();C.bsT=C.turn;C.p.st.blust--}C.resolvingType=k.t;try{k.f(c.up,e,c)}finally{C.bl=0;delete C.resolvingType}if(k.once)C.once.push(c.u);neutralAfterCard(c)}
+function runCard(c,e){const k=KD(c);if(k.t=='atk'&&C.p.st.blust>0){C.bl=blB();C.bsT=C.turn;C.p.st.blust--}if(k.t==='atk')C.attackHits=[]; C.resolvingType=k.t;try{k.f(c.up,e,c)}finally{if(k.t==='atk'){C.previousAttack=C.attackHits;delete C.attackHits}C.bl=0;delete C.resolvingType}if(k.once)C.once.push(c.u);neutralAfterCard(c)}
 async function sanctify(c){if(G.hero!='oath'||!K[c.id].m||c.tier||!SWN())return false;const dc=G.deck.find(d=>d.u==c.u);if(!dc)return false;
  if(ordinaryCount(G.oaths,G.deck.filter(d=>d!==dc))<8){if(!C.thin){C.thin=1;toast('Your deck is too thin to Sanctify (keep 8 ordinary cards).')}return false}
  let g=G.oaths[0];if(G.oaths.length>1)g=G.oaths[await chooseP('Sanctify '+K[c.id].n,'Which god claims this card?',G.oaths.map(x=>GODS[x].n))||0];
@@ -937,6 +950,12 @@ const CANCEL={};
 function handChoices(c,statusOnly){return C.hand.filter(x=>x.u!==c.u&&(!statusOnly||['curse','status'].includes(KD(x).t)))}
 function moraPenanceReq(u,c){return handChoices(c).length?null:'Needs another card in your hand to Exhaust.'}
 async function resolveCh(s,c){
+ if(s.k==='breechTarget'){
+  if(c._ch[0]==null||!C.p.st.breech||C.dischargeTurn===C.turn)return null;
+  const foes=alive();if(foes.length===1)return foes[0].i;
+  const choice=await chooseP('Split Breech','Choose the target for the extra shot',foes.map(e=>EN[e.k].n+' ('+e.hp+' HP, position '+(e.i+1)+')'));
+  return choice==null?CANCEL:foes[choice].i;
+ }
  if(s.k.startsWith('neutral'))return resolveNeutralChoice(s,c);
  if(s.k=='yes'){if(s.ok&&!s.ok())return false;return (await chooseP(name(c),s.q,['Yes','No']))===0}
  let list=[],title=s.q||'';
@@ -952,7 +971,7 @@ const chDef=s=>s.k=='offer'?(s.opt?[]:offerable().slice(0,s.n||1).map(x=>x.u)):s
 function pickP(title,list,cancel){return new Promise(res=>{openPick(title,list,c=>res(c),cancel);MD.onClose=()=>res(null)})}
 function chooseP(title,q,opts){return new Promise(res=>{MD={ask:res};$('#modal').innerHTML=`<div class="modal ask" role="dialog" aria-label="${title}"><div class="mhead"><h2>${title}</h2></div><p class="sub">${q}</p><div class="opts">${opts.map((o,i)=>`<button class="btn opt" data-a="mask" data-v="${i}">${o}</button>`).join('')}</div></div>`})}
 const START_GOLD=99;
-const HEROES={aether:{n:'The Aetherwright',s:'Aetherwright',hp:70,relic:'heart',deck:()=>[...Array(5)].map(()=>mk('strike')).concat([...Array(4)].map(()=>mk('defend')),[mk('bash')]),b:'An aether-punk gunslinger. Strength, poison and raw firepower.'},
+const HEROES={aether:{n:'The Aetherwright',s:'Aetherwright',hp:70,relic:'heart',deck:()=>[...Array(5)].map(()=>mk('strike')).concat([...Array(4)].map(()=>mk('defend')),[mk('bash')]),b:'An aether-punk gunslinger. Discard cartridges to change how your shots fire.'},
 oath:{n:'The Oathbound',s:'Oathbound',hp:80,relic:'unbroken',deck:()=>[...Array(4)].map(()=>mk('strike')).concat([...Array(3)].map(()=>mk('guard')),[mk('judgment'),mk('lay'),mk('invoke')]),b:'A wandering knight. Swear an Oath at a Divine shrine and his cards evolve under that god, or stay Unsworn and trust his steel.'}};
 let SIM=false;
 
@@ -991,12 +1010,12 @@ faithless:{n:'Crown of the Faithless',d:'While Unsworn, Divine Draw reaches any 
 covenant:{n:'Eternal Covenant',d:'While following exactly one god, your first Divine Draw effect each combat draws 1 more card.',h:'oath',r:'r'},
 twin:{n:'Twin Covenant',d:'Keep two oaths and draw from both Sanctums. You bear both Divine Laws and both Prices.',h:'oath',r:'l'},
 halo:{n:'Broken Halo',d:'Remove one Divine Price (Aurel, Orun or Mora) for the rest of the run.',h:'oath',r:'l'}};
-const STN={str:['Str','u','Strength: adds damage to attacks'],tstr:['Str this turn','u','Strength that fades at the end of your turn'],dex:['Dex','b','Dexterity: adds Block to cards'],tdex:['Dex this turn','b','Dexterity that fades at the end of your turn'],anoint:['Anointed','u','Anointed (Aurel): prevents the next debuff applied to you'],blust:['Bloodlust','u','Bloodlust (Varran): your next Attack deals 3 more damage'],resolve:['Resolve','b','Resolve (Orun): cuts the next unblocked attack damage by up to 3'],soul:['Soulbound','p','Soulbound (Mora): when you Offer a card, deal 4 damage to ALL enemies'],crownl:['Crown','b','Crown of Light: the first debuff Anointed prevents each turn gives Block'],conqw:['Will','u',"Conqueror's Will: the first HP sacrifice each turn gives Strength"],fort:['Fortress','b','Living Fortress: the first time Resolve prevents damage each turn, gain Block'],queen:['Embrace','p',"Queen's Embrace: the first Offer each turn gives 1 Soulbound"],vuln:['Vuln','d','Vulnerable: takes 50% more attack damage'],weak:['Weak','d','Weak: deals 25% less attack damage'],poison:['Poison','p','Poison: loses that much HP each turn, then it drops by 1'],metal:['Metal','b','Metallicize: gain Block at end of turn'],cloud:['Cloud','p','Toxic Cloud: poison all enemies each turn'],demon:['Demon','u','Demon Form: gain Strength each turn']};
+const STN={str:['Str','u','Strength: adds damage to attacks'],tstr:['Str this turn','u','Strength that fades at the end of your turn'],dex:['Dex','b','Dexterity: adds Block to cards'],tdex:['Dex this turn','b','Dexterity that fades at the end of your turn'],anoint:['Anointed','u','Anointed (Aurel): prevents the next debuff applied to you'],blust:['Bloodlust','u','Bloodlust (Varran): your next Attack deals 3 more damage'],resolve:['Resolve','b','Resolve (Orun): cuts the next unblocked attack damage by up to 3'],soul:['Soulbound','p','Soulbound (Mora): when you Offer a card, deal 4 damage to ALL enemies'],crownl:['Crown','b','Crown of Light: the first debuff Anointed prevents each turn gives Block'],conqw:['Will','u',"Conqueror's Will: the first HP sacrifice each turn gives Strength"],fort:['Fortress','b','Living Fortress: the first time Resolve prevents damage each turn, gain Block'],queen:['Embrace','p',"Queen's Embrace: the first Offer each turn gives 1 Soulbound"],vuln:['Vuln','d','Vulnerable: takes 50% more attack damage'],weak:['Weak','d','Weak: deals 25% less attack damage'],poison:['Poison','p','Poison: loses that much HP each turn, then it drops by 1'],metal:['Metal','b','Metallicize: gain Block at end of turn'],brass:['Brass','b','Brass Catcher: draw on your first cartridge discard each turn'],breech:['Breech','u','Split Breech: fire an extra shot on your first cartridge discard each turn']};
 
 /* ---------- helpers ---------- */
 const mk=(id,up=0)=>({id,up,u:uid++});
 const cost=c=>{const k=KD(c).c;return Array.isArray(k)?k[c.up?1:0]:k};
-const name=c=>KD(c).n+(c.up?'+':'');
+const name=c=>(c.id==='strike'&&G?.hero==='oath'?'Sword Stroke':KD(c).n)+(c.up?'+':'');
 const has=k=>G&&G.relics.includes(k);
 const heal=n=>{G.hp=Math.min(G.maxHp,G.hp+n)};
 const canSmith=c=>!c.up&&K[c.id].r>=0&&!K[c.id].m&&!c.tier;
@@ -1020,10 +1039,10 @@ const alive=()=>C.foes.filter(e=>e.hp>0);
 const rage=e=>{if(e.k=='rustjaw'&&!e.rg&&e.hp>0&&e.hp*2<e.max){e.rg=1;e.st.str=(e.st.str||0)+3;fx('#f'+e.i,'Bloodscent +3 Str','')}
  if(e.k=='jugg'&&!e.rg&&e.hp>0&&e.hp*2<e.max){e.rg=1;e.st.str=(e.st.str||0)+2;e.block+=10;fx('#f'+e.i,'Overpressure!','i');fx('#f'+e.i+' .spr','','','oc')}};
 const fell=e=>{rage(e);if(e.hp<=0&&!e.dieAt){e.dieAt=performance.now();EnemyRigs.cue(e,'death');if(e.k=='spore')forLivingHeroes(()=>meDebuff(null,'poison',2));fx('#f'+e.i+' .spr','','','burst');fx('#f'+e.i+' .spr','','','vfx:shards')}};
-function atk(e,b,m=1){if(!e||e.hp<=0)return;let d=b+S()*m+(C.bl||0);if(C.resolvingType==='atk'){d+=e.neutralMark||0;delete e.neutralMark;}if(C.p.st.weak)d*=.75;if(e.st.vuln)d*=1.5;if(priceOn('orun'))d*=.8;d=Math.max(0,Math.floor(d));const ab=Math.min(e.block,d);e.block-=ab;const n=d-ab;e.hp=Math.max(0,e.hp-n);if(n>0&&C.resolvingType==='atk'){e.neutralAttackTurn=C.turn;e.neutralAttackSeat=activeSeat()}fx('#f'+e.i,n?'-'+n:'Blocked',n?'':'b');EnemyRigs.cue(e,'hit');fx('#f'+e.i+' .spr','','','hitR');fx('#f'+e.i+' .spr','','','vfx:slash');if(n>=15)fx('.stage','','','quake');fell(e)}
+function atk(e,b,m=1){if(!e||e.hp<=0)return;let d=b+S()*m+(C.bl||0);if(C.resolvingType==='atk'){if(C.attackHits&&!C.attackHits.includes(e.i))C.attackHits.push(e.i);d+=e.neutralMark||0;delete e.neutralMark;}if(C.p.st.weak)d*=.75;if(e.st.vuln)d*=1.5;if(priceOn('orun'))d*=.8;d=Math.max(0,Math.floor(d));const ab=Math.min(e.block,d);e.block-=ab;const n=d-ab;e.hp=Math.max(0,e.hp-n);if(n>0&&C.resolvingType==='atk'){e.neutralAttackTurn=C.turn;e.neutralAttackSeat=activeSeat()}fx('#f'+e.i,n?'-'+n:'Blocked',n?'':'b');EnemyRigs.cue(e,'hit');fx('#f'+e.i+' .spr','','','hitR');fx('#f'+e.i+' .spr','','','vfx:slash');if(n>=15)fx('.stage','','','quake');fell(e)}
 const blk=(n,raw)=>{if(!raw)n=Math.max(0,n+X());C.p.block+=n;fx('#hero','+'+n+' Block','b');fx('#hero .spr','','','vfx:ripple')};
 const debuff=(e,k,n)=>{if(e&&e.hp>0){e.st[k]=(e.st[k]||0)+n;if(k=='poison')fx('#f'+e.i+' .spr','','','vfx:poison')}};
-const buff=(k,n)=>{C.p.st[k]=(C.p.st[k]||0)+n;if(C&&!C.busy&&['str','dex','metal','cloud','demon','crownl','conqw','fort','queen'].includes(k)){fx('#hero .spr','','','vfx:rune');fx('#hero .spr','','','vfx:pillar')}};
+const buff=(k,n)=>{C.p.st[k]=(C.p.st[k]||0)+n;if(C&&!C.busy&&['str','dex','metal','brass','breech','crownl','conqw','fort','queen'].includes(k)){fx('#hero .spr','','','vfx:rune');fx('#hero .spr','','','vfx:pillar')}};
 const loseHp=n=>{const before=G.hp;G.hp=Math.max(1,G.hp-n);neutralHpChanged(before);fx('#hero','-'+n,'');fx('#hero .spr','','','hitL')};
 function cardDrawCount(c){const rule=KD(c).drawCount;return typeof rule==='function'?rule(c.up):rule||0}
 function planDraw(n,handSize){
@@ -1114,7 +1133,7 @@ function prepareCombatDeck(){
  if(has('bell'))C.foes.forEach(e=>e.st.vuln=(e.st.vuln||0)+1);
  if(has('fang'))C.p.st.str=1;
 }
-function startTurn(){C.turn++;
+function startTurn(){C.turn++; C.previousAttack=[]; C.playedDivine=false; C.playedSanctified=false;
 
  const boon=C.turn===1?thresholdCombat():{};const keep=Math.min(C.p.block,C.keep||0);C.keep=0;C.p.block=keep+(C.turn==1?(has('anchor')?10:0)+(has('unbroken')?5:0)+(boon.block||0):0);C.lostPrev=C.turn>1&&!!C.hurt;C.hurt=false;C.energy=3+(C.turn==1&&has('lantern')?1:0)+(boon.energy||0);
  if(C.p.st.poison){
@@ -1125,8 +1144,7 @@ function startTurn(){C.turn++;
    C.busy=true;render();return nextPlayerOrEnemies();
   }
  }
- if(C.p.st.demon)buff('str',C.p.st.demon);
- if(C.p.st.cloud){alive().forEach(e=>{debuff(e,'poison',C.p.st.cloud)})}
+ 
  const nd=Math.max(0,5+(C.turn==1&&has('satchel')?2:0)+neutralStartTurn());if(G.hero=='oath'&&SWN()&&actSanc().some(x=>x.dturn!==C.turn)){draw(Math.max(0,nd-1));if(nd>0)ddraw(1)}else draw(nd);
  if(C.turn==1&&has('testament'))ddFx(1);if(C.turn==3&&has('ring'))ddFx(1);
  C.busy=false;C.sel=-1;render()}
@@ -1149,7 +1167,7 @@ async function play(i,e,src){if(!C||C.busy||C.lock)return;const c=C.hand[i];if(!
  runCard(c,e);if(k.t!='pow'){if(k.x)exhaust(c);else{const g=retS(c);if(g)C.sanc[g].push(c);else if(!(await sanctify(c)))C.disc.push(c)}}C.lock=false;render();checkWin()}
 function tapFoe(j){if(!C||C.busy||C.lock||C.sel<0)return;const e=C.foes[j];if(e&&e.hp>0)play(C.sel,e)}
 function checkWin(){if(C&&!C.won&&!alive().length){C.won=true;C.busy=true;render();setTimeout(winCombat,1100)}}
-function hitMe(e,a){let d=a+(e.st.str||0);if(e.st.weak)d*=.75;if(C.p.st.vuln)d*=1.5;d=Math.floor(d);const ab=Math.min(C.p.block,d);C.p.block-=ab;let n=d-ab;
+function hitMe(e,a){let d=a+(e.st.str||0);if(e.st.weak)d*=.75;if(C.p.st.vuln)d*=1.5;d=Math.floor(d);const ab=Math.min(C.p.block,d);C.p.block-=ab;C.absorbedByFoe??={};C.absorbedByFoe[e.i]=(C.absorbedByFoe[e.i]||0)+ab;let n=d-ab;
  if(n>0&&C.p.st.resolve>0){const r=Math.min(n,3+(has('granite')?1:0));n-=r;C.p.st.resolve--;fx('#hero','Resolve -'+r,'o o-orun');if(C.p.st.fort&&C.lfT!=C.turn){C.lfT=C.turn;blk(C.p.st.fort,1)}}
  if(n)C.hurt=true;
  if(ab&&ACT('orun')&&e.hp>0){
@@ -1159,7 +1177,7 @@ function hitMe(e,a){let d=a+(e.st.str||0);if(e.st.weak)d*=.75;if(C.p.st.vuln)d*=
  }
  const before=G.hp;G.hp=Math.max(0,G.hp-n);neutralHpChanged(before);fx('#hero',n?'-'+n:'Blocked',n?'':'b');fx('#hero .spr','','','hitL');fx('#hero .spr','','',n?'vfx:slashL':'vfx:ring');if(n){rigPose('hurt',430);RIG.flash=.85;RIG.whip=Math.max(RIG.whip,.7)}fx('#f'+e.i+' .spr','','','retL');if(n>=15)fx('.stage','','','quake');return n}
 async function endTurn(){if(!C||C.busy||C.lock)return;C.busy=true;C.sel=-1;
- neutralEndTurn();
+ C.absorbedByFoe={};neutralEndTurn();
  if(C.p.st.metal)blk(C.p.st.metal,1);
  neutralDiscardHand();delete C.p.st.tstr;delete C.p.st.tdex;dec(C.p.st);render();await sleep(400);
  return nextPlayerOrEnemies();
@@ -1436,7 +1454,7 @@ let selectedHero='oath';
 function pickV(){if(partyDraft)return partyPickV();const k=HEROES[selectedHero]?selectedHero:'oath',h=HEROES[k],r=RELICS[h.relic],oath=k==='oath';return `<section class="ascent-select" aria-label="Choose your climber">
 <header class="select-head"><span class="select-brand">Hollow Ascent / Choose your path</span><button class="btn sm" data-a="title">Back</button></header>
 <div class="select-body"><figure class="select-scene${oath?'':' neutral'}"><img src="${oath?'assets/bg_oath_select.webp':PSET[k].idle}" alt="${oath?'The Oathbound kneels in a ruined circular temple before the gold sun, red warrior, blue mountain and water, and purple moon gods.':h.n+' — existing character artwork'}"><figcaption>${oath?'Four gods. One wandering knight.':'The Aetherwright'}</figcaption></figure>
-<div class="select-info"><p class="eyebrow">Choose your climber</p><h1>${h.n}</h1><p class="tagline">${oath?'Swear an Oath. Or trust your steel.':'Strength. Poison. Firepower.'}</p><p>${h.b}</p><div class="select-stats"><span>${h.hp} starting HP</span><span>${START_GOLD} starting gold</span></div>
+<div class="select-info"><p class="eyebrow">Choose your climber</p><h1>${h.n}</h1><p class="tagline">${oath?'Swear an Oath. Or trust your steel.':'One shot or one more card.'}</p><p>${h.b}</p><div class="select-stats"><span>${h.hp} starting HP</span><span>${START_GOLD} starting gold</span></div>
 <div class="select-relic"><strong>${r.n}</strong><p>${r.d}</p></div>
 ${oath?`<div class="select-laws" aria-label="Inspect the four Oaths">${Object.entries(GODS).map(([id,g])=>`<details><summary>${g.n} · ${g.oath}</summary><p>${g.law}</p><p>Price: ${g.price}</p></details>`).join('')}</div>`:''}
 <button class="btn" data-a="startdeck">Inspect starting deck</button><button class="btn pri" data-a="begin">Begin Ascent</button></div></div>
@@ -1497,7 +1515,7 @@ function rigV(d){
  const actions=d.actionPoses?pose('attack','enemy-action enemy-attack')+pose('hurt','enemy-action enemy-hurt'):'';
  return `<span class="spr paint">${idle}${actions}</span>`}
 function foeV(e,tg,now){const d=EN[e.k],dead=e.hp<=0,el=dead?now-(e.dieAt||0):0,st=dead?(el<800?' dying':' dead'):'';
- return `<button class="unit${d.big?' big':''}${d.img||d.rig?' pw':''}${tg&&!dead?' tgt':''}${st}" id="f${e.i}" data-a="foe" data-v="${e.i}" aria-label="${d.n}" style="${d.img||d.rig?`--w:${d.w};--h:${(d.w/(d.rig?EnemyRigData[d.rig].size[0]/EnemyRigData[d.rig].size[1]:d.ar)).toFixed(1)};`:''}${st==' dying'?`animation-delay:-${el|0}ms`:''}"><span class="ints">${dead?'':intV(e)}</span>${d.rig||d.actionPoses?rigV(d):d.img?`<span class="spr paint"><img class="bob${d.fly?' fly':''}" src="assets/enemies/${d.img}.webp" alt="" draggable="false" style="animation-delay:-${(now+e.i*900)%2600|0}ms"></span>`:`<span class="spr"><svg class="bob${d.s=='moth'||d.s=='ghost'?' fly':''}" viewBox="0 0 120 100" style="animation-delay:-${(now+e.i*900)%2600|0}ms" aria-hidden="true">${d.mir?`<g transform="matrix(-1 0 0 1 120 0)">${SPR[d.s](d.col)}</g>`:SPR[d.s](d.col)}</svg></span>`}<span class="info"><span class="fn"${d.pas?` title="${d.pas[0]}: ${d.pas[1]}"`:''}>${d.n}${d.pas?'<i class="pas">◆</i>':''}</span><span class="bar"><i style="width:${e.hp/e.max*100}%"></i></span><span class="hpt">${e.hp}/${e.max}${e.block?` <span class="chip blk">${hudIcon("intent-block",14)}${e.block}</span>`:''}</span><span class="chips">${stV(e.st)}</span></span></button>`}
+ return `<button class="unit${d.big?' big':''}${d.img||d.rig?' pw':''}${tg&&!dead?' tgt':''}${st}" id="f${e.i}" data-a="foe" data-v="${e.i}" aria-label="${d.n}" style="${d.img||d.rig?`--w:${d.w};--h:${(d.w/(d.rig?EnemyRigData[d.rig].size[0]/EnemyRigData[d.rig].size[1]:d.ar)).toFixed(1)};`:''}${st==' dying'?`animation-delay:-${el|0}ms`:''}"><span class="ints">${dead?'':intV(e)}${tg&&!dead&&C.hand[C.sel]?.id==='sacret'?`<span class="it b">+${stoneBonus(e)} damage</span>`:''}</span>${d.rig||d.actionPoses?rigV(d):d.img?`<span class="spr paint"><img class="bob${d.fly?' fly':''}" src="assets/enemies/${d.img}.webp" alt="" draggable="false" style="animation-delay:-${(now+e.i*900)%2600|0}ms"></span>`:`<span class="spr"><svg class="bob${d.s=='moth'||d.s=='ghost'?' fly':''}" viewBox="0 0 120 100" style="animation-delay:-${(now+e.i*900)%2600|0}ms" aria-hidden="true">${d.mir?`<g transform="matrix(-1 0 0 1 120 0)">${SPR[d.s](d.col)}</g>`:SPR[d.s](d.col)}</svg></span>`}<span class="info"><span class="fn"${d.pas?` title="${d.pas[0]}: ${d.pas[1]}"`:''}>${d.n}${d.pas?'<i class="pas">◆</i>':''}</span><span class="bar"><i style="width:${e.hp/e.max*100}%"></i></span><span class="hpt">${e.hp}/${e.max}${e.block?` <span class="chip blk">${hudIcon("intent-block",14)}${e.block}</span>`:''}</span><span class="chips">${stV(e.st)}</span></span></button>`}
 function handV(){const n=C.hand.length;if(!n)return '<p class="empty">No cards in hand</p>';const mid=(n-1)/2,now=performance.now();
  return C.hand.map((c,i)=>{const o=i-mid,rot=n>1?o*Math.min(4,12/n):0,y=Math.min(24,o*o*Math.min(3.2,16/n)),dl=c.dt?c.dt-now:-999,an=dl>-420&&!RM?`;animation:deal .42s ease-out ${dl|0}ms backwards`:'';
   return cardV(c,`data-a="card" data-v="${i}" style="--offset:${o};--gaps:${Math.max(1,n-1)};--r:${rot.toFixed(2)}deg;--y:${y.toFixed(1)}px;z-index:${i+1}${an}"`,(i==C.sel?'sel ':'')+(playable(c)?'':'no'))}).join('')}
