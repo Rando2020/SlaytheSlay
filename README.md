@@ -135,3 +135,5 @@ Open **Reference gallery** on the title screen or in Combat Lab to browse regist
 cards (including oath forms), relics, statuses, oaths and Sanctums. Search by rule
 text, name or ID. The artwork filter separates loaded illustrations, shared icons,
 text placeholders and failed image loads. The gallery also shows each mapped file.
+
+Open [Map Lab](map-lab.html) to inspect the production Act I renderer. See [navigation and encounter saves](docs/map/README.md).

@@ -474,7 +474,20 @@ const shuf=a=>{if(SIM)return a;for(let i=a.length-1;i>0;i--){const j=R(i+1);[a[i
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const combatLab = new URLSearchParams(location.search).get('dev') === 'combat';
 const SAVE='hollow-ascent-v1';
-const save=()=>{if(combatLab)return;try{localStorage.setItem(G.party?SAVE+'-party':SAVE,JSON.stringify(G))}catch(e){}};
+const encounterScreens=['combat','shop','rest','event','shrine','reward'];
+function save(){
+ if(combatLab)return true;
+ try{
+  const snapshot={...G};
+  if(G.travel?.status==='active'&&encounterScreens.includes(screen)){
+   if(MD||screen==='combat'&&(!C||combatEnemyPhase||C.lock||C.busy&&!C.won))return true;
+   snapshot.encounter={screen,uid,RW,SH,RS,SR,event:EV?{index:EVENTS.indexOf(EV.e),done:EV.done,msg:EV.msg}:null,
+    visits:roomVisits?{seats:roomVisits.seats,room:roomVisits.room,event:roomVisits.event,reward:roomVisits.reward}:null};
+   if(screen==='combat'){snapshot.encounter.party=combatParty.map(({foes,...hero})=>hero);snapshot.encounter.foes=C.foes}
+  }
+  localStorage.setItem(G.party?SAVE+'-party':SAVE,JSON.stringify(snapshot));return true
+ }catch(e){return false}
+}
 const load=(party=false)=>{if(combatLab)return null;try{return JSON.parse(localStorage.getItem(party?SAVE+'-party':SAVE))}catch(e){return null}};
 const wipe=()=>{if(combatLab)return;try{localStorage.removeItem(G?.party?SAVE+'-party':SAVE)}catch(e){}};
 let G=null,C=null,RW=null,SH=null,RS=null,SR=null,EV=null,MD=null,screen='title',uid=1,Q=[];
@@ -1261,35 +1274,53 @@ function resumeRun(party){
   member.relics=member.relics.filter(k=>RELICS[k])
  }
  uid=1+Math.max(0,...members.flatMap(member=>member.deck.map(c=>c.u||0)));
+ const encounter=G.encounter;delete G.encounter;
+ if(encounter&&encounterScreens.includes(encounter.screen)){
+  screen=encounter.screen;uid=Math.max(uid,encounter.uid||0);
+  ({RW,SH,RS,SR}=encounter);
+  const ev=encounter.event||encounter.EV;EV=ev?{e:EVENTS[ev.index],done:ev.done,msg:ev.msg}:null;
+  roomVisits=encounter.visits||null;C=null;
+  if(screen==='combat'){
+   combatParty=encounter.party?encounter.party.map(hero=>({...hero,foes:encounter.foes})):[encounter.C];
+   combatEnemyPhase=false;focusCombatSeat(activeSeat());C.busy=false;C.lock=false;C.sel=-1;
+   if(!alive().length)return winCombat()
+  }
+  return render()
+ }
+ if(G.travel?.status==='pending'){
+  const {f,l}=G.travel;screen='map';
+  if(avail().some(([row,col])=>row===f&&col===l))return enter(f,l)
+ }
  goMap()
 }
-function goMap(){selectedNode=null;const pending=G.party?G.party.findIndex(p=>p.threshold&&!p.threshold.applied):-1;if(pending>=0)selectSeat(pending);if(G.threshold&&!G.threshold.applied){screen='threshold';save();return render()}if(screen==='shop'&&G.threshold&&G.threshold.merchantRemaining>0)G.threshold.merchantRemaining--;closeModal();roomVisits=null;C=null;selectSeat(livingSeats()[0]);screen='map';save();render()}
+function goMap(){delete G.travel;selectedNode=null;const pending=G.party?G.party.findIndex(p=>p.threshold&&!p.threshold.applied):-1;if(pending>=0)selectSeat(pending);if(G.threshold&&!G.threshold.applied){screen='threshold';save();return render()}if(screen==='shop'&&G.threshold&&G.threshold.merchantRemaining>0)G.threshold.merchantRemaining--;closeModal();roomVisits=null;C=null;selectSeat(livingSeats()[0]);screen='map';save();render()}
 function mkShop(){const ids=[];[1,1,2,2,3].forEach(t=>{let id,g=0;do{id=pick(POOL[t])}while(ids.includes(id)&&g++<20);ids.push(id)});
  const neutralOne=pick([...COLORLESS_POOL[1],...COLORLESS_POOL[2]]);ids.push(neutralOne,pick([...COLORLESS_POOL[2],...COLORLESS_POOL[3]].filter(id=>id!==neutralOne)));
  const r=randRelic();return{cards:ids.map(id=>({id,p:merchantPrice({1:50,2:75,3:145}[K[id].r]+R(11)-5),sold:0})),relic:r?{k:r,p:merchantPrice(140+R(21)),sold:0}:null,removed:0}}
-function enter(f,l){if(screen!=='map'||(G.threshold&&!G.threshold.applied))return;if(!avail().some(([a,b])=>a==f&&b==l))return;G.pos={f,l};G.path.push([f,l]);G.floor=f+1;const t=G.map[f][l].t;
+function enter(f,l){if(screen!=='map'||(G.threshold&&!G.threshold.applied))return;if(!avail().some(([a,b])=>a==f&&b==l))return;G.travel={status:"active",f,l};G.pos={f,l};G.path.push([f,l]);G.floor=f+1;const t=G.map[f][l].t;
  if(t=='fight')startCombat(pick(f<4?EASY:HARD),'fight');
  else if(t=='elite')startCombat(pick(ELITE),'elite');
  else if(t=='boss')startCombat(['king'],'boss');
  else{
   const seats=livingSeats().filter(i=>t!=='shrine'||partyMember(i).hero==='oath');
   const sharedEvent=t==='event'?pick(EVENTS):null;
-  beginRoomVisits(seats,()=>openRoom(t,sharedEvent))
+  beginRoomVisits(seats,{room:t,event:EVENTS.indexOf(sharedEvent)})
  }}
-function beginRoomVisits(seats,open){
- roomVisits={seats:[...seats],open};advanceRoom()
+function beginRoomVisits(seats,visit){
+ roomVisits={seats:[...seats],...visit};advanceRoom()
 }
 function advanceRoom(){
  if(roomVisits?.seats.length&&screen==='shop'&&G.threshold&&G.threshold.merchantRemaining>0)G.threshold.merchantRemaining--;
  if(!roomVisits||!roomVisits.seats.length)return goMap();
- selectSeat(roomVisits.seats.shift());roomVisits.open();render()
+ selectSeat(roomVisits.seats.shift());if(roomVisits.reward)openCombatReward(roomVisits.reward);else openRoom(roomVisits.room,EVENTS[roomVisits.event]);render()
 }
 function beginPartyRewards(kind){
- beginRoomVisits(livingSeats(),()=>{
+ beginRoomVisits(livingSeats(),{reward:kind})
+}
+function openCombatReward(kind){
   if(has('heart'))heal(6);if(has('pseal'))heal(1);
   const elite=kind==='elite',gold=elite?25+R(11):10+R(11);G.gold+=gold;
   RW={gold,cards:cardChoices(elite?1:0),relic:elite?randRelic():null,taken:false,asc:G.hero==='oath'&&(elite||Math.random()<.1)&&ascList(1).length?{from:1}:null};screen='reward'
- })
 }
 function openRoom(t,sharedEvent){
  if(t==='rest'){RS={done:0,msg:''};screen='rest'}
@@ -1390,6 +1421,7 @@ async function travel(){
  const lab=screen==='maplab',run=lab?labRun:G;
  const dest=ActMap.available(run).find(p=>p.join()===selectedNode);
  if(!dest)return;
+ if(!lab){const [f,l]=dest;run.travel={status:'pending',f,l};if(!save()){delete run.travel;toast('Travel could not be saved. Check browser storage and try again.');return}}
  travelling=true;
  try{
   $('.node.selected')?.classList.add('travel');
@@ -1447,6 +1479,7 @@ function render(){hideKeyword();setZoom();PT=null;PV.key='';$('#app').innerHTML=
   const svg=document.querySelector('#f'+e.i+' [data-rig]');
   if(svg)EnemyRigs.mount(svg,svg.dataset.rig,e);
  }const st=$('.stage');if(st){bgMount(st);ptMount(st)}const hs=$('#hero .spr');if(hs)rigMount(hs)}
+ if(G?.travel?.status==='active'&&encounterScreens.includes(screen))save();
  flush();if(screen=='combat'&&C&&C.sel>=0&&!aimOn){aimOn=true;requestAnimationFrame(aimTick)}}
 function openPick(title,cards,cb,cancel){const list=cb?cards:[...cards].sort((a,b)=>KD(a).t.localeCompare(KD(b).t)||KD(a).n.localeCompare(KD(b).n));MD={cards:list,cb};
  $('#modal').innerHTML=`<div class="modal" role="dialog" aria-label="${title}"><div class="mhead"><h2>${title}</h2><button class="btn" data-a="mclose">${cb?(cancel||'Cancel'):'Close'}</button></div><div class="grid">${list.map((c,i)=>cardV(c,cb?`data-a="mpick" data-v="${i}"`:'')).join('')||'<p class="sub">No cards to choose.</p>'}</div></div>`}
@@ -1892,6 +1925,7 @@ document.addEventListener('pointerup',e=>{const d=drag;drag=null;if(!d||!d.activ
  if(C.busy||C.lock)return;const el=document.elementFromPoint(e.clientX,e.clientY),u=el&&el.closest(liveFoe);if(u&&C.sel>=0){const f=C.foes[+u.dataset.v];if(f&&f.hp>0)return play(C.sel,f)}C.sel=-1;AP.moved=false;render()});
 document.addEventListener('pointercancel',()=>{if(drag&&drag.g){drag.g.remove();drag.el.classList.remove('lifted');endFree()}drag=null});
 setZoom();let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{setZoom();if(screen=='combat'&&C&&!C.busy&&!C.lock)render()},150)});
+if(new URLSearchParams(location.search).get('lab')==='map')setupLab(1,'aether');
 if (new URLSearchParams(location.search).get('gallery') === '1') {
   screen = 'gallery';
   import('./tools/reference-gallery.mjs').then(({mountGallery}) => mountGallery($('#app'), {
