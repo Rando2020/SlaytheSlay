@@ -1,6 +1,6 @@
 import {createPlaytester} from './combat-playtester.mjs';
 
-export function mountLab({heroes, gods, enemies, encounters, start, snapshot, mechanics}) {
+export function mountLab({heroes, gods, enemies, encounters, start, snapshot, mechanics, legacyEnemyIds = {}}) {
   const params = new URLSearchParams(location.search);
   const panel = document.createElement('details');
   panel.id = 'combat-lab';
@@ -46,7 +46,9 @@ export function mountLab({heroes, gods, enemies, encounters, start, snapshot, me
   const syncHero = () => { fields.oath.disabled = fields.hero.value !== 'oath'; };
   fields.hero.addEventListener('change', syncHero);
   syncHero();
-  const encounter = encounters.find(item => item.keys.join(',') === params.get('encounter'));
+  // Older share links used short enemy keys; translate them to current IDs.
+  const requested = (params.get('encounter') || '').split(',').map(key => legacyEnemyIds[key] || key).join(',');
+  const encounter = encounters.find(item => item.keys.join(',') === requested);
   panel.open = !encounter;
   if (encounter) start(fields.hero.value, fields.oath.disabled ? '' : fields.oath.value, Number(fields.floor.value), encounter);
   const tester = createPlaytester(snapshot, mechanics);

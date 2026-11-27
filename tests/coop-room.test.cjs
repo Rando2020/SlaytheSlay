@@ -41,5 +41,5 @@ test('room seats, authoritative actions, retries, and reconnection', async t => 
   assert.equal((await post(route + '/close', {}, host.token)).status, 200);
   assert.equal((await get(guest)).error, 'Room expired or unknown.');
   assert.equal((await fetch(base + '/tools/coop-server.cjs')).status, 404);
-  assert.equal((await fetch(base + '/assets/bg_gate.webp', {method:'HEAD'})).status, 200);
+  assert.equal((await fetch(base + '/assets/backgrounds/gate.webp', {method:'HEAD'})).status, 200);
 });

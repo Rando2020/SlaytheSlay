@@ -21,7 +21,7 @@ function harness(){
    G={hero:'oath',oaths:[g],hp:20,maxHp:80,gold:0,relics:[],deck:[]};screen='combat';Q=[];
    C={busy:false,lock:false,won:false,kind:'fight',turn:1,energy:3,hand:[],draw:[],disc:[],exh:[],exU:[],
     sanc:{aurel:[],orun:[],mora:[],varran:[]},healed:[],once:[],egen:[],p:{block:0,st:{}},
-    foes:[{i:0,k:'king',hp:30,block:0,st:{},t:0,int:{}}]};
+    foes:[{i:0,k:'hollowking',hp:30,block:0,st:{},t:0,int:{}}]};
    combatParty=[C];return {G,C};
   };
   return {setup,endTurn,play,reqMsg,resolveCh,KD,screen:()=>screen,

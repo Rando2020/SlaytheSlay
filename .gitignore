@@ -1,4 +1,6 @@
 __pycache__/
 *.pyc
 .playwright-cli/
-output/map-qa.html
+
+# Local QA captures and scratch output (keep committed evidence in docs/qa/)
+output/

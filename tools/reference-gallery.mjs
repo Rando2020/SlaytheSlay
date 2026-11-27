@@ -39,9 +39,9 @@ function catalog(game) {
   for (const [id,r] of Object.entries(game.relics))
     add('Relics', id, r.n, r.d, r.h === 'oath' ? 'Oathbound' : '', game.relicIcon(id));
   for (const [id,[name,,description]] of Object.entries(game.statuses))
-    add('Statuses', id, name, description, '', game.statusArt[id] ? game.hudIcon('status-'+game.statusArt[id],48) : name);
+    add('Statuses', id, name, description, '', game.hasAsset('ui/hud/status-'+id+'.png') ? game.hudIcon('status-'+id,48) : name);
   for (const [id,g] of Object.entries(game.gods)) {
-    add('Oaths', id, g.oath, g.law + ' ' + g.price, g.full, game.hudIcon('oath-'+game.oathArt[id],48));
+    add('Oaths', id, g.oath, g.law + ' ' + g.price, g.full, game.hudIcon('oath-'+id,48));
     add('Sanctums', id, g.sanc, 'Holds cards sanctified to ' + g.n + '.', g.full,
       '<img alt="" src="assets/ui/sanctums/'+id+'.png">');
   }

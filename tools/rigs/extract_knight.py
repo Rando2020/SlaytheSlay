@@ -8,8 +8,8 @@ from scipy import ndimage
 SOURCE = ROOT / 'art/source/enemies'
 DEST = ROOT / 'assets/enemies/cathedralknight'
 DEST.mkdir(exist_ok=True)
-sheet = Image.open(SOURCE / 'cathedral-knight-parts-sheet.png').convert('RGB')
-reference = Image.open(SOURCE / 'cathedral-knight-reference.png').crop((592,432,862,842))
+sheet = Image.open(SOURCE / 'cathedralknight-parts-sheet.png').convert('RGB')
+reference = Image.open(SOURCE / 'cathedralknight-reference.png').crop((592,432,862,842))
 rgb = np.asarray(sheet).astype(float)
 distance = np.max(abs(rgb - np.median(rgb[:,0], axis=0)), axis=2)
 components, _ = ndimage.label(ndimage.binary_closing(distance > 17,iterations=2))
