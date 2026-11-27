@@ -2,7 +2,7 @@
 (function(root){
  const asset=(source,width,height,extra={})=>({source,width,height,atlas:null,anchor:[.5,.5],scale:1,fallback:'runtime-vector',animation:null,...extra});
  const assets={
-  backgrounds:{verdant:asset('assets/bg_ruins.webp',null,null,{fallback:'linear-gradient(#192b28,#0b1118)',role:'existing environment fallback; requested source unavailable'}),gate:asset('assets/bg_gate.webp',null,null)},
+  backgrounds:{verdant:asset('assets/bg_ruins.webp',1672,941,{fallback:'linear-gradient(#192b28,#0b1118)',role:'existing environment fallback; requested source unavailable'}),gate:asset('assets/bg_gate.webp',1672,941)},
   parallax:{},icons:Object.fromEntries(['fight','elite','event','rest','shop','shrine','chest','boss'].map(t=>[t,asset(null,40,40)])),
   frames:Object.fromEntries(['locked','available','hovered','selected','completed'].map(t=>[t,asset(null,48,48)])),
   danger:asset(null,48,48),boss:asset(null,64,64),paths:{worn:asset(null,null,null),lit:asset(null,null,null)},

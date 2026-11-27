@@ -14,7 +14,7 @@ test('selection scene and every hero pose ship with the static game',()=>{
 test('both registered classes start with their existing stats, deck and relic',()=>{
  const heroes=html.match(/const HEROES=([\s\S]*?);/)[0];
  const start=html.match(/function newRun\(h\)\{[^\n]+/)[0];
- const ctx=vm.createContext({mk:id=>({id}),genMap:h=>({hero:h}),goMap:()=>{},render:()=>{}});
+ const ctx=vm.createContext({R:()=>123,mapSelected:"",mapScroll:null,mk:id=>({id}),genMap:h=>({hero:h}),goMap:()=>{},render:()=>{}});
  vm.runInContext('let uid=0,G=null,screen="title";'+heroes+start,ctx);
  for(const [hero,hp,relic] of [['oath',80,'unbroken'],['aether',70,'heart']]){
   vm.runInContext(`newRun('${hero}')`,ctx);
