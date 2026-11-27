@@ -438,7 +438,7 @@ body:has(#app>.stage){overflow:hidden}
  #app>.stage .foes .unit.pw .spr.paint{width:calc(var(--w)*.55px);height:calc(var(--h)*.55px)}
 }
 /* Only the nearest scenery softens; actors and the hand stay above this layer. */
-#app>.stage .foreground-soften{position:absolute;inset:80% 0 0;z-index:0;pointer-events:none;-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);-webkit-mask-image:linear-gradient(transparent,#000 80%);mask-image:linear-gradient(transparent,#000 80%);background:linear-gradient(transparent,#100c0d44)}
+#app>.stage .foreground-soften{position:absolute;left:0;right:0;bottom:0;top:calc(100% - clamp(250px,35vh,340px));z-index:0;pointer-events:none;-webkit-backdrop-filter:blur(6px) saturate(.85);backdrop-filter:blur(6px) saturate(.85);-webkit-mask-image:linear-gradient(transparent,#000 38%);mask-image:linear-gradient(transparent,#000 38%);background:linear-gradient(transparent 10%,#100c0d40 55%,#100c0d8a)}
 #app>.stage .actors{z-index:2}
 #app>.stage .bgL>.bgimg{height:110%;top:-10%}
 
