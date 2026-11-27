@@ -7,6 +7,7 @@ const ActMap = (() => {
       ...ACT01_ART,
       icons: {
         ...ACT01_ART.icons,
+        combat: 'symbols/combat.svg',
         elite: 'symbols/elite.svg',
         boss: 'symbols/boss.svg',
         rest: 'symbols/rest.svg',
