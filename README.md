@@ -32,7 +32,7 @@ then visit `http://localhost:8000`.
 - Ambient effects per area (screen-blended): drifting fog, light rays, motes, glowing moths and falling leaves in the ruins; green motes, glowing mushrooms and petals at the tree; violet rain, an energy pillar and lightning flashes at the gate
 - Combat bursts: slash on hits, ripple on Block, rune circle and pillar on powers, vortex on targeted skills, green puff on Poison, shard burst on kills
 - Damage preview: aiming a card at an enemy recolors its numbers for Strength, Weak and Vulnerable (green up, red down), flashes the HP the target would lose and flags lethal hits; dragging a skill shows the Block you'd gain
-- Scales up on large screens (QHD and 4K) and renders the hero at up to 3x pixel density; art is exported at full source resolution
+- Scales up on large screens (QHD and 4K) and renders the hero at up to 3x pixel density; art is exported at full source resolution, and large or high-density screens load 4K backgrounds upscaled with Real-ESRGAN
 - Fanned hand, drag-to-play, a targeting arrow for attacks, card flight, lunges, hit flashes, screen shake and death dissolves
 - The Aetherwright rendered as painted art on a WebGL mesh: breathing, cape and braid sway, pose swaps for attack, cast, power and hurt
 - Run saves to the browser's local storage when you're on the map
@@ -51,6 +51,7 @@ then visit `http://localhost:8000`.
 | `art/cutouts/fx/` | Every effect cut from the two FX sheets, with contact sheets |
 | `assets/oath/` | Oathbound poses: idle, attack, hurt, cast (oath invocation), power (oath sworn) |
 | `art/source/oathbound/` | Oathbound concept sheets, generated poses and parts sheets |
+| `assets/bg_*_4k.webp` | 3840 px backgrounds (AI upscale blended 75/25 with a plain resize to keep brush texture), loaded only on large screens |
 | `tools/` | Python scripts used to cut the hero poses out of their backgrounds (`cut_oathbound.py` for the knight) |
 
 ## Art pipeline
