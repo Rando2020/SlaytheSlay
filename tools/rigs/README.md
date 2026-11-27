@@ -1,11 +1,20 @@
-# Enemy rig tools
+# Enemy rig authoring
 
-Scripts used to turn a parts sheet into a cut-out rig in `assets/enemies/<rig>/`.
+Serve the repository root and open **Enemy Animation Lab** from the title screen. Enemy aliases in the art and combat data are Hollow / Veil Mask, Scrapper / Scrapclaw and Bulwark / Stone Warden.
 
-1. `python3 cutsheet.py <parts-sheet.png> <dir>` cuts every part off the sheet (rembg, `isnet-general-use`) into `<dir>/pNN.png` and writes `<dir>_idx.jpg`, a numbered index of the parts.
-2. Write a layout in `layouts/`: each part's file, centre (`cx`, `cy`), optional `s` (scale), `r` (rotation), `flip`, idle animation `a` and pivot `o`. Set `"mirror": 1` to flip the whole rig so it faces left.
-2b. Parts that should move together (an arm and the shield it holds, a claw and its joint) share a group: give them the same `g` and define it in `"groups"` with its animation `a` and pivot `o` (canvas coordinates). Keep a group's parts next to each other in the list.
-3. `python3 compose2.py layouts/<name>.json [reference.png]` renders a preview next to the reference art.
-4. `python3 export.py <rig> layouts/<name>.json <scale>` writes the part WebPs to `assets/enemies/<rig>/` and prints the spec to paste into `RIGS` in `index.html`.
+## Build a rig
 
-Layouts here: `scrap` (Scrapclaw, parts dir `sc` with named parts), `tick` (`tk`), `mask` (`vm`), `rj` (Rustjaw), `sp` (Sporeling), `sw` (Stone Warden). Paths in the scripts point at a scratch folder; edit them before reuse.
+1. Run `python cutsheet.py SOURCE.png PARTS_DIR` from an authoring directory with Pillow, NumPy, SciPy and rembg installed. The extractor uses the isnet-general-use model and writes transparent PNGs plus a numbered contact sheet. Review the alpha edges and separate touching pieces before layout.
+2. Copy a layout from `layouts/`. Its `dir` points to the extracted part directory relative to the current working directory. Assign sheet IDs, centers, optional scale, rotation, mirror, pivot and motion. Set `mirror` on the layout when the assembled enemy faces right. The parts list is back to front. The historical Scrapclaw layout uses named input cutouts.
+3. Run `python compose2.py LAYOUT.json` to inspect the rest pose. Run `python export.py KEY LAYOUT.json 0.65 --name "Enemy Name" --template creature` to write the WebPs and register the layout. Existing unrelated files in the sprite directory are preserved.
+4. In the shared registry, bone pivots, sprite rectangles and weapon sockets are in rest-space pixels. A child inherits its parent's transform. Draw order follows the layers array independently of bone order. Available motion families include cloth sway, hair, floating shards, crystal pulse and moving limbs. A weapon or grip can be attached to any bone. The knight supplies a worked example with a moving spear and two elbow solves.
+5. Open the lab, select the rig, inspect each state and scrub both endpoints and the strike. Select a bone to display its pivot and adjust its rest angle. The browser retains these edits per rig. Export the complete JSON for review and replace the corresponding registry entry to ship it.
+6. To use an approved rig on an existing encounter, set its `EN` entry's `rig` to the registry key and `w` to its combat display width. Replay a fight at gameplay scale. Combat cues use presentation-only state and preserve the engine's existing hit timings and VFX.
+
+## Fallen Cathedral Knight
+
+`python tools/rigs/extract_knight.py` regenerates the knight from the original separated sheet and painted reference. Both gripping gauntlets come from the portrait. The two forearms use the separated armor and stop at the wrist. The knight is available in the lab. An encounter definition and encounter balancing are separate game design work.
+
+## Verification
+
+Run `node --test tests/*.cjs`. The rig tests resolve each layer and sample every animation at 21 points, including both spear wrist constraints. Browser captures of all states are in [evidence](evidence/).

@@ -69,6 +69,6 @@ then visit `http://localhost:8000`.
 
 Enemies stand on the right, so they must face **left**. Generated art usually faces right; mirror it when cutting it out so the file on disk already faces left, then add `img`, `w` (display width in px) and `ar` (width / height) to its entry in `EN`.
 
-Enemies with a parts sheet are cut-out rigs: each part is its own WebP, and `RIGS` in `index.html` lists every part's position, width, idle animation (sway, nod, claw, leg, chew, glow, pulse, hover, flick, drift) and pivot. Give the enemy `rig:'<folder>'` instead of `img`. The claws strike on attacks, and the canister, crystal or flames flare on Overclock, Charge and Phase.
+Open **Enemy Animation Lab** on the title screen to play, scrub and tune the painted rigs. The shared bone and attachment registry lives in `assets/rigs/registry.js`. See [Enemy rig tools](tools/rigs/README.md) for authoring and validation.
 
 Next up: painted art for the Hex Mother and the Hollow King, then layered backgrounds and card illustrations.

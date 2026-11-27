@@ -1,27 +1,42 @@
-import json,sys,os
-from PIL import Image,ImageOps
-sys.path.insert(0,'.');from compose2 import build
-key,lay,S=sys.argv[1],sys.argv[2],float(sys.argv[3])
-L,out,(x0,y0,W,H),c=build(lay);mir=L.get('mirror')
-D=f'/home/claude/slaytheslay/assets/enemies/{key}';os.makedirs(D,exist_ok=True)
-for f in os.listdir(D):os.remove(f'{D}/{f}')
-spec=[];names={}
-for i,(p,im,x,y) in enumerate(out):
-    if mir:im=ImageOps.mirror(im);x=x0+W-(x-x0)-im.width
-    n=p['img'];names[n]=names.get(n,0)+1
-    fn=n if names[n]==1 else f'{n}_{names[n]}'
-    if not os.path.exists(f'{D}/{fn}.webp'):
-        im.resize((max(1,round(im.width*S)),max(1,round(im.height*S))),Image.LANCZOS).save(f'{D}/{fn}.webp',quality=90,method=6)
-    o=p.get('o','50% 50%')
-    if mir:ox,oy=o.split();o=f'{100-float(ox[:-1]):g}% {oy}'
-    e=[fn,round((x-x0)/W*100,2),round((y-y0)/H*100,2),round(im.width/W*100,2),p.get('a',''),o]
-    g=p.get('g')
-    if g:
-        gd=L['groups'][g];gx,gy=gd['o'];px=(gx-x0)/W*100;py=(gy-y0)/H*100
-        if mir:px=100-px
-        if spec and isinstance(spec[-1],dict) and spec[-1]['g']==g:spec[-1]['p'].append(e)
-        else:spec.append({'g':g,'a':gd['a'],'o':f'{px:.1f}% {py:.1f}%','p':[e]})
-    else:spec.append(e)
-if mir:c=ImageOps.mirror(c)
-c.save(f'/home/claude/work/{key}_full.png')
-print(json.dumps({'ar':round(W/H,3),'p':spec},separators=(',',':')))
+"""Pack an authored layout into transparent sprites and a runtime registry entry."""
+import argparse
+import re
+from PIL import Image, ImageOps
+from compose2 import build
+from registry import ROOT, store
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('key')
+parser.add_argument('layout')
+parser.add_argument('scale', type=float)
+parser.add_argument('--name', required=True)
+parser.add_argument('--template', choices=['floating','creature','humanoid','construct'], required=True)
+args = parser.parse_args()
+if not re.fullmatch(r'[a-z][a-z0-9_-]*',args.key) or args.scale <= 0:
+    parser.error('Expected a lowercase rig ID and positive scale.')
+layout, parts, (left, top, width, height), _ = build(args.layout)
+dest = ROOT / 'assets/enemies' / args.key
+dest.mkdir(parents=True, exist_ok=True)
+mirror = layout.get('mirror', False)
+bones = {'root': {'pivot': [width/2,height*.88]}}
+layers = []
+for part, image, x, y in parts:
+    x, y = x-left, y-top
+    pw, ph = image.size
+    px, py = [float(v.rstrip('%'))/100 for v in part.get('o','50% 50%').split()]
+    if mirror:
+        image, x, px = ImageOps.mirror(image), width-x-pw, 1-px
+    name = part['img']
+    suffix = 1
+    while name in bones:
+        suffix += 1
+        name = f"{part['img']}_{suffix}"
+    parent = part.get('g','root')
+    if parent not in bones:
+        group = layout['groups'][parent]
+        gx, gy = group['o']
+        bones[parent] = dict(parent='root',pivot=[width-(gx-left) if mirror else gx-left,gy-top],motion=group['a'])
+    bones[name] = dict(parent=parent,pivot=[x+px*pw,y+py*ph],motion=part.get('a',''))
+    layers.append(dict(file=name,bone=name,rect=[x,y,pw,ph]))
+    image.resize((max(1,round(pw*args.scale)),max(1,round(ph*args.scale))),Image.Resampling.LANCZOS).save(dest/(name+'.webp'),quality=93)
+store(args.key, dict(name=args.name,template=args.template,size=[width,height],bones=bones,layers=layers))
