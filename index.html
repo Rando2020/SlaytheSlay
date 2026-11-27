@@ -243,6 +243,19 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 .orb{background:url(assets/ui/hud/energy-housing.png) center/contain no-repeat,radial-gradient(circle,#ffb391 0%,#ff693f 42%,transparent 64%);box-shadow:none}
 .ctl{background:url(assets/ui/hud/hud-corner.png) top left/32px 32px no-repeat}
 .deck-back{width:18px;height:26px;vertical-align:middle;margin-right:5px;object-fit:contain}
+
+/* State artwork shares the frame's coordinate system and stays below live labels. */
+.card::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:var(--upgrade-layer,none),var(--interaction-layer,none),var(--rarity-layer,none);
+  background-size:100% 100%;background-repeat:no-repeat;
+}
+.card.up{--upgrade-layer:url(assets/ui/cards/overlays/card-border-upgraded.png)}
+.card.r2{--rarity-layer:url(assets/ui/cards/overlays/card-border-uncommon.png)}
+.card.r3{--rarity-layer:url(assets/ui/cards/overlays/card-border-rare.png)}
+@media(hover:hover){.card:hover:not(:disabled):not(.no){--interaction-layer:url(assets/ui/cards/overlays/card-border-hover.png)}}
+.card.sel,.card.sel:hover:not(:disabled):not(.no),.card.dragcard.ready{--interaction-layer:url(assets/ui/cards/overlays/card-border-selected.png)}
+.card .cost,.card .tier{z-index:2}
 </style></head><body>
 <div id="app"></div><div id="modal"></div><svg id="aim" aria-hidden="true"><path id="aimP" fill="none" stroke="none"/><g id="aimG"></g></svg>
 <script>
