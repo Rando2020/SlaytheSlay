@@ -161,7 +161,7 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 .chip{font-size:13px;font-weight:800;padding:1px 6px;border-radius:7px;background:#0007;white-space:nowrap;display:inline-flex;align-items:center;gap:2px}
 .chip.blk,.chip.b{background:var(--moss);color:#0c201c}.chip.u{background:#e8c86a2e;color:var(--gold)}.chip.d{background:#b58ae02e;color:#d2b6f2}.chip.p{background:#9bd36a2e;color:var(--tox)}
 /* Combat is unzoomed. Width sets the fan scale; height limits it on short screens. */
-.hand{--hand-card-width:clamp(112px,min(calc(86px + 5vw),19dvh),320px);--hand-card-height:calc(var(--hand-card-width) * 76 / 53);position:relative;height:calc(var(--hand-card-height) + 66px);margin-top:2px}
+.hand{--hand-card-width:clamp(112px,min(calc(82px + 4.85vw),19dvh),320px);--hand-card-height:calc(var(--hand-card-width) * 1.52);position:relative;height:calc(var(--hand-card-height) + 66px);margin-top:2px}
 .hand .empty{position:absolute;inset:0;display:grid;place-items:center;color:var(--mute);margin:0}
 .hand .card{position:absolute;top:22px;width:var(--hand-card-width);height:var(--hand-card-height);
  --step:min(calc(var(--hand-card-width) + 10px),calc((100% - var(--hand-card-width) - max(68px,var(--hand-card-width) * .43)) / var(--gaps)));
@@ -194,7 +194,7 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 @keyframes ban{0%{opacity:0;transform:scaleY(.15)}10%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0}}
 .fl{transform-box:fill-box;transform-origin:50% 100%;animation:flick .6s ease-in-out infinite alternate}
 /* cards */
-.card{position:relative;flex:none;container-type:inline-size;width:clamp(124px,36vw,168px);height:auto;aspect-ratio:53/76;border-radius:11px;border:0;padding:0;background:var(--card);color:var(--cardink);box-shadow:0 8px 16px #000a,inset 0 0 0 3px var(--tc);display:flex;flex-direction:column;text-align:center;transition:transform .15s;scroll-snap-align:center}
+.card{position:relative;flex:none;container-type:inline-size;width:clamp(124px,36vw,168px);height:auto;aspect-ratio:25/38;border-radius:11px;border:0;padding:0;background:var(--card);color:var(--cardink);box-shadow:0 8px 16px #000a,inset 0 0 0 3px var(--tc);display:flex;flex-direction:column;text-align:center;transition:transform .15s;scroll-snap-align:center}
 .card.t-atk{--tc:#c4452c}.card.t-skl{--tc:#3c8b7c}.card.t-pow{--tc:#c4962a}.card.t-curse{--tc:#5d4b62;background:#d6cbd6}
 .card .cost{position:absolute;top:-8px;left:-8px;width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffb391,var(--ember) 60%,#9a2810);color:#1a0d09;font:800 16px Cinzel,serif;display:grid;place-items:center;border:2px solid #1a0d09}
 .card .nm{font:800 12.5px/1.1 Cinzel,serif;padding:11px 8px 3px;min-height:34px;display:grid;place-items:center}
@@ -308,14 +308,15 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 /* Slice the painted frame at its opening so the bronze rim follows the larger art. */
 .card:is(.t-atk,.t-skl,.t-pow,.t-curse){
  background:transparent;border-image-source:var(--face);
- border-image-slice:136 36 312 fill;border-image-width:18% 8.49% calc(82% - var(--art-height,40%));
+ border-image-slice:136 36 312 fill;border-image-width:18% 8.49% calc(82% - var(--art-height,46%));
 }
 .card .nm{height:18%;min-height:0;flex:none;padding:3px 10px 1px;font-size:14px}
 .card .ds{padding:4px 8px;font-size:14px}
 
-.card .art{margin:0 8.49%;height:var(--art-height,40%);flex:none;overflow:hidden}
-.card.wordy{--art-height:28%}
+.card .art{margin:0 8.49%;height:var(--art-height,46%);flex:none;overflow:hidden}
+.card.wordy{--art-height:30%}
 .card.verbose{--art-height:16%}
+.card .art>*{pointer-events:none}
 .card .art img{width:100%;height:100%;object-fit:cover}
 .hud-icon{vertical-align:middle;object-fit:contain}
 .orb{background:url(assets/ui/hud/energy-housing.png) center/contain no-repeat,radial-gradient(circle,#ffb391 0%,#ff693f 42%,transparent 64%);box-shadow:none}
@@ -331,7 +332,7 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 .card .art>svg{width:28cqw;height:80%;max-height:28cqw}
 .card.wordy .ds{font-size:clamp(11px,8.5cqw,28px)}
 @media(max-width:600px),(max-height:600px){.card.wordy:not(.verbose){--art-height:22%}}
-@container (max-width:126px){.wordy .ds{padding:1px 4px;line-height:1.08}}
+@container (max-width:126px){.card .ds{padding-block:0}.wordy .ds{padding:1px 4px;line-height:1.08}}
 /* Deck inspection during combat does not inherit the map and reward screen zoom. */
 body:has(#app>.stage) #modal .card{width:clamp(124px,min(36vw,23dvh),360px)}
 
@@ -1366,7 +1367,7 @@ const hudIcon=(name,size)=>`<img class="hud-icon" alt="" src="assets/ui/hud/${na
 const statusArt={str:'strength',vuln:'vulnerable',weak:'weak',poison:'poison'};
 const oathArt={aurel:'radiance',varran:'conquest',orun:'protection',mora:'twilight'};
 const stV=st=>Object.keys(st).filter(k=>st[k]&&STN[k]).map(k=>`<span class="chip ${STN[k][1]}" title="${STN[k][2]}">${statusArt[k]?hudIcon("status-"+statusArt[k],16):""}${STN[k][0]} ${st[k]}</span>`).join('');
-const cardArt=(c,hero)=>c.id==="strike"?`<img alt="" src="assets/ui/cards/${hero==="oath"?"dawn":"aetherwright"}-strike.png">`:ART[KD(c).t];
+const cardArt=(c,hero)=>c.id==="strike"?`<img draggable="false" alt="" src="assets/ui/cards/${hero==="oath"?"dawn":"aetherwright"}-strike.png">`:ART[KD(c).t];
 function cardV(c,attrs='',cls=''){const k=KD(c),description=k.d(c.up,c),co=cost(c),g=godOf(c),dorm=g&&G&&G.hero=='oath'&&!ACT(g)&&!c.seal&&!c.tmpS;return `<button class="card t-${k.t} r${k.r}${description.length>90?' wordy verbose':description.length>32?' wordy':''}${c.up?' up':''}${g?' g-'+g:''}${c.tier?' tr'+c.tier:''}${dorm?' dorm':''}${K[c.id].m&&!c.tier?' mal':''} ${cls}" ${attrs}>${co>=0?`<span class="cost">${co}</span>`:''}${c.tier?`<span class="tier" title="${TIERN[c.tier]}">T${c.tier}</span>`:''}<span class="nm">${name(c)}</span><span class="art">${cardArt(c,G?.hero)}</span><span class="ds"><span>${keywordText(description)}</span></span><span class="ty">${TN[k.t]}${k.colorless?' · '+keywordText('Colorless'):''}${g?' · '+GODS[g].n:K[c.id].m?' · '+keywordText('Malleable'):''}${dorm?' · '+keywordText('Dormant'):''}</span></button>`}
 function intV(e){const n=e.int,o=[],d0=EN[e.k];if(n.a){const bl=n.slam&&d0.keep?Math.floor(e.block/2):0;let d=n.a+bl+(e.st.str||0);if(e.st.weak)d*=.75;if(C.p.st.vuln)d*=1.5;o.push(`<span class="it a" title="${G.party?'Attacks all living climbers. Damage shown for the active climber.':'Attack'}">${G.party?'All · ':''}${hudIcon("intent-attack",14)}${Math.floor(d)}${n.x>1?'×'+n.x:''}</span>`)}
  if(n.b)o.push(`<span class="it b" title="Block">${hudIcon("intent-block",14)}${n.b}</span>`);if(n.str)o.push(`<span class="it u" title="Buff">${hudIcon("intent-buff",14)}</span>`);if(n.weak||n.vuln||n.poison)o.push(`<span class="it d" title="Debuff">${hudIcon("intent-debuff",14)}${n.poison||''}</span>`);return (n.n?`<span class="iname">${n.n}</span>`:'')+`<span class="irow">${o.join('')}</span>`}
@@ -1677,6 +1678,7 @@ document.addEventListener('focusout',e=>{if(keywordAnchor===e.target)hideKeyword
 let inspectPress=null;
 document.addEventListener('pointerdown',e=>{
  const word=e.target.closest('[data-keyword]');
+ if(keywordPinned&&e.target.closest('.hand .art'))hideKeyword();
  inspectPress=(word||keywordPinned)?{id:e.pointerId,word}:null;
  if(inspectPress)e.stopImmediatePropagation();
 },true);
@@ -1776,7 +1778,7 @@ swear:v=>{if(SR.done||!GODS[v])return;const cur=G.oaths,mx=has('twin')?2:1,no=cu
 renounce:()=>{if(SR.done||ordinaryCount([],G.deck)<8)return;const was=G.oaths.map(g=>GODS[g].n).join(' and ');G.oaths=[];SR.done=1;SR.msg=`You lay down your oath to ${was}. Your divine cards fall Dormant, waiting.`;render()},
 sasc:v=>{if(SR.done)return;const f=+v;openPick((f==1?'Ascend':'Exalt')+` a card (T${f} to T${f+1})`,ascList(f),c=>{ascend(c);SR.done=1;SR.msg=name(c)+' rises to '+TIERN[c.tier]+'.';render()})},
 mclose:closeModal};
-document.addEventListener('click',e=>{if(performance.now()-ignoreClick<350)return;const b=e.target.closest('[data-a]');if(!b&&C&&C.sel>=0&&screen=='combat'&&e.target.closest('.stage')){C.sel=-1;return render()}if(!b||b.disabled)return;const f=A[b.dataset.a];if(f)f(b.dataset.v)});
+document.addEventListener('click',e=>{if(e.detail>0&&performance.now()-ignoreClick<350)return;const b=e.target.closest('[data-a]');if(!b&&C&&C.sel>=0&&screen=='combat'&&e.target.closest('.stage')){C.sel=-1;return render()}if(!b||b.disabled)return;const f=A[b.dataset.a];if(f)f(b.dataset.v)});
 document.addEventListener('keydown',e=>{if(!MD&&e.target.matches?.('.node.can')&&['Enter',' '].includes(e.key)){e.preventDefault();return previewNode(e.target.dataset.v)}if(MD?.pile&&e.key==='Tab'){e.preventDefault();return $('#modal [data-a="mclose"]').focus()}if(MD&&e.key=='Escape')return closeModal();if(screen!='combat'||!C||MD)return;
  if(e.key>='1'&&e.key<='9')tapCard(+e.key-1,true);else if(e.key=='e'||e.key=='E')endTurn();else if(e.key=='Escape'&&C.sel>=0){C.sel=-1;render()}});
 /* ---------- hero rig: painted art on a deforming WebGL mesh ---------- */
@@ -1921,23 +1923,30 @@ function aimTick(){const svg=$('#aim'),on=screen=='combat'&&C&&C.sel>=0&&!C.busy
  for(let d=ph;d<L-30;d+=gap){const p=P.getPointAtLength(d),q=P.getPointAtLength(Math.min(L,d+1)),a=Math.atan2(q.y-p.y,q.x-p.x)*57.2958,sc=(.55+.55*d/L)*Z;h+=`<path d="M-5-6L3 0L-5 6" transform="translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) rotate(${a.toFixed(1)}) scale(${sc.toFixed(2)})"/>`}
  if(L>4){const p=P.getPointAtLength(L),q=P.getPointAtLength(L-3),a=Math.atan2(p.y-q.y,p.x-q.x)*57.2958;h+=`<path class="head" d="M-15-13L7 0L-15 13L-9 0Z" transform="translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) rotate(${a.toFixed(1)}) scale(${(over?1.2:1)*Z})"/>`}
  svg.style.color=over?'var(--gold)':'var(--ember)';$('#aimG').innerHTML=h;requestAnimationFrame(aimTick)}
-document.addEventListener('pointerdown',e=>{AP.x=e.clientX;AP.y=e.clientY;const b=e.target.closest('.hand .card[data-a=card]');if(!b||!C||C.busy||C.lock)return;const i=+b.dataset.v,c=C.hand[i];if(!c||!playable(c))return;drag={i,x:e.clientX,y:e.clientY,active:false,tg:!!KD(c).tg,el:b,lx:e.clientX,tilt:0}});
+document.addEventListener('pointerdown',e=>{if(!e.isPrimary||e.button!==0)return;ignoreClick=-Infinity;AP.x=e.clientX;AP.y=e.clientY;const b=e.target.closest('.hand .card[data-a=card]');if(!b||!C||C.busy||C.lock)return;const i=+b.dataset.v,c=C.hand[i];if(!c||!playable(c))return;const tg=!!KD(c).tg;
+ const artPress=tg&&C.sel!==i&&!!e.target.closest('.art');
+ drag={i,id:e.pointerId,x:e.clientX,y:e.clientY,active:false,tg,artPress,el:b,lx:e.clientX,tilt:0};
+ if(artPress){C.sel=i;AP.moved=false;render()}});
 function dragMove(){const d=drag;if(!d||!d.g)return;const vx=AP.x-d.lx;d.lx=AP.x;d.tilt=Math.max(-14,Math.min(14,d.tilt*.8+vx*.9));d.g.style.left=(AP.x-d.ox)/Z+'px';d.g.style.top=(AP.y-d.oy)/Z+'px';d.g.style.transform=`scale(1.08) rotate(${d.tilt.toFixed(1)}deg)`;
  const h=$('.hand'),ready=!!h&&AP.y<h.getBoundingClientRect().top+16;d.ready=ready;d.g.classList.toggle('ready',ready);setPreview(ready?d.i:-1,ready?'all':null,d.g);const st=$('.stage');if(st)st.classList.toggle('drop',ready);const hi=$('.hint');if(hi)hi.textContent=ready?'Release to play':'Drag up to play'}
 function endFree(){showDrawForecast(null);const st=$('.stage');if(st)st.classList.remove('drop');setPreview(-1)}
-document.addEventListener('pointermove',e=>{AP.x=e.clientX;AP.y=e.clientY;if(C&&C.sel>=0)AP.moved=true;
+document.addEventListener('pointermove',e=>{if(drag&&e.pointerId!==drag.id)return;AP.x=e.clientX;AP.y=e.clientY;if(C&&C.sel>=0)AP.moved=true;
  if(drag&&!drag.active&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>12){drag.active=true;if(!C||C.busy||C.lock){drag=null;return}
   if(drag.tg){C.sel=drag.i;AP.moved=true;render()}
   else{if(C.sel>=0){C.sel=-1;render();drag.el=$(`.hand .card[data-v="${drag.i}"]`)}const b=drag.el,r=b.getBoundingClientRect(),g=b.cloneNode(true);g.removeAttribute('data-a');g.classList.add('dragcard');g.classList.remove('sel');g.style.cssText=`zoom:${Z};left:${r.left/Z}px;top:${r.top/Z}px;width:${r.width/Z}px;height:${r.height/Z}px;animation:none`;drag.ox=drag.x-r.left;drag.oy=drag.y-r.top;document.body.appendChild(g);drag.g=g;b.classList.add('lifted')}}
  if(drag&&drag.g)dragMove()},{passive:true});
-document.addEventListener('pointerup',e=>{const d=drag;drag=null;if(!d||!d.active||!C)return;ignoreClick=performance.now();
+document.addEventListener('pointerup',e=>{const d=drag;if(!d||d.id!==e.pointerId)return;drag=null;
+ if(d.artPress||d.active)ignoreClick=performance.now();
+ if(!d.active||!C)return;
  if(!d.tg){endFree();const g=d.g;if(!g)return;
   if(d.ready&&!C.busy&&!C.lock&&C.hand[d.i]&&playable(C.hand[d.i])){play(d.i,null,g);g.remove();return}
   const hint=$('.hint');if(hint)hint.textContent='Your turn '+C.turn;const r=d.el.getBoundingClientRect(),gr=g.getBoundingClientRect();
   const fin=()=>{g.remove();d.el.classList.remove('lifted')};if(RM)return fin();
   g.animate([{transform:g.style.transform},{transform:`translate(${(r.left-gr.left)/Z}px,${(r.top-gr.top)/Z}px) scale(1) rotate(0)`}],{duration:180,easing:'ease-out'}).onfinish=fin;return}
  if(C.busy||C.lock)return;const el=document.elementFromPoint(e.clientX,e.clientY),u=el&&el.closest(liveFoe);if(u&&C.sel>=0){const f=C.foes[+u.dataset.v];if(f&&f.hp>0)return play(C.sel,f)}C.sel=-1;AP.moved=false;render()});
-document.addEventListener('pointercancel',()=>{if(drag&&drag.g){drag.g.remove();drag.el.classList.remove('lifted');endFree()}drag=null});
+document.addEventListener('pointercancel',e=>{if(!drag||drag.id!==e.pointerId)return;
+ if(drag.g){drag.g.remove();drag.el.classList.remove('lifted');endFree()}
+ if(drag.tg&&C?.sel===drag.i&&(drag.artPress||drag.active)){C.sel=-1;render()}drag=null});
 setZoom();let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{setZoom();if(screen=='combat'&&C&&!C.busy&&!C.lock)render()},150)});
 if(new URLSearchParams(location.search).get('lab')==='map')setupLab(1,'aether');
 if (new URLSearchParams(location.search).get('gallery') === '1') {
