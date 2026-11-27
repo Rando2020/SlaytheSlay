@@ -4,7 +4,8 @@ const fs=require('node:fs');
 const vm=require('node:vm');
 const html=fs.readFileSync(require('node:path').join(__dirname,'../index.html'),'utf8');
 function game(hero='aether') {
- const ctx=vm.createContext({console,performance:{now:()=>0},structuredClone,setTimeout:cb=>{cb();return 0},window:{scrollTo(){}},localStorage:{setItem(k,v){this[k]=v},getItem(k){return this[k]||null},removeItem(k){delete this[k]}}});
+ const ctx=vm.createContext({addEventListener(){},URLSearchParams,location:{search:''},document:{addEventListener(){}},Image:class{},cancelAnimationFrame(){},console,performance:{now:()=>0},structuredClone,setTimeout:cb=>{cb();return 0},window:{scrollTo(){}},localStorage:{setItem(k,v){this[k]=v},getItem(k){return this[k]||null},removeItem(k){delete this[k]}}});
+ for(const file of ['assets/maps/act01/registry.js','src/act-map.js','assets/rigs/registry.js','assets/rigs/player.js'])vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,'..',file),'utf8'),ctx);
  const utils=html.slice(html.indexOf('const R=n=>'),html.indexOf('/* ---------- icons and art'));
  const core=html.slice(html.indexOf('/* ---------- data ---------- */'),html.indexOf('/* ---------- input ---------- */'));
  vm.runInContext('const $=()=>null;const RM=true;const RIG={img:{},whip:0};const ART={};function rigPose(){}function swingArc(){}function muzzle(){}'+utils+core+`;render=()=>{};toast=()=>{};banner=()=>{};closeModal=()=>{MD=null};newRun('${hero}');startCombat(['king'],'fight');C.foes[0].hp=C.foes[0].max=9999;C.energy=99;C.hand=[];C.draw=[];C.disc=[];`,ctx);

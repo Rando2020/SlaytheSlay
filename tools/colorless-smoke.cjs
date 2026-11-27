@@ -35,13 +35,13 @@ let chrome,sock;
   const g={hero:'aether',hp:70,maxHp:70,gold:999,deck:Array.from({length:n},(_,i)=>({id,up,u:i+1})),relics:['heart'],oaths:[],map:[[{t:type,next:[],jx:0,jy:0}]],pos:null,path:[],floor:0};
   await evalJS(`localStorage.setItem('hollow-ascent-v1',${JSON.stringify(JSON.stringify(g))});window.__oldPage=true;location.reload()`);
   await wait('!window.__oldPage && document.readyState==="complete" && performance.now()>400');
-  await click('[data-a=cont]');await click('[data-a=go]');
+  await click('[data-a=cont]');await click('[data-a=previewNode]');await click('[data-a=travel]');
  }
  await saved('read_the_room');await wait('document.querySelectorAll(".hand .card").length===5');
  await click('.hand .card');await wait('document.querySelector(".modal")?.textContent.includes("Choose one")');await click('.modal [data-a=mask][data-v="0"]');await wait('!document.querySelector(".modal")');assert.match(await evalJS('document.querySelector("#hero").textContent'),/9/);
  await saved('reconsider');await wait('document.querySelectorAll(".hand .card").length===5');await click('.hand .card');await click('.modal [data-a=mclose]');assert.equal(await count('.hand .card'),5);assert.equal(await evalJS('document.querySelector(".orb b").textContent'),'3');
  await saved('second_opinion',1);await wait('document.querySelectorAll(".hand .card").length===5');await click('.hand .card');await click('.modal [data-a=mpick]');await click('.modal [data-a=mpick]');await wait('!document.querySelector(".modal")');assert.equal(await count('.hand .card'),6);
- await saved('brace',0,'shop');await wait('document.querySelectorAll(".ware .card").length===7');assert.equal(await evalJS('[...document.querySelectorAll(".ware .ty")].filter(e=>e.textContent.includes("Colorless")).length'),2);await click('[data-a=buy][data-v="5"]');await wait(`!document.querySelector(${JSON.stringify('[data-a=buy][data-v="5"]')})`);
+ await saved('brace',0,'shop');await wait('document.querySelectorAll(".ware .card").length===7');assert.equal(await evalJS('[...document.querySelectorAll(".ware .ty")].filter(e=>e.textContent.includes("Colorless")).length'),2);await click('[data-a=inspectware][data-v="5"]');await click('.modal [data-a=buy]');await wait(`!document.querySelector(${JSON.stringify('[data-a=inspectware][data-v="5"]')})`);
  assert.deepEqual(errors,[]);
  console.log('Browser smoke passed: saved-run load, Choose One, atomic cancel, two-card ordered choice, dedicated merchant inventory and purchase; no runtime exceptions.');
 })().catch(e=>{console.error(e);process.exitCode=1}).finally(()=>{if(sock)sock.close();if(chrome)chrome.kill();server.closeAllConnections();server.close()});

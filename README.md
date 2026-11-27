@@ -84,6 +84,54 @@ Open `http://localhost:8787` on the host and choose **Multiplayer**, then **Play
 
 Enemies stand on the right, so they must face **left**. Generated art usually faces right; mirror it when cutting it out so the file on disk already faces left, then add `img`, `w` (display width in px) and `ar` (width / height) to its entry in `EN`.
 
-Enemies with a parts sheet are cut-out rigs: each part is its own WebP, and `RIGS` in `index.html` lists every part's position, width, idle animation (sway, nod, claw, leg, chew, glow, pulse, hover, flick, drift) and pivot. Give the enemy `rig:'<folder>'` instead of `img`. The claws strike on attacks, and the canister, crystal or flames flare on Overclock, Charge and Phase.
+Open **Enemy Animation Lab** on the title screen to play, scrub and tune the painted rigs. The shared bone and attachment registry lives in `assets/rigs/registry.js`. See [Enemy rig tools](tools/rigs/README.md) for authoring and validation.
 
 Next up: painted art for the Hex Mother and the Hollow King, then layered backgrounds and card illustrations.
+
+### Act I navigation and Map Lab
+
+Choose a gold-ringed room to preview it, then select **Enter room**. Keyboard players can Tab to an available room and press Enter or Space to preview it. Confirming follows the existing encounter transition. The map save stores the graph and the route taken. Older saves use their stored graphs directly.
+
+Open **Map Lab** on the title screen to generate a route for a hero and a 32-bit seed, inspect the art registry, or walk a full route without changing a saved run. Both screens call the renderer in `src/act-map.js`.
+
+The five PNGs from the Act I package live in `assets/maps/act01/source/`. Rebuild the runtime WebPs and their registry with `python tools/import_act01.py` (Pillow required). The importer checks each source against the SHA-256 manifest from the PR #10 handoff. Run `node --test tests/*.cjs` for graph, registry, save compatibility and character-selection checks.
+
+[Phone capture](docs/qa/act01/map-390.png) · [Desktop capture](docs/qa/act01/map-1440.png)
+## Combat Lab
+
+Open [Combat Lab](./index.html?dev=combat) on the same static server as the game.
+Choose a hero, oath, encounter and floor, then launch. Expand **Combat Lab** in the
+lower left to launch a fresh fight or download a JSON report with the current run,
+turn, card piles, enemy intents and setup URL. Sharing the URL repeats the setup.
+Deck shuffles, HP rolls and rewards still use normal game randomness. Lab sessions
+skip player save reads, writes and deletion. **Exit to game** returns to the title.
+
+### Automated interaction testing
+
+Open [the browser interaction suite](./tests/combat-interactions.html) on the static
+server to exercise a real two-enemy fight, card targeting, block, enemy turns,
+modal dialogs and reward collection. Five Oathbound fights cover the Unsworn
+starter and each god. They check Unbroken Vow, Judgment's tier and ownership,
+Divine Draw, and the evolved card's return to its Sanctum. The page displays each assertion and sets
+`#results[data-result]` to `pass` or `fail` when finished.
+
+A browser agent in a launched Combat Lab encounter can use the following API.
+Inspect returns a detached snapshot with the live hand, costs, targets, statuses
+and available actions. Act accepts the observed revision and action index and
+resolves at the next decision, including choices that interrupt card resolution.
+
+```js
+const state = window.hollowLab.inspect();
+const index = state.actions.findIndex(action => action.type === 'endTurn');
+const next = await window.hollowLab.act(state.revision, index);
+console.log(next.turn, next.energy, next.enemies);
+```
+
+Read the returned actions after each decision. Concurrent commands, stale
+revisions and invalid indices are rejected. The state report includes the most
+recent 200 agent actions. The API is available only in Combat Lab.
+
+Open **Reference gallery** on the title screen or in Combat Lab to browse registered
+cards (including oath forms), relics, statuses, oaths and Sanctums. Search by rule
+text, name or ID. The artwork filter separates loaded illustrations, shared icons,
+text placeholders and failed image loads. The gallery also shows each mapped file.

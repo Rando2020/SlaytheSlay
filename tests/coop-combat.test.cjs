@@ -14,10 +14,11 @@ function launch(heroes, storage = new Map(), leaveThreshold = false) {
   const modal = {style: {}};
   const noop = () => {};
   const ctx = vm.createContext({
+    URLSearchParams, location:{search:""}, cancelAnimationFrame:noop,
     document: {
       documentElement: {style: {}},
       addEventListener: noop,
-      querySelector: q => q === '#app' ? app : q === '#modal' ? modal : null
+      querySelector: q => q === '#app' ? app : q === '#modal' ? modal : q.startsWith('#modal [') ? {focus:noop} : null
     },
     window: {screen: {width: 1000, height: 700}, scrollTo: noop},
     localStorage: {
@@ -31,6 +32,8 @@ function launch(heroes, storage = new Map(), leaveThreshold = false) {
     clearTimeout: noop
   });
   const run = source => vm.runInContext(source, ctx);
+  for(const file of ['assets/maps/act01/registry.js','src/act-map.js','assets/rigs/registry.js','assets/rigs/player.js'])
+    run(fs.readFileSync(path.join(__dirname,'..',file),'utf8'));
   run(game);
   if (heroes) {
     run("Math.random=()=>0");
@@ -38,7 +41,9 @@ function launch(heroes, storage = new Map(), leaveThreshold = false) {
     else run('A.new()');
     for (const hero of heroes) {
       run(`A.hero('${hero}')`);
-      if (hero === 'oath') run('A.oathstart()');
+      if(heroes.length === 1) {
+        run('A.begin()');
+      } else if (hero === 'oath') run('A.oathstart()');
     }
     if (!leaveThreshold) {
       while (run('screen') === 'threshold') run("A.bless('merchant')");
@@ -60,7 +65,7 @@ test('enemy HP scales each spawn exactly once for solo through four seats', () =
 
 test('two seats act before the enemy, which resolves each hit against personal block', async () => {
   const {run} = launch(['aether', 'oath']);
-  run("A.go('0,0'); startCombat(['scrap'], 'fight'); C.foes[0].int={a:4,x:2}; C.p.block=6");
+  run("startCombat(['scrap'], 'fight'); C.foes[0].int={a:4,x:2}; C.p.block=6");
   await run('A.end()');
   assert.equal(run('activeSeat()'), 1);
   assert.equal(run('G.hero'), 'oath');
@@ -114,10 +119,10 @@ test('solo enemy damage and turn order remain unchanged', async () => {
 test('each player drafts their own reward and the shared map resumes from storage', () => {
   const solo = launch(['aether']);
   const {run, storage} = launch(['oath', 'aether'], solo.storage);
-  run("A.go('0,1'); winCombat()");
+  run("A.previewNode('0,1');A.travel(); winCombat()");
   assert.equal(run('screen'), 'reward');
   assert.equal(run('activeSeat()'), 0);
-  run("A.rcard('0'); A.map()");
+  run("A.inspectreward('0');A.rcard(); A.map()");
   assert.equal(run('screen'), 'reward');
   assert.equal(run('activeSeat()'), 1);
   assert.equal(run('G.deck.length'), 10);
@@ -153,8 +158,8 @@ test('each party member resolves a persisted Threshold before the shared map', (
   resumed("A.bless('merchant')");
   assert.equal(resumed('screen'),'map');
   assert.equal(resumed('G.party.every(p=>p.threshold.applied)'),true);
-  resumed("A.go('0,0');winCombat()");
-  resumed('A.map();A.map();G.map[1][0].t="shop";A.go("1,0")');
+  resumed("A.previewNode('0,0');A.travel();winCombat()");
+  resumed('A.map();A.map();G.map[1][0].t="shop";A.previewNode("1,0");A.travel()');
   assert.equal(resumed('merchantPrice(100)'),100);
   resumed('A.map()');
   assert.equal(resumed('merchantPrice(100)'),70);
@@ -164,7 +169,7 @@ test('each party member resolves a persisted Threshold before the shared map', (
 
 test('solo Threshold resumes and combat blessings expire after three wins', () => {
   const {run, storage} = launch(null);
-  run("A.new(); A.hero('aether')");
+  run("A.new(); A.hero('aether'); A.begin()");
   assert.equal(run('screen'), 'threshold');
   const resumed = launch(null, storage).run;
   resumed('A.cont()');
