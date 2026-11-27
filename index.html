@@ -240,6 +240,54 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 .modal.ask{max-width:520px;margin:auto}
 .sarc{position:fixed;pointer-events:none;z-index:44;mix-blend-mode:screen}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* Full-screen combat: scenery under the HUD and foreground hand. */
+body:has(#app>.stage){overflow:hidden}
+#app:has(>.stage){max-width:none;width:100%;height:100dvh;min-height:0;zoom:1!important}
+#app:has(>.stage)>.top{position:fixed;inset:0 0 auto;z-index:10;background:linear-gradient(#100c0def,#100c0d90);border:0;padding:10px clamp(14px,3vw,48px)}
+#app>.stage{position:fixed;inset:0;height:100dvh;width:100%;border:0}
+#app>.stage .shade{background:linear-gradient(#0007,transparent 22%,transparent 48%,#100c0d55 68%,#100c0de8 100%)}
+#app>.stage .hint{top:76px;font-size:clamp(13px,1.3vw,18px)}
+#app>.stage .actors{bottom:clamp(280px,39vh,360px);padding:0 clamp(20px,7vw,140px);gap:16px}
+#app>.stage .hero{width:clamp(128px,14vw,200px)}
+#app>.stage .hero .spr{width:100%;height:clamp(180px,30vh,290px)}
+#app>.stage .foes{gap:clamp(4px,2vw,30px)}
+#app>.hand{position:fixed;left:50%;bottom:70px;transform:translateX(-50%);width:min(100%,1120px);height:230px;margin:0;z-index:20;pointer-events:none}
+#app>.hand .card{pointer-events:auto;top:24px;width:128px;height:180px;box-shadow:0 12px 24px #000b,inset 0 0 0 3px var(--tc)}
+#app>.hand .card .ds{font-size:14px}
+#app>.hand .card .art{height:48px}
+#app>.hand .card:focus-visible{transform:translateY(-32px) rotate(0) scale(1.07);z-index:40!important}
+#app>.ctl{position:fixed;inset:auto 0 0;z-index:21;padding:8px clamp(16px,3vw,48px) max(12px,env(safe-area-inset-bottom));pointer-events:none;background:linear-gradient(transparent,#100c0d88)}
+#app>.ctl>*{pointer-events:auto}
+#app>.ctl .piles{color:#e6dac8;text-shadow:0 2px 5px #000}
+#app>.ctl .btn{min-width:116px;box-shadow:0 4px 18px #0008}
+@media(max-width:603px){
+ #app>.hand{height:204px;bottom:72px}
+ #app>.hand .card{width:98px;height:146px;top:32px}
+ #app>.hand .card .ds{font-size:13px}
+ #app>.hand .card .art{height:40px}
+ #app>.stage .actors{padding:0 10px;gap:0;bottom:290px}
+ #app>.stage .foes{gap:0}
+ #app>.stage .unit:not(.hero){width:82px}
+ #app>.stage .unit:not(.hero) .spr{width:78px;height:76px}
+ #app>.stage .hero{width:108px}
+ #app>.stage .hero .spr{height:170px}
+ #app>.stage .fn{font-size:10px}
+ #app>.ctl{gap:8px}
+ #app>.ctl .piles{font-size:12px}
+ #app>.ctl .btn{min-width:90px;padding:0 12px}
+}
+@media(max-height:600px){
+ #app>.hand{height:158px;bottom:52px}
+ #app>.hand .card{height:142px;top:12px}
+ #app>.hand .card .art{height:30px}
+ #app>.stage .actors{bottom:210px;padding-inline:5vw}
+ #app>.stage .hero .spr{height:100px}
+ #app>.stage .rig.tall{top:-30%;height:130%}
+ #app>.stage .hint{top:58px}
+ #app>.ctl{padding-block:4px}
+ #app>.ctl .orb{width:44px;height:44px}
+ #app>.ctl .orb b{font-size:21px}
+}
 </style></head><body>
 <div id="app"></div><div id="modal"></div><svg id="aim" aria-hidden="true"><path id="aimP" fill="none" stroke="none"/><g id="aimG"></g></svg>
 <script>
@@ -334,7 +382,7 @@ function bgMount(st){const im=BGI[biome(G.floor)],L=st.querySelector('.bgL');if(
 function banner(sub,title){if(RM)return;const d=document.createElement('div');d.className='banner';d.style.zoom=Z;d.innerHTML=`${sub?`<small>${sub}</small>`:''}<b></b>`;d.querySelector('b').textContent=title;document.body.appendChild(d);setTimeout(()=>d.remove(),2200)}
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
 let Z=1;const ZOK='zoom' in document.documentElement.style;
-function setZoom(){Z=ZOK&&innerWidth>1300?Math.max(1,Math.min(2.6,innerWidth/1250,innerHeight/860)):1;['#app','#modal'].forEach(q=>{const e=$(q);if(e)e.style.zoom=Z===1?'':Z})}
+function setZoom(){Z=screen!='combat'&&ZOK&&innerWidth>1300?Math.max(1,Math.min(2.6,innerWidth/1250,innerHeight/860)):1;['#app','#modal'].forEach(q=>{const e=$(q);if(e)e.style.zoom=Z===1?'':Z})}
 
 /* ---------- data ---------- */
 let PT=null;
@@ -772,7 +820,7 @@ function mapV(){const m=G.map,F=m.length,H=(F-1)*64+92;
 function heroV(now){const p=C.p;return `<div class="unit hero${p.block?' guard':''}" id="hero"><span class="spr"><i class="gshadow"></i></span><span class="info"><span class="fn">${HEROES[G.hero||'aether'].s}</span><span class="bar"><i style="width:${G.hp/G.maxHp*100}%"></i></span><span class="hpt">${G.hp}/${G.maxHp}${p.block?` <span class="chip blk">${ICO.shield}${p.block}</span>`:''}</span><span class="chips">${(G.oaths||[]).map(g=>`<button class="chip oath o-${g}" data-a="oinfo" data-v="${g}" title="${GODS[g].law}">${GODS[g].oath}</button>`).join('')}${stV(p.st)}</span></span></div>`}
 function foeV(e,tg,now){const d=EN[e.k],dead=e.hp<=0,el=dead?now-(e.dieAt||0):0,st=dead?(el<800?' dying':' dead'):'';
  return `<button class="unit${d.big?' big':''}${tg&&!dead?' tgt':''}${st}" id="f${e.i}" data-a="foe" data-v="${e.i}" aria-label="${d.n}"${st==' dying'?` style="animation-delay:-${el|0}ms"`:''}><span class="ints">${dead?'':intV(e)}</span><span class="spr"><svg class="bob${d.s=='moth'||d.s=='ghost'?' fly':''}" viewBox="0 0 120 100" style="animation-delay:-${(now+e.i*900)%2600|0}ms" aria-hidden="true">${SPR[d.s](d.col)}</svg></span><span class="info"><span class="fn">${d.n}</span><span class="bar"><i style="width:${e.hp/e.max*100}%"></i></span><span class="hpt">${e.hp}/${e.max}${e.block?` <span class="chip blk">${ICO.shield}${e.block}</span>`:''}</span><span class="chips">${stV(e.st)}</span></span></button>`}
-function handV(){const n=C.hand.length;if(!n)return '<p class="empty">No cards in hand</p>';const W=($('#app').clientWidth||innerWidth)-24,cw=W<580?98:106,mid=(n-1)/2,step=n>1?Math.min(cw+10,(W-cw-26)/(n-1)):0,now=performance.now();
+function handV(){const n=C.hand.length;if(!n)return '<p class="empty">No cards in hand</p>';const W=Math.min(innerWidth,1120)-24,cw=W<580?98:128,mid=(n-1)/2,step=n>1?Math.min(cw+10,(W-cw-26)/(n-1)):0,now=performance.now();
  return C.hand.map((c,i)=>{const o=i-mid,x=W/2+o*step-cw/2+12,rot=n>1?o*Math.min(5,26/n):0,y=o*o*Math.min(3.2,16/n),dl=c.dt?c.dt-now:-999,an=dl>-420&&!RM?`;animation:deal .42s ease-out ${dl|0}ms backwards`:'';
   return cardV(c,`data-a="card" data-v="${i}" style="left:${x.toFixed(1)}px;--r:${rot.toFixed(2)}deg;--y:${y.toFixed(1)}px;z-index:${i+1}${an}"`,(i==C.sel?'sel ':'')+(playable(c)?'':'no'))}).join('')}
 function combatV(){const tg=C.sel>=0,now=performance.now();
@@ -799,7 +847,7 @@ function eventV(){const e=EV.e;return `<div class="panel"><svg class="pic" viewB
  ${EV.done?`<button class="btn pri" data-a="map">Continue</button>`:`<div class="opts">${e.o.map((o,i)=>`<button class="btn opt" data-a="evo" data-v="${i}" ${o.ok&&!o.ok()?'disabled':''}>${o.l}</button>`).join('')}</div>`}</div>`}
 function endV(){const w=screen=='win';return `<div class="panel end"><svg class="pic" viewBox="0 0 200 120" aria-hidden="true">${w?`<g transform="translate(100 64) scale(4.2)">${NI.boss}</g>`:`<g transform="translate(100 62) scale(4.2)">${NI.elite}</g>`}</svg><h1>${w?'The King falls':'Your climb ends'}</h1><p class="sub">${w?`You toppled the Hollow King with a deck of ${G.deck.length} cards and ${G.relics.length} relics.`:`You fell on floor ${G.floor} of 13 with ${G.deck.length} cards in your deck.`}</p><button class="btn pri" data-a="new">Start a new run</button></div>`}
 const VIEWS={map:mapV,combat:combatV,reward:rewardV,shop:shopV,rest:restV,shrine:shrineV,event:eventV,dead:endV,win:endV};
-function render(){PT=null;PV.key='';$('#app').innerHTML=screen=='title'?titleV():screen=='pick'?pickV():screen=='oathpreview'?oathPreviewV():topV()+VIEWS[screen]();
+function render(){setZoom();PT=null;PV.key='';$('#app').innerHTML=screen=='title'?titleV():screen=='pick'?pickV():screen=='oathpreview'?oathPreviewV():topV()+VIEWS[screen]();
  if(screen=='map'){const n=$('.node.can');if(n)try{n.scrollIntoView({block:'center'})}catch(e){}}else if(screen!='combat')window.scrollTo(0,0);
  if(screen=='combat'){const st=$('.stage');if(st){bgMount(st);ptMount(st)}const hs=$('#hero .spr');if(hs)rigMount(hs)}
  flush();if(screen=='combat'&&C&&C.sel>=0&&!aimOn){aimOn=true;requestAnimationFrame(aimTick)}}
