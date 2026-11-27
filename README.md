@@ -72,3 +72,12 @@ Enemies stand on the right, so they must face **left**. Generated art usually fa
 Enemies with a parts sheet are cut-out rigs: each part is its own WebP, and `RIGS` in `index.html` lists every part's position, width, idle animation (sway, nod, claw, leg, chew, glow, pulse, hover, flick, drift) and pivot. Give the enemy `rig:'<folder>'` instead of `img`. The claws strike on attacks, and the canister, crystal or flames flare on Overclock, Charge and Phase.
 
 Next up: painted art for the Hex Mother and the Hollow King, then layered backgrounds and card illustrations.
+
+## Combat Lab
+
+Open [Combat Lab](./index.html?dev=combat) on the same static server as the game.
+Choose a hero, oath, encounter and floor, then launch. Expand **Combat Lab** in the
+lower left to launch a fresh fight or download a JSON report with the current run,
+turn, card piles, enemy intents and setup URL. Sharing the URL repeats the setup.
+Deck shuffles, HP rolls and rewards still use normal game randomness. Lab sessions
+skip player save reads, writes and deletion. **Exit to game** returns to the title.

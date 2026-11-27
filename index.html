@@ -304,10 +304,11 @@ const R=n=>Math.floor(Math.random()*n);
 const pick=a=>a[R(a.length)];
 const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=R(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const combatLab = new URLSearchParams(location.search).get('dev') === 'combat';
 const SAVE='hollow-ascent-v1';
-const save=()=>{try{localStorage.setItem(SAVE,JSON.stringify(G))}catch(e){}};
-const load=()=>{try{return JSON.parse(localStorage.getItem(SAVE))}catch(e){return null}};
-const wipe=()=>{try{localStorage.removeItem(SAVE)}catch(e){}};
+const save=()=>{if(combatLab)return;try{localStorage.setItem(SAVE,JSON.stringify(G))}catch(e){}};
+const load=()=>{if(combatLab)return null;try{return JSON.parse(localStorage.getItem(SAVE))}catch(e){return null}};
+const wipe=()=>{if(combatLab)return;try{localStorage.removeItem(SAVE)}catch(e){}};
 let G=null,C=null,RW=null,SH=null,RS=null,SR=null,EV=null,MD=null,screen='title',uid=1,Q=[];
 
 /* ---------- icons and art ---------- */
@@ -1065,6 +1066,32 @@ document.addEventListener('pointerup',e=>{const d=drag;drag=null;if(!d||!d.activ
 document.addEventListener('pointercancel',()=>{if(drag&&drag.g){drag.g.remove();drag.el.classList.remove('lifted');endFree()}drag=null});
 setZoom();let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{setZoom();if(screen=='combat'&&C&&!C.busy&&!C.lock)render()},150)});
 render();
+if (combatLab) {
+  import('./tools/combat-lab.mjs').then(({mountLab}) => {
+    const encounters = [
+      ...[...EASY, ...HARD].map(keys => ({keys, kind:'fight'})),
+      ...ELITE.map(keys => ({keys, kind:'elite'})),
+      {keys:['king'], kind:'boss'}
+    ];
+    mountLab({
+      heroes:HEROES, gods:GODS, enemies:EN, encounters,
+      start(hero, oath, floor, encounter) {
+        newRun(hero);
+        G.floor = floor;
+        G.pos = {f:floor - 1, l:0};
+        G.path = Array.from({length:floor}, (_, f) => [f, 0]);
+        G.map[floor - 1][0].t = encounter.kind;
+        G.oaths = oath ? [oath] : [];
+        startCombat(encounter.keys, encounter.kind);
+      },
+      snapshot:() => ({url:location.href, screen, run:G, combat:C})
+    });
+  }).catch(error => {
+    const message = document.createElement('p');
+    message.textContent = 'Combat Lab could not start: ' + error.message;
+    document.body.prepend(message);
+  });
+}
 })();
 </script>
 </body></html>
