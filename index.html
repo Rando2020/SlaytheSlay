@@ -213,6 +213,40 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 .pop.o{font-size:19px;color:var(--gold)}.pop.o-varran{color:#ff7563}.pop.o-orun{color:#8cc4ff}.pop.o-mora{color:#c9a2ff}
 .chip.oath{border:0;font:inherit;font-size:13px;font-weight:800;cursor:pointer;color:#1a0d09;box-shadow:0 0 10px currentColor}
 .chip.o-aurel{background:#ffc853}.chip.o-varran{background:#ff6250}.chip.o-orun{background:#7cbcff}.chip.o-mora{background:#c39bff}
+/* Character selection: the painting remains intact; all UI stays live. */
+#app:has(.ascent-select){max-width:1800px;zoom:1!important}
+.ascent-select{background:#151618;min-height:100svh;display:flex;flex-direction:column;color:#e8dfcf}
+.select-head{padding:20px 28px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #90704455;gap:18px}
+.select-brand{font:600 16px Cinzel,serif;letter-spacing:.14em;color:#baa078}
+.select-head .btn,.ascent-select .btn{border-radius:3px;border-color:#90704488;background:#222225}
+.select-body{display:grid;grid-template-columns:minmax(0,1.85fr) minmax(340px,1fr);flex:1}
+.select-scene{margin:0;display:flex;flex-direction:column;justify-content:center;background:radial-gradient(ellipse at center,#2d2927,#111315 75%);border-right:1px solid #90704455;padding:24px 0}
+.select-scene img{display:block;width:100%;height:auto;aspect-ratio:1672/941;object-fit:contain}
+.select-scene.neutral img{height:clamp(250px,44vh,510px);aspect-ratio:auto;opacity:.85}
+.select-scene figcaption{padding:22px 28px 0;color:#b7a48a;font:600 12px Cinzel,serif;letter-spacing:.12em;text-align:center}
+.select-info{padding:clamp(24px,3vw,48px);display:flex;flex-direction:column;justify-content:center;gap:18px;background:linear-gradient(135deg,#242323,#17181a)}
+.select-info .eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.22em;color:#bca077;margin:0}
+.select-info h1{font-size:clamp(28px,3vw,48px);color:#e4d0ac;line-height:1.15}
+.select-info .tagline{font-family:Cinzel,serif;font-size:13px;color:#bca077;margin:0}
+.select-info p{margin:0;color:#c3bdb1}
+.select-stats{display:flex;gap:22px;padding:14px 0;border-block:1px solid #90704455;color:#d4bd92}
+.select-relic strong{display:block;font-family:Cinzel,serif;font-size:14px;color:#e0cfaf;margin-bottom:5px}
+.select-laws{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.select-laws details{padding:8px;background:#ffffff04;border:1px solid #90704444;font-size:13px}
+.select-laws summary{cursor:pointer;min-height:32px;display:list-item;color:#dac5a2}
+.select-laws p{margin-top:8px}
+.select-info .btn{width:100%;padding:12px 14px}
+.select-info .btn.pri{background:linear-gradient(#b49865,#82663f);color:#141414;border-color:#c4a576;font-family:Cinzel,serif;letter-spacing:.06em}
+.select-roster{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;padding:20px 24px;border-top:1px solid #90704455;background:#17181a}
+.select-portrait{display:flex;align-items:center;gap:12px;min-height:80px;min-width:180px;padding:8px 18px 8px 8px;background:#222225;border:1px solid #665239;color:#bfb6a6;text-align:left;border-radius:3px}
+.select-portrait img{width:52px;height:64px;object-fit:contain;background:#141517}
+.select-portrait[aria-pressed=true]{border-color:#d0b17d;box-shadow:inset 0 -2px #d0b17d;color:#f2e0bc;background:#34302a}
+.select-portrait small{display:block;color:#9d9487;font-size:12px;margin-top:3px}
+.select-portrait:disabled{cursor:default;opacity:.5}
+.portrait-blank{display:grid;place-items:center;width:52px;height:64px;background:#141517;color:#81745f;font:24px Cinzel,serif}
+@media(max-width:850px){.select-body{grid-template-columns:1fr}.select-scene{border-right:0;padding:0}.select-scene figcaption{padding:14px}.select-info{padding:24px;gap:16px}.select-head{padding:14px 18px}.select-portrait{min-width:0;flex:1;padding:8px;gap:8px}.select-roster{gap:8px;padding:14px}.select-portrait img,.portrait-blank{width:36px;height:48px}.select-brand{font-size:12px}}
+@media(max-width:420px){.select-portrait{font-size:13px;flex-direction:column;text-align:center}.select-portrait small{font-size:11px}.select-laws{grid-template-columns:1fr 1fr}}
+
 .pick{text-align:center}.heroes{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:16px 0}
 .hcard{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 14px 16px;border-radius:14px;border:1px solid #ffffff22;background:linear-gradient(#2a1814,#160e0c);text-align:center;transition:transform .15s,border-color .15s}
 .hcard:hover,.hcard:focus-visible{transform:translateY(-3px);border-color:var(--gold)}
@@ -568,6 +602,7 @@ async function resolveCh(s,c){
 const chDef=s=>s.k=='offer'?(s.opt?[]:offerable().slice(0,s.n||1).map(x=>x.u)):s.k=='yes'?false:null;
 function pickP(title,list,cancel){return new Promise(res=>{openPick(title,list,c=>res(c),cancel);MD.onClose=()=>res(null)})}
 function chooseP(title,q,opts){return new Promise(res=>{MD={ask:res};$('#modal').innerHTML=`<div class="modal ask" role="dialog" aria-label="${title}"><div class="mhead"><h2>${title}</h2></div><p class="sub">${q}</p><div class="opts">${opts.map((o,i)=>`<button class="btn opt" data-a="mask" data-v="${i}">${o}</button>`).join('')}</div></div>`})}
+const START_GOLD=99;
 const HEROES={aether:{n:'The Aetherwright',s:'Aetherwright',hp:70,relic:'heart',deck:()=>[...Array(5)].map(()=>mk('strike')).concat([...Array(4)].map(()=>mk('defend')),[mk('bash')]),b:'An aether-punk gunslinger. Strength, poison and raw firepower.'},
 oath:{n:'The Oathbound',s:'Oathbound',hp:80,relic:'unbroken',deck:()=>[...Array(4)].map(()=>mk('strike')).concat([...Array(3)].map(()=>mk('guard')),[mk('judgment'),mk('lay'),mk('invoke')]),b:'A wandering knight. Swear an Oath at a Divine shrine and his cards evolve under that god, or stay Unsworn and trust his steel.'}};
 let SIM=false;
@@ -708,7 +743,7 @@ function genMap(h){const F=13,m=[];
  for(let f=0;f<F-2;f++)m[f].forEach((n,l)=>{n.next=[l];if(Math.random()<.55){const o=l+(Math.random()<.5?-1:1);if(o>=0&&o<4&&!(o==l-1&&m[f][o].next.includes(l)))n.next.push(o)}});
  m[F-2].forEach(n=>n.next=[0]);m.push([{t:'boss',next:[],jx:0,jy:0}]);return m}
 function avail(){const m=G.map;if(!G.pos)return m[0].map((n,l)=>[0,l]);const{f,l}=G.pos;return f>=m.length-1?[]:m[f][l].next.map(nl=>[f+1,nl])}
-function newRun(h){if(!HEROES[h]){screen='pick';return render()}uid=1;const H=HEROES[h];G={hero:h,hp:H.hp,maxHp:H.hp,gold:99,deck:H.deck(),relics:[H.relic],oaths:[],map:genMap(h),pos:null,path:[],floor:0};goMap()}
+function newRun(h){if(!HEROES[h]){screen='pick';return render()}uid=1;const H=HEROES[h];G={hero:h,hp:H.hp,maxHp:H.hp,gold:START_GOLD,deck:H.deck(),relics:[H.relic],oaths:[],map:genMap(h),pos:null,path:[],floor:0};goMap()}
 function goMap(){closeModal();C=null;screen='map';save();render()}
 function mkShop(){const ids=[];[1,1,2,2,3].forEach(t=>{let id,g=0;do{id=pick(POOL[t])}while(ids.includes(id)&&g++<20);ids.push(id)});
  const r=randRelic();return{cards:ids.map(id=>({id,p:{1:50,2:75,3:145}[K[id].r]+R(11)-5,sold:0})),relic:r?{k:r,p:140+R(21),sold:0}:null,removed:0}}
@@ -745,7 +780,17 @@ function cardV(c,attrs='',cls=''){const k=KD(c),co=cost(c),g=godOf(c),dorm=g&&G&
 function intV(e){const n=e.int,o=[];if(n.a){let d=n.a+(e.st.str||0);if(e.st.weak)d*=.75;if(C.p.st.vuln)d*=1.5;o.push(`<span class="it a" title="Attack">${ICO.sword}${Math.floor(d)}${n.x>1?'×'+n.x:''}</span>`)}
  if(n.b)o.push(`<span class="it b" title="Block">${ICO.shield}${n.b}</span>`);if(n.str)o.push(`<span class="it u" title="Buff">${ICO.up}</span>`);if(n.weak||n.vuln)o.push(`<span class="it d" title="Debuff">${ICO.hex}</span>`);return o.join('')}
 function topV(){return `<div class="top"><span class="stat hp">${ICO.heart}${G.hp}/${G.maxHp}</span><span class="stat gd">${ICO.coin}${G.gold}</span><span class="stat">Floor ${G.floor}/13</span><span class="relics">${G.relics.map(k=>`<button class="rel" data-a="rel" data-v="${k}" aria-label="${RELICS[k].n}">${RELICS[k].n[0]}</button>`).join('')}</span><button class="btn sm" data-a="deck">Deck ${G.deck.length}</button></div>`}
-function pickV(){return `<div class="panel pick"><h2>Choose your climber</h2><p class="sub">Each hero has their own starting deck, relic and cards to find on the way up.</p><div class="heroes">${Object.entries(HEROES).map(([k,h])=>`<button class="hcard" data-a="hero" data-v="${k}"><span class="hp"><img src="${PSET[k].idle}" alt=""></span><b>${h.n}</b><span class="hb">${h.b}</span><span class="hs">${h.hp} HP · ${RELICS[h.relic].n}</span>${k=='oath'?`<span class="oaths">${Object.entries(GODS).map(([o,v])=>`<i class="o-${o}">${v.oath}</i>`).join('')}</span>`:''}</button>`).join('')}</div><button class="btn sm" data-a="title">Back</button></div>`}
+let selectedHero='oath';
+function pickV(){const k=HEROES[selectedHero]?selectedHero:'oath',h=HEROES[k],r=RELICS[h.relic],oath=k==='oath';return `<section class="ascent-select" aria-label="Choose your climber">
+<header class="select-head"><span class="select-brand">Hollow Ascent / Choose your path</span><button class="btn sm" data-a="title">Back</button></header>
+<div class="select-body"><figure class="select-scene${oath?'':' neutral'}"><img src="${oath?'assets/bg_oath_select.webp':PSET[k].idle}" alt="${oath?'The Oathbound kneels in a ruined circular temple before the gold sun, red warrior, blue mountain and water, and purple moon gods.':h.n+' — existing character artwork'}"><figcaption>${oath?'Four gods. One wandering knight.':'The Aetherwright'}</figcaption></figure>
+<div class="select-info"><p class="eyebrow">Choose your climber</p><h1>${h.n}</h1><p class="tagline">${oath?'Swear an Oath. Or trust your steel.':'Strength. Poison. Firepower.'}</p><p>${h.b}</p><div class="select-stats"><span>${h.hp} starting HP</span><span>${START_GOLD} starting gold</span></div>
+<div class="select-relic"><strong>${r.n}</strong><p>${r.d}</p></div>
+${oath?`<div class="select-laws" aria-label="Inspect the four Oaths">${Object.entries(GODS).map(([id,g])=>`<details><summary>${g.n} · ${g.oath}</summary><p>${g.law}</p><p>Price: ${g.price}</p></details>`).join('')}</div>`:''}
+<button class="btn" data-a="startdeck">Inspect starting deck</button><button class="btn pri" data-a="begin">Begin Ascent</button></div></div>
+<nav class="select-roster" aria-label="Character selection">${Object.entries(HEROES).map(([id,hero])=>`<button class="select-portrait" data-a="hero" data-v="${id}" aria-pressed="${id===k}"><img src="${PSET[id].idle}" alt=""><span>${hero.s}<small>${id===k?'Selected':'Select character'}</small></span></button>`).join('')}<button class="select-portrait" disabled aria-label="Duelist — unavailable"><span class="portrait-blank" aria-hidden="true">—</span><span>Duelist<small>Not yet available</small></span></button></nav></section>`}
+// Preview the same deck factory as newRun without consuming IDs or reading a previous combat.
+function inspectStartingDeck(){const prior={uid,G,C};try{G=null;C=null;openPick(HEROES[selectedHero].n+' — starting deck',HEROES[selectedHero].deck(),null);const app=$('#app'),trigger=document.activeElement;app.inert=true;MD.onClose=()=>{app.inert=false;trigger?.focus()};$('#modal .btn').focus()}finally{uid=prior.uid;G=prior.G;C=prior.C}}
 function titleV(){const s=load();let emb='';for(let i=0;i<14;i++)emb+=`<circle class="emb" cx="${(i*67)%400}" cy="${200+(i*37)%40}" r="${1+(i%3)*.6}" fill="#ff5a36" style="animation-delay:${-(i*.53).toFixed(2)}s"/>`;
  return `<div class="title"><div class="hero" role="img" aria-label="A sealed aether gate in overgrown ruins"><div class="tmark"><h1>Hollow Ascent</h1><p class="kick">A roguelike deckbuilder</p></div></div>
  <div class="tbody"><p class="lede">Climb thirteen floors, shape your deck one card at a time, and topple the Hollow King at the top.</p><div class="row"><button class="btn pri" data-a="new">Begin ascent</button>${s?`<button class="btn" data-a="cont">Continue from floor ${s.floor}</button>`:''}</div>
@@ -799,7 +844,7 @@ function closeModal(){const m=MD;MD=null;$('#modal').innerHTML='';if(m&&m.onClos
 
 /* ---------- input ---------- */
 const A={
-new:()=>newRun(),hero:v=>newRun(v),title:()=>{screen='title';render()},oinfo:v=>toast(GODS[v].oath+' ('+GODS[v].full+'). Law: '+GODS[v].law+' Price: '+(halo(v)?'lifted.':GODS[v].price)),
+new:()=>{selectedHero='oath';newRun()},hero:v=>{if(!HEROES[v])return;selectedHero=v;render()},begin:()=>newRun(selectedHero),startdeck:inspectStartingDeck,title:()=>{screen='title';render()},oinfo:v=>toast(GODS[v].oath+' ('+GODS[v].full+'). Law: '+GODS[v].law+' Price: '+(halo(v)?'lifted.':GODS[v].price)),
 cont:()=>{G=load();if(!G)return;G.hero=G.hero||'aether';G.oaths=G.oaths||[];G.deck=G.deck.filter(c=>K[c.id]&&(!c.tier||FK[c.id]));G.relics=G.relics.filter(k=>RELICS[k]);uid=Math.max(0,...G.deck.map(c=>c.u||0))+1;goMap()},
 deck:()=>openPick('Your deck ('+G.deck.length+' cards)',G.deck,null),
 rel:v=>toast(RELICS[v].n+': '+RELICS[v].d),
