@@ -21,6 +21,7 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 #app{max-width:900px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
 .top{display:flex;align-items:center;gap:8px 14px;padding:8px 14px;flex-wrap:wrap;position:sticky;top:0;background:#140c0bdd;backdrop-filter:blur(6px);border-bottom:1px solid #ffffff14;z-index:5}
 .stat{display:inline-flex;align-items:center;gap:5px;font-weight:800;white-space:nowrap}
+.party-hud{display:flex;gap:6px 14px;align-items:center;flex-wrap:wrap;padding:6px 14px;background:#241815;font-size:.85rem}.party-hud strong,.party-hud .acting{color:var(--gold)}
 .stat.hp{color:#ff8a6e}.stat.gd{color:var(--gold)}
 .relics{display:flex;gap:5px;flex:1;flex-wrap:wrap}
 .rel{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--gold);background:radial-gradient(circle at 35% 30%,#4a3218,#1d140c);color:var(--gold);font:800 14px Cinzel,serif;display:inline-grid;place-items:center;padding:0;flex:none}
@@ -305,9 +306,9 @@ const pick=a=>a[R(a.length)];
 const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=R(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const SAVE='hollow-ascent-v1';
-const save=()=>{try{localStorage.setItem(SAVE,JSON.stringify(G))}catch(e){}};
-const load=()=>{try{return JSON.parse(localStorage.getItem(SAVE))}catch(e){return null}};
-const wipe=()=>{try{localStorage.removeItem(SAVE)}catch(e){}};
+const save=()=>{try{localStorage.setItem(G.party?SAVE+'-party':SAVE,JSON.stringify(G))}catch(e){}};
+const load=(party=false)=>{try{return JSON.parse(localStorage.getItem(party?SAVE+'-party':SAVE))}catch(e){return null}};
+const wipe=()=>{try{localStorage.removeItem(G?.party?SAVE+'-party':SAVE)}catch(e){}};
 let G=null,C=null,RW=null,SH=null,RS=null,SR=null,EV=null,MD=null,screen='title',uid=1,Q=[];
 
 /* ---------- icons and art ---------- */
@@ -700,7 +701,7 @@ function flush(){const q=Q;Q=[];q.forEach(([sel,txt,cls,an])=>{const el=$(sel);i
 const alive=()=>C.foes.filter(e=>e.hp>0);
 const rage=e=>{if(e.k=='rustjaw'&&!e.rg&&e.hp>0&&e.hp*2<e.max){e.rg=1;e.st.str=(e.st.str||0)+3;fx('#f'+e.i,'Bloodscent +3 Str','')}
  if(e.k=='jugg'&&!e.rg&&e.hp>0&&e.hp*2<e.max){e.rg=1;e.st.str=(e.st.str||0)+2;e.block+=10;fx('#f'+e.i,'Overpressure!','i');fx('#f'+e.i+' .spr','','','oc')}};
-const fell=e=>{rage(e);if(e.hp<=0&&!e.dieAt){e.dieAt=performance.now();if(e.k=='spore')meDebuff(null,'poison',2);fx('#f'+e.i+' .spr','','','burst');fx('#f'+e.i+' .spr','','','vfx:shards')}};
+const fell=e=>{rage(e);if(e.hp<=0&&!e.dieAt){e.dieAt=performance.now();if(e.k=='spore')forLivingHeroes(()=>meDebuff(null,'poison',2));fx('#f'+e.i+' .spr','','','burst');fx('#f'+e.i+' .spr','','','vfx:shards')}};
 function atk(e,b,m=1){if(!e||e.hp<=0)return;let d=b+S()*m+(C.bl||0);if(C.p.st.weak)d*=.75;if(e.st.vuln)d*=1.5;if(priceOn('orun'))d*=.8;d=Math.max(0,Math.floor(d));const ab=Math.min(e.block,d);e.block-=ab;const n=d-ab;e.hp=Math.max(0,e.hp-n);fx('#f'+e.i,n?'-'+n:'Blocked',n?'':'b');fx('#f'+e.i+' .spr','','','hitR');fx('#f'+e.i+' .spr','','','vfx:slash');if(n>=15)fx('.stage','','','quake');fell(e)}
 const blk=(n,raw)=>{if(!raw)n=Math.max(0,n+X());C.p.block+=n;fx('#hero','+'+n+' Block','b');fx('#hero .spr','','','vfx:ripple')};
 const debuff=(e,k,n)=>{if(e&&e.hp>0){e.st[k]=(e.st[k]||0)+n;if(k=='poison')fx('#f'+e.i+' .spr','','','vfx:poison')}};
@@ -708,21 +709,64 @@ const buff=(k,n)=>{C.p.st[k]=(C.p.st[k]||0)+n;if(C&&!C.busy&&['str','dex','metal
 const loseHp=n=>{G.hp=Math.max(1,G.hp-n);fx('#hero','-'+n,'');fx('#hero .spr','','','hitL')};
 function draw(n){const t=performance.now();let k=0;for(let i=0;i<n;i++){if(C.hand.length>=10)break;if(!C.draw.length){if(!C.disc.length)break;C.draw=shuf(C.disc);C.disc=[]}const c=C.draw.pop();c.dt=t+k++*85;C.hand.push(c)}}
 const dec=s=>['weak','vuln'].forEach(k=>{if(s[k])s[k]--});
+let combatParty=[], combatEnemyPhase=false;
+function focusCombatSeat(seat){
+ selectSeat(seat);
+ C=combatParty[seat];
+ RIG.oath=G.oaths?.[0]||null;
+}
+// Each hero uses the same card and defense rules against one shared set of foes.
+function forLivingHeroes(effect){
+ if(SIM||partySize()===1){effect();return}
+ const original=activeSeat();
+ try{
+  for(const seat of livingSeats()){
+   focusCombatSeat(seat);
+   const first=Q.length;
+   effect();
+   if(seat!==original)for(let i=first;i<Q.length;i++){
+    if(Q[i][0]==='#hero'||Q[i][0]==='#hero .spr')Q[i][0]='#party-seat-'+seat;
+   }
+  }
+ }finally{focusCombatSeat(original)}
+}
 function startCombat(keys,kind){
- const sc=1+(G.floor-1)*.03;
- C={kind,foes:keys.map((k,i)=>{const d=EN[k];const hp=Math.round((d.hp[0]+R(d.hp[1]-d.hp[0]+1))*(d.boss?1:sc));return{i,k,hp,max:hp,block:0,st:{},t:0,int:d.ai(0)}}),p:{block:0,st:{}},energy:0,draw:[],disc:[],exh:[],hand:[],turn:0,busy:false,lock:false,sel:-1,won:false,sanc:{aurel:[],varran:[],orun:[],mora:[]},healed:[],once:[],egen:[],exU:[]};
+ const count=partySize();
+ const foes=keys.map((k,i)=>{
+  const d=EN[k],base=d.hp[0]+R(d.hp[1]-d.hp[0]+1);
+  const floorMultiplier=d.boss?1:1+(G.floor-1)*.03;
+  const hp=Math.round(base*floorMultiplier)*count;
+  return {k,i,hp,max:hp,block:0,st:{},t:0,int:d.ai(0)};
+ });
+ combatParty=[];combatEnemyPhase=false;
+ for(let seat=0;seat<count;seat++){
+  selectSeat(seat);
+  C={kind,foes,p:{block:0,st:{}},hand:[],draw:[],disc:[],exh:[],energy:0,turn:0,busy:false,lock:false,sel:-1,won:false,sanc:{aurel:[],varran:[],orun:[],mora:[]},healed:[],once:[],egen:[],exU:[]};
+  combatParty.push(C);
+  if(G.hp>0)prepareCombatDeck();
+ }
+ focusCombatSeat(livingSeats()[0]);screen='combat';window.scrollTo(0,0);startTurn();
+ if(kind=='boss')banner('Floor 13','The Hollow King');else if(kind=='elite')banner('Elite',EN[keys[0]].n);
+}
+function prepareCombatDeck(){
  G.oaths=G.oaths||[];
  G.deck.map(c=>({...c,dturn:-1})).forEach(c=>{const g=godOf(c);if(!g)return C.draw.push(c);if(c.tier)return(c.seal&&!ACT(g)?C.draw:C.sanc[g]).push(c);(ACT(g)||c.seal?C.draw:C.sanc[g]).push(c)});
  if(priceOn('mora'))C.draw.push(mk('burden'),mk('burden'));
  shuf(C.draw);
  if(has('circlet'))C.p.st.anoint=1;
  if(has('sreliq')&&SWN()){const el=C.draw.filter(x=>!['curse','status'].includes(KD(x).t));if(el.length){const x=pick(el);C.draw.splice(C.draw.indexOf(x),1);x.tmpS=G.oaths[0];C.sanc[x.tmpS].push(x)}}
- if(has('bell'))C.foes.forEach(e=>e.st.vuln=1);
+ if(has('bell'))C.foes.forEach(e=>e.st.vuln=(e.st.vuln||0)+1);
  if(has('fang'))C.p.st.str=1;
- RIG.oath=(G.oaths&&G.oaths[0])||null;screen='combat';window.scrollTo(0,0);startTurn();
- if(kind=='boss')banner('Floor 13','The Hollow King');else if(kind=='elite')banner('Elite',EN[keys[0]].n)}
+}
 function startTurn(){C.turn++;
- if(C.p.st.poison){const n=C.p.st.poison;G.hp=Math.max(0,G.hp-n);C.p.st.poison--;fx('#hero','-'+n,'p');fx('#hero .spr','','','hitL');fx('#hero .spr','','','vfx:poison');if(G.hp<=0)return die()}
+ if(C.p.st.poison){
+  const n=C.p.st.poison;G.hp=Math.max(0,G.hp-n);C.p.st.poison--;
+  fx('#hero','-'+n,'p');fx('#hero .spr','','','hitL');fx('#hero .spr','','','vfx:poison');
+  if(G.hp<=0){
+   if(!livingSeats().length)return die();
+   C.busy=true;render();return nextPlayerOrEnemies();
+  }
+ }
  const keep=Math.min(C.p.block,C.keep||0);C.keep=0;C.p.block=keep+(C.turn==1?(has('anchor')?10:0)+(has('unbroken')?5:0):0);C.lostPrev=C.turn>1&&!!C.hurt;C.hurt=false;C.energy=3+(C.turn==1&&has('lantern')?1:0);
  if(C.p.st.demon)buff('str',C.p.st.demon);
  if(C.p.st.cloud){alive().forEach(e=>{debuff(e,'poison',C.p.st.cloud)})}
@@ -750,28 +794,62 @@ function tapFoe(j){if(!C||C.busy||C.lock||C.sel<0)return;const e=C.foes[j];if(e&
 function checkWin(){if(C&&!C.won&&!alive().length){C.won=true;C.busy=true;render();setTimeout(winCombat,1100)}}
 function hitMe(e,a){let d=a+(e.st.str||0);if(e.st.weak)d*=.75;if(C.p.st.vuln)d*=1.5;d=Math.floor(d);const ab=Math.min(C.p.block,d);C.p.block-=ab;let n=d-ab;
  if(n>0&&C.p.st.resolve>0){const r=Math.min(n,3+(has('granite')?1:0));n-=r;C.p.st.resolve--;fx('#hero','Resolve -'+r,'o o-orun');if(C.p.st.fort&&C.lfT!=C.turn){C.lfT=C.turn;blk(C.p.st.fort,1)}}
- if(n)C.hurt=true;if(ab&&ACT('orun')&&e.hp>0){const t=Math.min(Math.floor(ab*.3),8-(e.th||0));if(t>0){e.th=(e.th||0)+t;ddmg(e,t)}}
+ if(n)C.hurt=true;
+ if(ab&&ACT('orun')&&e.hp>0){
+  const reflected=e.reflected??={},seat=activeSeat();
+  const previous=reflected[seat]||0,damage=Math.min(Math.floor(ab*.3),8-previous);
+  if(damage>0){reflected[seat]=previous+damage;ddmg(e,damage)}
+ }
  G.hp=Math.max(0,G.hp-n);fx('#hero',n?'-'+n:'Blocked',n?'':'b');fx('#hero .spr','','','hitL');fx('#hero .spr','','',n?'vfx:slashL':'vfx:ring');if(n){rigPose('hurt',430);RIG.flash=.85;RIG.whip=Math.max(RIG.whip,.7)}fx('#f'+e.i+' .spr','','','retL');if(n>=15)fx('.stage','','','quake');return n}
 async function endTurn(){if(!C||C.busy||C.lock)return;C.busy=true;C.sel=-1;
  if(C.p.st.metal)blk(C.p.st.metal,1);
  C.hand.forEach(x=>{const g=retS(x);(g?C.sanc[g]:C.disc).push(x)});C.hand=[];delete C.p.st.tstr;delete C.p.st.tdex;dec(C.p.st);render();await sleep(400);
+ return nextPlayerOrEnemies();
+}
+function nextPlayerOrEnemies(){
+ const next=livingSeats().find(seat=>seat>activeSeat());
+ if(next!==undefined){focusCombatSeat(next);return startTurn()}
+ combatEnemyPhase=true;
+ return enemyTurn();
+}
+async function enemyTurn(){
  for(const e of C.foes){if(e.hp<=0)continue;
   if(e.st.poison){e.hp=Math.max(0,e.hp-e.st.poison);fx('#f'+e.i,'-'+e.st.poison,'p');fx('#f'+e.i+' .spr','','','hitR');fx('#f'+e.i+' .spr','','','vfx:poison');e.st.poison--;fell(e);render();await sleep(380);if(e.hp<=0)continue}
-  const d=EN[e.k];e.block=d.keep?Math.floor(e.block/2):0;e.th=0;const n=e.int;if(n.n)fx('#f'+e.i,n.n,'i');if(n.str||n.poison||n.b>=12||n.n=='Charge'||n.n=='Phase')fx('#f'+e.i+' .spr','','','oc');
+  const d=EN[e.k];e.block=d.keep?Math.floor(e.block/2):0;e.reflected={};const n=e.int;if(n.n)fx('#f'+e.i,n.n,'i');if(n.str||n.poison||n.b>=12||n.n=='Charge'||n.n=='Phase')fx('#f'+e.i+' .spr','','','oc');
   if(n.str){e.st.str=(e.st.str||0)+n.str;fx('#f'+e.i,'+'+n.str+' Str','')}
   if(n.b){e.block+=n.b;fx('#f'+e.i,'+'+n.b+' Block','b')}
-  if(n.a)for(let h=0;h<(n.x||1);h++){if(!RM){fx('#f'+e.i+' .spr','','','outL');render();await sleep(110)}const dealt=hitMe(e,n.a+(n.slam?e.block:0));if(n.sip&&dealt&&e.hp>0){e.hp=Math.min(e.max,e.hp+dealt);fx('#f'+e.i,'+'+dealt,'h')}render();await sleep(300);if(G.hp<=0||e.hp<=0)break}
+  if(n.a)for(let h=0;h<(n.x||1);h++){
+   if(!RM){fx('#f'+e.i+' .spr','','','outL');render();await sleep(110)}
+   const attack=n.a+(n.slam?e.block:0);
+   let dealt=0;
+   forLivingHeroes(()=>{dealt+=hitMe(e,attack)});
+   if(n.sip&&dealt&&e.hp>0){e.hp=Math.min(e.max,e.hp+dealt);fx('#f'+e.i,'+'+dealt,'h')}
+   render();await sleep(300);
+   if(!livingSeats().length)return die();
+   if(e.hp<=0)break;
+  }
   if(e.hp<=0)continue;
-  if(n.weak)meDebuff(e,'weak',n.weak);if(n.vuln)meDebuff(e,'vuln',n.vuln);if(n.poison)meDebuff(e,'poison',n.poison);
+  forLivingHeroes(()=>{
+   if(n.weak)meDebuff(e,'weak',n.weak);
+   if(n.vuln)meDebuff(e,'vuln',n.vuln);
+   if(n.poison)meDebuff(e,'poison',n.poison);
+  });
   dec(e.st);e.t++;e.int=EN[e.k].ai(e.t);render();await sleep(300);
-  if(G.hp<=0)return die()}
+ }
  if(!alive().length)return checkWin();
- startTurn()}
-function winCombat(){if(!C)return;const kind=C.kind;C=null;if(has('heart'))heal(6);if(has('pseal'))heal(1);
- if(kind=='boss'){wipe();screen='win';return render()}
- const gold=kind=='elite'?25+R(11):10+R(11);G.gold+=gold;
- RW={gold,cards:cardChoices(kind=='elite'?1:0),relic:kind=='elite'?randRelic():null,taken:false,asc:G.hero=='oath'&&(kind=='elite'||Math.random()<.1)&&ascList(1).length?{from:1}:null};screen='reward';render()}
-function die(){wipe();C=null;screen='dead';render()}
+ combatEnemyPhase=false;
+ focusCombatSeat(livingSeats()[0]);return startTurn();
+}
+function winCombat(){
+ if(!C)return;
+ const kind=C.kind;
+ if(kind==='boss')forLivingHeroes(()=>{if(has('heart'))heal(6);if(has('pseal'))heal(1)});
+ selectSeat(livingSeats()[0]);
+ combatParty=[];combatEnemyPhase=false;C=null;
+ if(kind==='boss'){wipe();screen='win';return render()}
+ beginPartyRewards(kind);
+}
+function die(){wipe();combatParty=[];combatEnemyPhase=false;C=null;screen='dead';render()}
 
 /* ---------- run and map ---------- */
 function roll(f,h){const r=Math.random();if(h=='oath'&&f>=4&&r<.1)return 'shrine';if(f<4)return r<.68?'fight':r<.88?'event':'shop';return r<.44?'fight':r<.6?'event':r<.73?'elite':r<.85?'rest':'shop'}
@@ -781,19 +859,90 @@ function genMap(h){const F=13,m=[];
  m[F-2].forEach(n=>n.next=[0]);m.push([{t:'boss',next:[],jx:0,jy:0}]);return m}
 function avail(){const m=G.map;if(!G.pos)return m[0].map((n,l)=>[0,l]);const{f,l}=G.pos;return f>=m.length-1?[]:m[f][l].next.map(nl=>[f+1,nl])}
 function newRun(h){if(!HEROES[h]){screen='pick';return render()}uid=1;const H=HEROES[h];G={hero:h,hp:H.hp,maxHp:H.hp,gold:99,deck:H.deck(),relics:[H.relic],oaths:[],map:genMap(h),pos:null,path:[],floor:0};goMap()}
-function goMap(){closeModal();C=null;screen='map';save();render()}
+let partyDraft=null,roomVisits=null;
+function partySize(){return G?.party?.length||1}
+function activeSeat(){return G?.seat||0}
+function partyMember(i){return G?.party?G.party[i]:i===0?G:null}
+function livingSeats(){return Array.from({length:partySize()},(_,i)=>i).filter(i=>partyMember(i)?.hp>0)}
+function selectSeat(i){if(G?.party&&Number.isInteger(i)&&G.party[i])G.seat=i}
+// Existing card, shop and relic rules read the acting climber through G.
+function bindParty(run){
+ for(const field of ['hero','hp','maxHp','gold','deck','relics','oaths','halo']){
+  Object.defineProperty(run,field,{configurable:true,get(){return this.party[this.seat][field]},set(value){this.party[this.seat][field]=value}});
+ }
+ return run
+}
+function openPartySetup(size,online=false){
+ size=Number(size);
+ if(![2,3,4].includes(size))return;
+ partyDraft={size,heroes:[],online};screen='pick';render()
+}
+window.coopOpenSetup=window.coopStartParty=size=>openPartySetup(size,true);
+window.coopActiveSeat=()=>{
+ if(partyDraft)return partyDraft.heroes.length;
+ if(screen==='win'||screen==='dead')return -1;
+ if(screen==='combat'&&!MD&&(combatEnemyPhase||C?.busy||C?.lock||C?.won))return -1;
+ return activeSeat()
+};
+window.coopPartySize=()=>partyDraft?.size||partySize();
+function chooseClimber(h){
+ if(!partyDraft)return newRun(h);
+ if(!HEROES[h])return;
+ partyDraft.heroes.push(h);
+ if(partyDraft.heroes.length<partyDraft.size){screen='pick';return render()}
+ uid=1;
+ const party=partyDraft.heroes.map(hero=>{
+  const H=HEROES[hero];
+  return {hero,hp:H.hp,maxHp:H.hp,gold:99,deck:H.deck(),relics:[H.relic],oaths:[]}
+ });
+ G=bindParty({party,seat:0,map:genMap(partyDraft.heroes.includes('oath')?'oath':party[0].hero),pos:null,path:[],floor:0});
+ partyDraft=null;goMap()
+}
+function resumeRun(party){
+ const run=load(party);if(!run)return;
+ G=run.party?bindParty(run):run;
+ const members=G.party||[G];
+ for(const member of members){
+  member.hero=member.hero||'aether';member.oaths=member.oaths||[];
+  member.deck=member.deck.filter(c=>K[c.id]&&(!c.tier||FK[c.id]));
+  member.relics=member.relics.filter(k=>RELICS[k])
+ }
+ uid=1+Math.max(0,...members.flatMap(member=>member.deck.map(c=>c.u||0)));
+ goMap()
+}
+function goMap(){closeModal();roomVisits=null;C=null;selectSeat(livingSeats()[0]);screen='map';save();render()}
 function mkShop(){const ids=[];[1,1,2,2,3].forEach(t=>{let id,g=0;do{id=pick(POOL[t])}while(ids.includes(id)&&g++<20);ids.push(id)});
  const r=randRelic();return{cards:ids.map(id=>({id,p:{1:50,2:75,3:145}[K[id].r]+R(11)-5,sold:0})),relic:r?{k:r,p:140+R(21),sold:0}:null,removed:0}}
 function enter(f,l){if(!avail().some(([a,b])=>a==f&&b==l))return;G.pos={f,l};G.path.push([f,l]);G.floor=f+1;const t=G.map[f][l].t;
  if(t=='fight')startCombat(pick(f<4?EASY:HARD),'fight');
  else if(t=='elite')startCombat(pick(ELITE),'elite');
  else if(t=='boss')startCombat(['king'],'boss');
- else{if(t=='rest'){RS={done:0,msg:''};screen='rest'}
-  else if(t=='shop'){SH=mkShop();screen='shop'}
-  else if(t=='shrine'){SR={done:0,msg:'',ex:Math.random()<.2};screen='shrine'}
-  else if(t=='event'){EV={e:pick(EVENTS),done:0,msg:''};screen='event'}
-  else{const r=randRelic(),gold=r?20:90;G.gold+=gold;RW={gold,cards:[],relic:r,taken:true,title:'Treasure',asc:G.hero=='oath'&&ascList(2).length?{from:2,free:1}:null};screen='reward'}
-  render()}}
+ else{
+  const seats=livingSeats().filter(i=>t!=='shrine'||partyMember(i).hero==='oath');
+  const sharedEvent=t==='event'?pick(EVENTS):null;
+  beginRoomVisits(seats,()=>openRoom(t,sharedEvent))
+ }}
+function beginRoomVisits(seats,open){
+ roomVisits={seats:[...seats],open};advanceRoom()
+}
+function advanceRoom(){
+ if(!roomVisits||!roomVisits.seats.length)return goMap();
+ selectSeat(roomVisits.seats.shift());roomVisits.open();render()
+}
+function beginPartyRewards(kind){
+ beginRoomVisits(livingSeats(),()=>{
+  if(has('heart'))heal(6);if(has('pseal'))heal(1);
+  const elite=kind==='elite',gold=elite?25+R(11):10+R(11);G.gold+=gold;
+  RW={gold,cards:cardChoices(elite?1:0),relic:elite?randRelic():null,taken:false,asc:G.hero==='oath'&&(elite||Math.random()<.1)&&ascList(1).length?{from:1}:null};screen='reward'
+ })
+}
+function openRoom(t,sharedEvent){
+ if(t==='rest'){RS={done:0,msg:''};screen='rest'}
+ else if(t==='shop'){SH=mkShop();screen='shop'}
+ else if(t==='shrine'){SR={done:0,msg:'',ex:Math.random()<.2};screen='shrine'}
+ else if(t==='event'){EV={e:sharedEvent,done:0,msg:''};screen='event'}
+ else{const r=randRelic(),gold=r?20:90;G.gold+=gold;RW={gold,cards:[],relic:r,taken:true,title:'Treasure',asc:G.hero==='oath'&&ascList(2).length?{from:2,free:1}:null};screen='reward'}
+}
 const EVENTS=[
 {n:'Whispering Shrine',t:'A cracked altar hums in the dark. It asks for blood and offers something old in return.',o:[
  {l:'Pray: lose 8 HP, gain a relic',f:()=>{G.hp=Math.max(1,G.hp-8);const r=randRelic();if(r){gainRelic(r);return 'The altar gives you '+RELICS[r].n+'. '+RELICS[r].d}G.gold+=60;return 'The altar is empty. You find 60 gold in the cracks.'}},
@@ -817,7 +966,7 @@ const statusArt={str:'strength',vuln:'vulnerable',weak:'weak',poison:'poison'};
 const oathArt={aurel:'radiance',varran:'conquest',orun:'protection',mora:'twilight'};
 const stV=st=>Object.keys(st).filter(k=>st[k]&&STN[k]).map(k=>`<span class="chip ${STN[k][1]}" title="${STN[k][2]}">${statusArt[k]?hudIcon("status-"+statusArt[k],16):""}${STN[k][0]} ${st[k]}</span>`).join('');
 function cardV(c,attrs='',cls=''){const k=KD(c),co=cost(c),g=godOf(c),dorm=g&&G&&G.hero=='oath'&&!ACT(g)&&!c.seal&&!c.tmpS;return `<button class="card t-${k.t} r${k.r}${c.up?' up':''}${g?' g-'+g:''}${c.tier?' tr'+c.tier:''}${dorm?' dorm':''}${K[c.id].m&&!c.tier?' mal':''} ${cls}" ${attrs}>${co>=0?`<span class="cost">${co}</span>`:''}${c.tier?`<span class="tier" title="${TIERN[c.tier]}">T${c.tier}</span>`:''}<span class="nm">${name(c)}</span><span class="art">${c.id==="strike"?`<img alt="" src="assets/ui/cards/${G?.hero==="oath"?"dawn":"aetherwright"}-strike.png">`:ART[k.t]}</span><span class="ds"><span>${k.d(c.up,c)}</span></span><span class="ty">${TN[k.t]}${g?' · '+GODS[g].n:K[c.id].m?' · Malleable':''}${dorm?' · Dormant':''}</span></button>`}
-function intV(e){const n=e.int,o=[],d0=EN[e.k];if(n.a){const bl=n.slam&&d0.keep?Math.floor(e.block/2):0;let d=n.a+bl+(e.st.str||0);if(e.st.weak)d*=.75;if(C.p.st.vuln)d*=1.5;o.push(`<span class="it a" title="Attack">${hudIcon("intent-attack",14)}${Math.floor(d)}${n.x>1?'×'+n.x:''}</span>`)}
+function intV(e){const n=e.int,o=[],d0=EN[e.k];if(n.a){const bl=n.slam&&d0.keep?Math.floor(e.block/2):0;let d=n.a+bl+(e.st.str||0);if(e.st.weak)d*=.75;if(C.p.st.vuln)d*=1.5;o.push(`<span class="it a" title="${G.party?'Attacks all living climbers. Damage shown for the active climber.':'Attack'}">${G.party?'All · ':''}${hudIcon("intent-attack",14)}${Math.floor(d)}${n.x>1?'×'+n.x:''}</span>`)}
  if(n.b)o.push(`<span class="it b" title="Block">${hudIcon("intent-block",14)}${n.b}</span>`);if(n.str)o.push(`<span class="it u" title="Buff">${hudIcon("intent-buff",14)}</span>`);if(n.weak||n.vuln||n.poison)o.push(`<span class="it d" title="Debuff">${hudIcon("intent-debuff",14)}${n.poison||''}</span>`);return (n.n?`<span class="iname">${n.n}</span>`:'')+`<span class="irow">${o.join('')}</span>`}
 const relicArtwork={
  heart:'ember-heart',fang:'iron-fang',lantern:'lantern',anchor:'anchor',
@@ -827,12 +976,23 @@ function relicIcon(key){
  const art=relicArtwork[key];
  return art?`<img class="relic-art" src="assets/ui/relics/${art}.png" alt="">`:RELICS[key].n[0];
 }
-function topV(){return `<div class="top"><span class="stat hp">${ICO.heart}${G.hp}/${G.maxHp}</span><span class="stat gd">${ICO.coin}${G.gold}</span><span class="stat">Floor ${G.floor}/13</span><span class="relics">${G.relics.map(k=>`<button class="rel" data-a="rel" data-v="${k}" aria-label="${RELICS[k].n}">${relicIcon(k)}</button>`).join('')}</span><button class="btn sm" data-a="deck"><img class="deck-back" alt="" src="assets/ui/cards/${({aether:"aetherwright",oath:"oathbound"})[G.hero]||"universal"}-back.png">Deck ${G.deck.length}</button></div>`}
-function pickV(){return `<div class="panel pick"><h2>Choose your climber</h2><p class="sub">Each hero has their own starting deck, relic and cards to find on the way up.</p><div class="heroes">${Object.entries(HEROES).map(([k,h])=>`<button class="hcard" data-a="hero" data-v="${k}"><span class="hp"><img src="${PSET[k].idle}" alt=""></span><b>${h.n}</b><span class="hb">${h.b}</span><span class="hs">${h.hp} HP · ${RELICS[h.relic].n}</span>${k=='oath'?`<span class="oaths">${Object.entries(GODS).map(([o,v])=>`<i class="o-${o}">${v.oath}</i>`).join('')}</span>`:''}</button>`).join('')}</div><button class="btn sm" data-a="title">Back</button></div>`}
-function oathPreviewV(){const h=HEROES.oath;return `<section class="oath-preview" aria-label="Selected character: The Oathbound"><div class="oath-art" role="img" aria-label="The Oathbound kneels before the four gods"></div><div class="oath-summary"><h1>${h.n}</h1><p class="sub">${h.b}</p><span class="hs">${h.hp} HP · ${RELICS[h.relic].n}</span><div class="oaths">${Object.entries(GODS).map(([o,v])=>`<i class="o-${o}">${v.oath}</i>`).join('')}</div><div class="row"><button class="btn" data-a="pickback">Back to characters</button><button class="btn pri" data-a="oathstart">Begin ascent</button></div></div></section>`}
-function titleV(){const s=load();let emb='';for(let i=0;i<14;i++)emb+=`<circle class="emb" cx="${(i*67)%400}" cy="${200+(i*37)%40}" r="${1+(i%3)*.6}" fill="#ff5a36" style="animation-delay:${-(i*.53).toFixed(2)}s"/>`;
+function partyHUD(){
+ if(!G.party)return '';
+ const enemyTurn=screen==='combat'&&typeof combatEnemyPhase!=='undefined'&&combatEnemyPhase;
+ const finished=screen==='dead'||screen==='win';
+ const label=finished?'Party':enemyTurn?'Enemy turn':screen==='map'?'Choosing route':screen==='combat'?'Playing':'Choosing';
+ return `<section class="party-hud" aria-label="Party"><strong>${finished||enemyTurn?label:'P'+(activeSeat()+1)+' · '+label}</strong>${G.party.map((m,i)=>{
+  const block=screen==='combat'&&typeof combatParty!=='undefined'?combatParty?.[i]?.p?.block:0;
+  return `<span id="party-seat-${i}" class="${i===activeSeat()&&!finished&&!enemyTurn?'acting':''}">P${i+1} ${HEROES[m.hero].s} · ${m.hp>0?m.hp+'/'+m.maxHp+' HP':'KO'}${block?' · '+block+' Block':''}</span>`
+ }).join('')}</section>`
+}
+function topV(){return `${partyHUD()}<div class="top"><span class="stat hp">${ICO.heart}${G.hp}/${G.maxHp}</span><span class="stat gd">${ICO.coin}${G.gold}</span><span class="stat">Floor ${G.floor}/13</span><span class="relics">${G.relics.map(k=>`<button class="rel" data-a="rel" data-v="${k}" aria-label="${RELICS[k].n}">${relicIcon(k)}</button>`).join('')}</span><button class="btn sm" data-a="deck"><img class="deck-back" alt="" src="assets/ui/cards/${({aether:"aetherwright",oath:"oathbound"})[G.hero]||"universal"}-back.png">Deck ${G.deck.length}</button></div>`}
+function partyMenuV(){return `<div class="panel"><h2>Multiplayer</h2><h3>Share one device</h3><p class="sub">Choose your party size. Each climber takes a turn before enemies attack the party. Enemy health scales with the starting party size.</p><div class="row">${[2,3,4].map(n=>`<button class="btn pri" data-a="party" data-v="${n}">${n} players</button>`).join('')}</div><div class="row" data-online-menu></div><button class="btn sm" data-a="title">Back</button></div>`}
+function pickV(){return `<div class="panel pick"><h2>${partyDraft?'Player '+(partyDraft.heroes.length+1)+' of '+partyDraft.size+' · Choose your climber':'Choose your climber'}</h2><p class="sub">Each hero has their own starting deck, relic and cards to find on the way up.</p><div class="heroes">${Object.entries(HEROES).map(([k,h])=>`<button class="hcard" data-a="hero" data-v="${k}"><span class="hp"><img src="${PSET[k].idle}" alt=""></span><b>${h.n}</b><span class="hb">${h.b}</span><span class="hs">${h.hp} HP · ${RELICS[h.relic].n}</span>${k=='oath'?`<span class="oaths">${Object.entries(GODS).map(([o,v])=>`<i class="o-${o}">${v.oath}</i>`).join('')}</span>`:''}</button>`).join('')}</div>${partyDraft?.online?'':'<button class="btn sm" data-a="title">Back</button>'}</div>`}
+function oathPreviewV(){const h=HEROES.oath;return `<section class="oath-preview" aria-label="Selected character: The Oathbound"><div class="oath-art" role="img" aria-label="The Oathbound kneels before the four gods"></div><div class="oath-summary"><h1>${h.n}</h1><p class="sub">${h.b}</p><span class="hs">${h.hp} HP · ${RELICS[h.relic].n}</span><div class="oaths">${Object.entries(GODS).map(([o,v])=>`<i class="o-${o}">${v.oath}</i>`).join('')}</div><div class="row"><button class="btn" data-a="pickback">Back to characters</button><button class="btn pri" data-a="oathstart">${partyDraft?'Confirm Oathbound':'Begin ascent'}</button></div></div></section>`}
+function titleV(){const s=load(),partySave=load(true);let emb='';for(let i=0;i<14;i++)emb+=`<circle class="emb" cx="${(i*67)%400}" cy="${200+(i*37)%40}" r="${1+(i%3)*.6}" fill="#ff5a36" style="animation-delay:${-(i*.53).toFixed(2)}s"/>`;
  return `<div class="title"><div class="hero" role="img" aria-label="A sealed aether gate in overgrown ruins"><div class="tmark"><h1>Hollow Ascent</h1><p class="kick">A roguelike deckbuilder</p></div></div>
- <div class="tbody"><p class="lede">Climb thirteen floors, shape your deck one card at a time, and topple the Hollow King at the top.</p><div class="row"><button class="btn pri" data-a="new">Begin ascent</button>${s?`<button class="btn" data-a="cont">Continue from floor ${s.floor}</button>`:''}</div>
+ <div class="tbody"><p class="lede">Climb thirteen floors, shape your deck one card at a time, and topple the Hollow King at the top.</p><div class="row"><button class="btn pri" data-a="new">Single Player</button><button class="btn" data-a="partymenu">Multiplayer</button>${partySave?`<button class="btn" data-a="contparty">Continue party · Floor ${partySave.floor}</button>`:''}${s?`<button class="btn" data-a="cont">Continue solo from floor ${s.floor}</button>`:''}</div>
  <details class="how"><summary>How to play</summary><ul><li>Tap a card to play it. If several enemies are alive, attacks ask you to tap a target.</li><li>Each turn you get 3 energy and draw 5 cards. Block fades at the start of your turn.</li><li>Enemy intents show their next move: red attacks, teal blocks, gold buffs, violet debuffs.</li><li>Vulnerable takes 50% more damage, Weak deals 25% less, Poison ticks every turn.</li><li>After fights, add a card or skip. A lean deck is often stronger. Rest sites heal or upgrade.</li><li>On a keyboard: 1 to 9 plays cards, E ends your turn.</li></ul></details></div></div>`}
 function mapV(){const m=G.map,F=m.length,H=(F-1)*64+92;
  const xy=(f,l)=>f==F-1?[180,48]:[60+l*80+m[f][l].jx,H-38-f*64+m[f][l].jy];
@@ -842,7 +1002,7 @@ function mapV(){const m=G.map,F=m.length,H=(F-1)*64+92;
   n.next.forEach(nl=>{const[x2,y2]=xy(f+1,nl);ln+=`<line x1="${x}" y1="${y}" x2="${x2}" y2="${y2}" class="${ed.has(f+','+l+'>'+(f+1)+','+nl)?'on':''}"/>`});
   const k=f+','+l,can=av.has(k),v=vis.has(k),dim=f<=cf&&!v,b=n.t=='boss',r=b?30:19;
   nd+=`<g class="node${can?' can':''}${v?' vis':''}${dim?' dim':''}${b?' boss':''}" transform="translate(${x} ${y})"${can?` data-a="go" data-v="${k}" role="button" aria-label="${TL[n.t]}"`:''}><circle class="hit" r="${r+9}"/><circle class="c" r="${r}"/>${b?`<g transform="scale(1.7)">${NI.boss}</g>`:NI[n.t]}</g>`}));
- return `<div class="mapv"><div class="maphead"><h2>${G.pos?'Choose your path':'Begin the ascent'}</h2><p>${G.pos?'Tap a glowing node to move up a floor.':'Pick any starting room on the bottom floor.'}</p></div><div class="legend">${Object.keys(TL).filter(t=>t!='shrine'||G.hero=='oath').map(t=>`<span><svg viewBox="-12 -12 24 24" width="22" height="22" aria-hidden="true">${NI[t]}</svg>${TL[t]}</span>`).join('')}</div><svg class="map" viewBox="0 0 360 ${H}">${ln}${nd}</svg></div>`}
+ return `<div class="mapv"><div class="maphead"><h2>${G.pos?'Choose your path':'Begin the ascent'}</h2><p>${G.pos?'Tap a glowing node to move up a floor.':'Pick any starting room on the bottom floor.'}</p></div><div class="legend">${Object.keys(TL).filter(t=>t!='shrine'||(G.party||[G]).some(m=>m.hero==='oath')).map(t=>`<span><svg viewBox="-12 -12 24 24" width="22" height="22" aria-hidden="true">${NI[t]}</svg>${TL[t]}</span>`).join('')}</div><svg class="map" viewBox="0 0 360 ${H}">${ln}${nd}</svg></div>`}
 function heroV(now){const p=C.p;return `<div class="unit hero${p.block?' guard':''}" id="hero"><span class="spr"><i class="gshadow"></i></span><span class="info"><span class="fn">${HEROES[G.hero||'aether'].s}</span><span class="bar"><i style="width:${G.hp/G.maxHp*100}%"></i></span><span class="hpt">${G.hp}/${G.maxHp}${p.block?` <span class="chip blk">${hudIcon("intent-block",14)}${p.block}</span>`:''}</span><span class="chips">${(G.oaths||[]).map(g=>`<button class="chip oath o-${g}" data-a="oinfo" data-v="${g}" title="${GODS[g].law}">${hudIcon("oath-"+oathArt[g],20)}${GODS[g].oath}</button>`).join('')}${stV(p.st)}</span></span></div>`}
 function rigV(d,e,now){const R0=RIGS[d.rig],dl=(now+e.i*900)%2600|0,P=(q,j)=>Array.isArray(q)?`<img class="rp${q[4]?' a-'+q[4]:''}" src="assets/enemies/${d.rig}/${q[0]}.webp" alt="" draggable="false" style="left:${q[1]}%;top:${q[2]}%;width:${q[3]}%;transform-origin:${q[5]};animation-delay:-${(dl+j*370+e.i*610)%4000}ms">`:`<span class="rgp a-${q.a}" style="transform-origin:${q.o};animation-delay:-${(dl+q.g.length*530+e.i*610)%4000}ms">${q.p.map((c,k)=>P(c,j*7+k)).join('')}</span>`;
  const pose=(name,cls)=>`<img class="${cls}" src="assets/enemies/${d.rig}/${name}.webp" alt="" draggable="false">`;
@@ -856,7 +1016,7 @@ function handV(){const n=C.hand.length;if(!n)return '<p class="empty">No cards i
  return C.hand.map((c,i)=>{const o=i-mid,x=W/2+o*step-cw/2+12,rot=n>1?o*Math.min(5,26/n):0,y=o*o*Math.min(3.2,16/n),dl=c.dt?c.dt-now:-999,an=dl>-420&&!RM?`;animation:deal .42s ease-out ${dl|0}ms backwards`:'';
   return cardV(c,`data-a="card" data-v="${i}" style="left:${x.toFixed(1)}px;--r:${rot.toFixed(2)}deg;--y:${y.toFixed(1)}px;z-index:${i+1}${an}"`,(i==C.sel?'sel ':'')+(playable(c)?'':'no'))}).join('')}
 function combatV(){const tg=C.sel>=0,now=performance.now();
- return `<div class="stage">${scene(G.floor)}<p class="hint">${C.won?'Victory':C.busy?'Enemy turn':tg?'Drag to an enemy, or tap one':'Your turn '+C.turn}</p><div class="actors">${heroV(now)}<div class="foes">${C.foes.map(e=>foeV(e,tg,now)).join('')}</div></div>${fgV(G.floor)}</div>
+ return `<div class="stage">${scene(G.floor)}<p class="hint">${C.won?'Victory':combatEnemyPhase?'Enemy turn':C.busy?'Ending turn':tg?'Drag to an enemy, or tap one':'Your turn '+C.turn}</p><div class="actors">${heroV(now)}<div class="foes">${C.foes.map(e=>foeV(e,tg,now)).join('')}</div></div>${fgV(G.floor)}</div>
  <div class="hand">${handV()}</div>
  <div class="ctl"><div class="orb" title="Energy"><b>${C.energy}</b><small>of 3</small></div><span class="piles">${hudIcon("pile-draw",24)}Draw ${C.draw.length} · ${hudIcon("pile-discard",24)}Discard ${C.disc.length}${G.hero=='oath'&&SWN()?'<br>'+G.oaths.map(g=>`<img class="sanctum-art" src="assets/ui/sanctums/${g}.png" alt="">${GODS[g].sanc}`).join(' + ')+' '+actSanc().length:''}${C.exh.length?'<br>'+hudIcon('pile-exhaust',24)+'Exhausted '+C.exh.length:''}</span>${has('key')&&!C.keyUsed&&!C.busy&&dormGods().some(g=>C.sanc[g].length)?`<button class="btn sm" data-a="key" title="${RELICS.key.d}">Key</button>`:''}<button class="btn pri" data-a="end" ${C.busy?'disabled':''}>End turn</button></div>`}
 function rewardV(){const r=RW.relic&&RELICS[RW.relic];return `<div class="panel"><h2>${RW.title||'Victory'}</h2>${RW.gold?`<p class="sub">You found ${RW.gold} gold.</p>`:''}${r?`<button class="btn relbtn" data-a="rrelic"><span class="rel">${relicIcon(RW.relic)}</span><span>Take ${r.n}: ${r.d}</span></button>`:''}
@@ -877,9 +1037,9 @@ function restV(){return `<div class="panel"><img class="rest-art" src="assets/sc
  ${RS.done?'':`<div class="row"><button class="btn" data-a="rheal">Rest: heal ${Math.round(G.maxHp*.3)} HP</button><button class="btn" data-a="rsmith">Smith: upgrade a card</button></div>`}<button class="btn${RS.done?' pri':''}" data-a="map">${RS.done?'Continue':'Skip'}</button></div>`}
 function eventV(){const e=EV.e;return `<div class="panel"><svg class="pic" viewBox="0 0 200 120" aria-hidden="true"><ellipse cx="100" cy="114" rx="70" ry="6" fill="#000" opacity=".5"/><path d="M58 114V58C58 31 77 14 100 14S142 31 142 58V114Z" fill="#0d0807" stroke="#e8c86a" stroke-width="3"/><circle cx="100" cy="68" r="22" fill="#ff5a36" opacity=".25"/><circle cx="100" cy="68" r="9" fill="#ff5a36"/><text x="100" y="74" text-anchor="middle" font-family="Cinzel,serif" font-weight="800" font-size="16" fill="#1a0d09">?</text></svg><h2>${e.n}</h2><p class="sub">${EV.msg||e.t}</p>
  ${EV.done?`<button class="btn pri" data-a="map">Continue</button>`:`<div class="opts">${e.o.map((o,i)=>`<button class="btn opt" data-a="evo" data-v="${i}" ${o.ok&&!o.ok()?'disabled':''}>${o.l}</button>`).join('')}</div>`}</div>`}
-function endV(){const w=screen=='win';return `<div class="panel end"><svg class="pic" viewBox="0 0 200 120" aria-hidden="true">${w?`<g transform="translate(100 64) scale(4.2)">${NI.boss}</g>`:`<g transform="translate(100 62) scale(4.2)">${NI.elite}</g>`}</svg><h1>${w?'The King falls':'Your climb ends'}</h1><p class="sub">${w?`You toppled the Hollow King with a deck of ${G.deck.length} cards and ${G.relics.length} relics.`:`You fell on floor ${G.floor} of 13 with ${G.deck.length} cards in your deck.`}</p><button class="btn pri" data-a="new">Start a new run</button></div>`}
+function endV(){const w=screen=='win';return `<div class="panel end"><svg class="pic" viewBox="0 0 200 120" aria-hidden="true">${w?`<g transform="translate(100 64) scale(4.2)">${NI.boss}</g>`:`<g transform="translate(100 62) scale(4.2)">${NI.elite}</g>`}</svg><h1>${w?'The King falls':'Your climb ends'}</h1><p class="sub">${G.party?(w?`Your ${partySize()} climbers defeated the Hollow King.`:`Your party fell on floor ${G.floor} of 13.`):w?`You toppled the Hollow King with a deck of ${G.deck.length} cards and ${G.relics.length} relics.`:`You fell on floor ${G.floor} of 13 with ${G.deck.length} cards in your deck.`}</p><button class="btn pri" data-a="${G.party?'title':'new'}">${G.party?'Return to title':'Start a new run'}</button></div>`}
 const VIEWS={map:mapV,combat:combatV,reward:rewardV,shop:shopV,rest:restV,shrine:shrineV,event:eventV,dead:endV,win:endV};
-function render(){PT=null;PV.key='';$('#app').innerHTML=screen=='title'?titleV():screen=='pick'?pickV():screen=='oathpreview'?oathPreviewV():topV()+VIEWS[screen]();
+function render(){PT=null;PV.key='';$('#app').innerHTML=screen=='title'?titleV():screen=='partymenu'?partyMenuV():screen=='pick'?pickV():screen=='oathpreview'?oathPreviewV():topV()+VIEWS[screen]();
  if(screen=='map'){const n=$('.node.can');if(n)try{n.scrollIntoView({block:'center'})}catch(e){}}else if(screen!='combat')window.scrollTo(0,0);
  if(screen=='combat'){const st=$('.stage');if(st){bgMount(st);ptMount(st)}const hs=$('#hero .spr');if(hs)rigMount(hs)}
  flush();if(screen=='combat'&&C&&C.sel>=0&&!aimOn){aimOn=true;requestAnimationFrame(aimTick)}}
@@ -889,15 +1049,15 @@ function closeModal(){const m=MD;MD=null;$('#modal').innerHTML='';if(m&&m.onClos
 
 /* ---------- input ---------- */
 const A={
-new:()=>newRun(),hero:v=>{if(v==='oath'){screen='oathpreview';render()}else newRun(v)},pickback:()=>{screen='pick';render()},oathstart:()=>newRun('oath'),title:()=>{screen='title';render()},oinfo:v=>toast(GODS[v].oath+' ('+GODS[v].full+'). Law: '+GODS[v].law+' Price: '+(halo(v)?'lifted.':GODS[v].price)),
-cont:()=>{G=load();if(!G)return;G.hero=G.hero||'aether';G.oaths=G.oaths||[];G.deck=G.deck.filter(c=>K[c.id]&&(!c.tier||FK[c.id]));G.relics=G.relics.filter(k=>RELICS[k]);uid=Math.max(0,...G.deck.map(c=>c.u||0))+1;goMap()},
+new:()=>{partyDraft=null;newRun()},partymenu:()=>{screen='partymenu';render()},party:v=>openPartySetup(v),hero:v=>{if(v==='oath'){screen='oathpreview';render()}else chooseClimber(v)},pickback:()=>{screen='pick';render()},oathstart:()=>chooseClimber('oath'),title:()=>{partyDraft=null;screen='title';render()},oinfo:v=>toast(GODS[v].oath+' ('+GODS[v].full+'). Law: '+GODS[v].law+' Price: '+(halo(v)?'lifted.':GODS[v].price)),
+cont:()=>resumeRun(false),contparty:()=>resumeRun(true),
 deck:()=>openPick('Your deck ('+G.deck.length+' cards)',G.deck,null),
 rel:v=>toast(RELICS[v].n+': '+RELICS[v].d),
 go:v=>{const[f,l]=v.split(',').map(Number);enter(f,l)},
 card:v=>tapCard(+v),foe:v=>tapFoe(+v),end:()=>endTurn(),
 rcard:v=>{if(RW.taken)return;G.deck.push(mk(RW.cards[+v]));RW.taken=true;render()},
 rrelic:()=>{if(!RW.relic)return;gainRelic(RW.relic);toast('Gained '+RELICS[RW.relic].n);RW.relic=null;render()},
-map:goMap,
+map:advanceRoom,
 buy:v=>{const s=SH.cards[+v];if(s.sold)return;if(G.gold<s.p)return toast('Not enough gold.');G.gold-=s.p;s.sold=1;G.deck.push(mk(s.id));render()},
 buyrel:()=>{const r=SH.relic;if(!r||r.sold)return;if(G.gold<r.p)return toast('Not enough gold.');G.gold-=r.p;r.sold=1;gainRelic(r.k);render()},
 remove:()=>{if(SH.removed)return;if(G.gold<75)return toast('Not enough gold.');openPick('Remove a card (75 gold)',G.deck,c=>{G.gold-=75;SH.removed=1;G.deck.splice(G.deck.indexOf(c),1);toast(name(c)+' removed.');render()})},
@@ -1067,4 +1227,4 @@ setZoom();let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout((
 render();
 })();
 </script>
-</body></html>
+<script src="coop-online.js"></script></body></html>
