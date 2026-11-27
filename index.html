@@ -473,6 +473,32 @@ body:has(#app>.stage){overflow:hidden}
 }
 .pile-icon{display:inline-block;vertical-align:-.16em;object-fit:contain;pointer-events:none}
 .pile-btn{display:inline-flex;align-items:center;gap:4px}.card-keyword .pile-icon{width:1em;height:1em;margin-right:.12em}
+#app:has(.bindery){max-width:min(100%,1700px)}
+.bindery{position:relative;width:100%;aspect-ratio:16/9;container-type:inline-size;background:#24202b url(assets/scenes/wayside-bindery.webp) center/100% 100% no-repeat}
+.bench-card{position:absolute;left:var(--x);top:var(--y);width:10.2%;height:31.4%;padding:0;border:0;color:#ffe9b7;background:transparent;transform:rotate(-5deg) skewX(3deg);cursor:pointer;display:flex;align-items:center;flex-direction:column;justify-content:space-between}
+.bench-face{height:83%;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;background:#191822e8;border:1px solid #bb9759;border-radius:5%;position:relative}
+.bench-face img,.bench-face svg{width:88%;max-height:64%;object-fit:contain}
+.bench-face strong,.bag-item strong{font:600 clamp(12px,1.12cqw,21px)/1.1 Georgia,serif;padding:3px;text-wrap:balance}
+.bench-price{color:#302016;background:#edd09c;border-radius:3px;font:bold clamp(12px,1.25cqw,22px) Georgia,serif;padding:0 .5em}
+.bench-card:disabled .bench-face{visibility:hidden}.bench-card:focus-visible,.bag-item:focus-visible{outline:3px solid #fff1af}.bench-card:not(:disabled):hover .bench-face,.bag-item:hover{box-shadow:0 0 10px #ffc76f}
+.slot-0{--x:9.1%;--y:29%}.slot-1{--x:20.7%;--y:27.3%}.slot-2{--x:32.3%;--y:25.4%}.slot-3{--x:43.3%;--y:23.8%}.slot-4{--x:54.5%;--y:21.9%}.slot-5{--x:16.7%;--y:63%}.slot-6{--x:29.9%;--y:60.7%}
+.velvet-bag{position:absolute;left:78.2%;top:29%;width:16.8%;height:16.5%;transform:rotate(12deg);display:flex;align-items:stretch;gap:2px;color:#fff0cd}
+.bag-item{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;flex-direction:column;border:1px solid #b99868;border-radius:5px;background:#581e2bcf;color:#fff0cd;cursor:pointer;padding:2px}
+.bag-item strong{font-size:clamp(10px,.88cqw,15px)}.bag-icon{display:grid;place-items:center;min-height:17%;font-size:2cqw}.bag-item .relic-art{width:2.5cqw;height:2.5cqw;object-fit:contain}
+.bench-ledger{position:absolute;left:66%;top:56%;width:29%;height:39%;display:flex;align-items:center;gap:4%;font:600 clamp(10px,.86cqw,17px)/1.22 Georgia,serif;color:#322016}
+.bench-ledger ul{list-style:none;padding:5px;margin:0;width:66%;background:#edd3a8ed;border-radius:3px}.bench-ledger li{display:flex;gap:.3em;border-bottom:1px solid #916f4844;padding:.16em 0}.bench-ledger li b{margin-left:auto}.bench-ledger small{color:#8b2726}.bench-ledger .btn{color:#fff0cf;flex:1;min-width:0;padding:5px;font-size:inherit}.shop-exit{align-self:flex-start;margin:6px}
+/* The lamp is painted at the same point on the full-size and mobile backplates. */
+.bindery::before{content:"";position:absolute;pointer-events:none;left:39.3%;top:4.7cqw;width:17%;aspect-ratio:1;transform:translate(-50%,-50%);background:radial-gradient(ellipse,#ffd78166, #ffb54c24 37%,transparent 70%);opacity:.36}
+.bench-ledger .ledger-ink{position:relative;flex:1;display:flex;gap:.35em;align-items:baseline}
+.bench-ledger .settled .ledger-ink,.bench-ledger .settled b{text-decoration:none}
+.bench-ledger .settled .ledger-ink::after{content:"";position:absolute;left:0;right:0;top:53%;height:2px;background:#9d3029;border-radius:65%;transform:rotate(-1deg);transform-origin:left;pointer-events:none}
+@media(prefers-reduced-motion:no-preference){
+ .bindery::before{animation:bindery-lamplight 5.3s ease-in-out infinite}
+ .bench-ledger .fresh-ink .ledger-ink::after{animation:bindery-stroke .38s ease-out both}
+}
+@keyframes bindery-lamplight{0%,100%{opacity:.32}27%{opacity:.57}42%{opacity:.43}60%{opacity:.53}79%{opacity:.30}}
+@keyframes bindery-stroke{from{transform:rotate(-1deg) scaleX(0)}to{transform:rotate(-1deg) scaleX(1)}}
+@media(max-width:760px){.bindery{aspect-ratio:auto;background-size:100% auto;background-position:top;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:30vw 10px 12px}.bench-card,.velvet-bag,.bench-ledger{position:static;transform:none;width:auto;height:auto}.bench-card{min-height:130px;background:#22202b;border-radius:6px}.bench-face{min-height:103px}.bench-face svg,.bench-face img{height:63px}.velvet-bag,.bench-ledger{grid-column:1/-1}.velvet-bag{background:#581e2b;padding:8px}.bag-item{min-height:85px}.bag-item .relic-art{width:34px;height:34px}.bench-ledger{background:#edd3a8;padding:8px;font-size:14px}}
 </style><link rel="stylesheet" href="src/act-map.css">
 <link rel="stylesheet" href="assets/scenes/ember/landing.css">
 </head><body>
@@ -975,7 +1001,7 @@ const has=k=>G&&G.relics.includes(k);
 const heal=n=>{G.hp=Math.min(G.maxHp,G.hp+n)};
 const canSmith=c=>!c.up&&K[c.id].r>=0&&!K[c.id].m&&!c.tier;
 const upgradable=()=>G.deck.filter(canSmith);
-const randRelic=()=>{const a=Object.keys(RELICS).filter(k=>!G.relics.includes(k)&&!RELICS[k].st&&(!RELICS[k].h||RELICS[k].h==G.hero));if(!a.length)return null;const W={c:6,u:4,r:2,l:.5},w=k=>W[RELICS[k].r||'c'];let x=Math.random()*a.reduce((t,k)=>t+w(k),0);for(const k of a){x-=w(k);if(x<=0)return k}return a[a.length-1]};
+const randRelic=(excluded=[])=>{const a=Object.keys(RELICS).filter(k=>!excluded.includes(k)&&!G.relics.includes(k)&&!RELICS[k].st&&(!RELICS[k].h||RELICS[k].h==G.hero));if(!a.length)return null;const W={c:6,u:4,r:2,l:.5},w=k=>W[RELICS[k].r||'c'];let x=Math.random()*a.reduce((t,k)=>t+w(k),0);for(const k of a){x-=w(k);if(x<=0)return k}return a[a.length-1]};
 const gainRelic=k=>{G.relics.push(k);if(k=='moss'){G.maxHp+=8;G.hp+=8}
  if(k=='legacy'){const el=ascList(2);if(el.length)openPick("Saint's Legacy: Exalt a card (T2 to T3)",el,c=>{ascend(c);render()},'Later');else toast('No T2 card to Exalt yet.')}
  if(k=='seal'){const el=G.deck.filter(c=>godOf(c)&&!c.seal);if(el.length)openPick('Broken Seal: choose a divine card',el,c=>{c.seal=1;toast(name(c)+' stays accessible whatever your allegiance.');render()},'Later');else toast('You have no divine card to seal yet.')}
@@ -1312,7 +1338,14 @@ function resumeRun(party){
 function goMap(){delete G.travel;selectedNode=null;const pending=G.party?G.party.findIndex(p=>p.threshold&&!p.threshold.applied):-1;if(pending>=0)selectSeat(pending);if(G.threshold&&!G.threshold.applied){screen='threshold';save();return render()}if(screen==='shop'&&G.threshold&&G.threshold.merchantRemaining>0)G.threshold.merchantRemaining--;closeModal();roomVisits=null;C=null;selectSeat(livingSeats()[0]);screen='map';save();render()}
 function mkShop(){const ids=[];[1,1,2,2,3].forEach(t=>{let id,g=0;do{id=pick(POOL[t])}while(ids.includes(id)&&g++<20);ids.push(id)});
  const neutralOne=pick([...COLORLESS_POOL[1],...COLORLESS_POOL[2]]);ids.push(neutralOne,pick([...COLORLESS_POOL[2],...COLORLESS_POOL[3]].filter(id=>id!==neutralOne)));
- const r=randRelic();return{cards:ids.map(id=>({id,p:merchantPrice({1:50,2:75,3:145}[K[id].r]+R(11)-5),sold:0})),relic:r?{k:r,p:merchantPrice(140+R(21)),sold:0}:null,removed:0}}
+ const relics=[];
+ while(relics.length<3){
+  const k=randRelic(relics.map(item=>item.k));
+  if(!k)break;
+  relics.push({k,p:merchantPrice(140+R(21)),sold:0});
+ }
+ return{cards:ids.map(id=>({id,p:merchantPrice({1:50,2:75,3:145}[K[id].r]+R(11)-5),sold:0})),relics,removed:0}
+}
 function enter(f,l){if(screen!=='map'||(G.threshold&&!G.threshold.applied))return;if(!avail().some(([a,b])=>a==f&&b==l))return;G.travel={status:"active",f,l};G.pos={f,l};G.path.push([f,l]);G.floor=f+1;const t=G.map[f][l].t;
  if(t=='fight')startCombat(pick(f<4?EASY:HARD),'fight');
  else if(t=='elite')startCombat(pick(ELITE),'elite');
@@ -1485,8 +1518,25 @@ function shrineV(){const cur=G.oaths||[],mx=has('twin')?2:1,o=[];
   if(SR.ex&&ascList(2).length)o.push(`<button class="btn opt" data-a="sasc" data-v="2">Kneel: Exalt a card (T2 Ascended to T3 Exalted)</button>`)}
  return `<div class="panel shrine"><svg class="pic" viewBox="0 0 200 120" aria-hidden="true"><ellipse cx="100" cy="112" rx="70" ry="7" fill="#000" opacity=".5"/><path d="M70 112V60H130V112Z" fill="#1a1210" stroke="#e8c86a" stroke-width="3"/>${Object.values(GODS).map((v,i)=>`<circle cx="${64+i*24}" cy="34" r="8" fill="${v.hex}" opacity=".85"/>`).join('')}<path class="flame" d="M100 66C110 78 110 88 104 96H96C90 88 90 78 100 66Z" fill="#e8c86a"/></svg><h2>${SR.ex?'Exalted shrine':'Divine shrine'}</h2>
  <p class="sub">${SR.msg||(cur.length?'You are sworn to '+cur.map(g=>GODS[g].full).join(' and ')+'.':'You are Unsworn. Four altars wait, each lit by a different god.')+' There is time for one rite.'}</p>${SR.done?'':`<div class="opts">${o.join('')}</div>`}<button class="btn${SR.done?' pri':''}" data-a="map">${SR.done?'Continue':'Walk on'}</button></div>`}
-function shopV(){return `<div class="panel"><h2>The Merchant</h2><p class="sub">Everything has a price. You have ${G.gold} gold. The last two slots offer colorless techniques for any class.</p><div class="row">${SH.cards.map((s,i)=>`<div class="ware">${cardV({id:s.id,up:0},s.sold?'disabled':`data-a="inspectware" data-v="${i}"`,s.sold?'no':'')}<span class="price${!s.sold&&G.gold<s.p?' poor':''}">${s.sold?'Sold':s.p+' gold'}</span></div>`).join('')}</div>
- <div class="opts">${SH.relic?`<button class="btn opt" data-a="buyrel" ${SH.relic.sold?'disabled':''}>${SH.relic.sold?'Relic sold':`Relic, ${SH.relic.p} gold: ${RELICS[SH.relic.k].n}. ${RELICS[SH.relic.k].d}`}</button>`:''}<button class="btn opt" data-a="remove" ${SH.removed?'disabled':''}>${SH.removed?'Card removed':'Remove a card from your deck: '+merchantPrice(75)+' gold'}</button></div><button class="btn pri" data-a="map">Leave the shop</button></div>`}
+function shopRelics(shop){return shop.relics??(shop.relic?[shop.relic]:[])}
+function markPurchase(key){document.querySelector(`[data-receipt="${key}"]`)?.classList.add('fresh-ink')}
+function shopV(){
+ const relics=shopRelics(SH),fee=merchantPrice(75);
+ const entry=(label,price,sold,key)=>`<li data-receipt="${key}" class="${sold?'settled':''}"><span class="ledger-ink"><span>${label}</span> <b>${price}</b></span>${sold?' <small>Sold</small>':''}</li>`;
+ const cards=SH.cards.map((offer,i)=>{
+  const label=K[offer.id].n;
+  return `<button class="bench-card slot-${i}" data-a="inspectware" data-v="${i}" aria-label="${label}, ${offer.sold?'sold':offer.p+' gold'}" ${offer.sold?'disabled':''}>
+  <span class="bench-face">${offer.sold?'':cardArt({id:offer.id,up:0},G.hero)+'<strong>'+label+'</strong>'}</span>
+  <span class="bench-price">${offer.sold?'Sold':offer.p+' g'}</span></button>`;
+ }).join('');
+ const bag=relics.map(r=>`<button class="bag-item" data-a="buyrel" data-v="${r.k}" ${r.sold?'disabled':''}>
+ ${r.sold?'':`<span class="bag-icon">${relicIcon(r.k)}</span><strong>${RELICS[r.k].n}</strong>`}<span>${r.sold?'Sold':r.p+' g'}</span></button>`).join('');
+ const rows=SH.cards.map((s,i)=>entry(K[s.id].n,s.p,s.sold,'card-'+i)).concat(relics.map(r=>entry(RELICS[r.k].n,r.p,r.sold,'relic-'+r.k))).join('');
+ return `<section class="bindery" aria-label="The Wayside Bindery">${cards}
+ <div class="velvet-bag" role="group" aria-label="Relics for sale">${bag||'Relics sold out'}</div>
+ <aside class="bench-ledger" aria-label="Merchant ledger"><ul>${rows}</ul><button class="btn" data-a="remove" ${SH.removed?'disabled':''}>${SH.removed?'Card removed':'Remove a card · '+fee+' gold'}</button></aside>
+ </section><button class="btn shop-exit" data-a="map">Leave shop</button>`
+}
 const restHealing=()=>Math.min(G.maxHp-G.hp,Math.round(G.maxHp*.3));
 function restV(){
  const hp=restHealing(),confirm=RS.pending;
@@ -1769,11 +1819,26 @@ inspectware:inspectWare,
 buy:()=>{
  const item=MD?.ware;
  if(screen!=='shop'||!item||item.sold||!SH.cards.includes(item)||G.gold<item.p)return;
- G.gold-=item.p;item.sold=1;G.deck.push(mk(item.id));closeModal();render();
+ G.gold-=item.p;item.sold=1;G.deck.push(mk(item.id));closeModal();render();markPurchase('card-'+SH.cards.indexOf(item));
  ($('[data-a="inspectware"]')||$('[data-a="map"]'))?.focus();
 },
-buyrel:()=>{const r=SH.relic;if(!r||r.sold)return;if(G.gold<r.p)return toast('Not enough gold.');G.gold-=r.p;r.sold=1;gainRelic(r.k);render()},
-remove:()=>{if(SH.removed)return;const p=merchantPrice(75);if(G.gold<p)return toast('Not enough gold.');openPick('Remove a card ('+p+' gold)',G.deck,c=>{G.gold-=p;SH.removed=1;G.deck.splice(G.deck.indexOf(c),1);toast(name(c)+' removed.');render()})},
+buyrel:async key=>{
+ if(screen!=='shop'||MD)return;
+ const r=shopRelics(SH).find(item=>item.k===key);if(!r||r.sold)return;
+ if(G.gold<r.p){await chooseP(RELICS[r.k].n,RELICS[r.k].d+' Need '+(r.p-G.gold)+' more gold.',['Close']);return}
+ const choice=await chooseP(RELICS[r.k].n,RELICS[r.k].d,['Cancel','Buy for '+r.p+' gold']);
+ if(choice!==1||screen!=='shop'||!shopRelics(SH).includes(r)||r.sold||G.gold<r.p)return;
+ G.gold-=r.p;r.sold=1;gainRelic(r.k);render();markPurchase('relic-'+r.k);
+},
+remove:()=>{
+ if(screen!=='shop'||MD||SH.removed)return;
+ const shop=SH,p=merchantPrice(75);if(G.gold<p)return toast('Not enough gold.');
+ openPick('Choose a card to remove',G.deck,async c=>{
+  const choice=await chooseP('Remove '+name(c)+'?', 'Permanently remove this card from your deck.', ['Cancel','Remove for '+p+' gold']);
+  if(choice!==1||screen!=='shop'||SH!==shop||SH.removed||G.gold<p||!G.deck.includes(c))return;
+  G.gold-=p;SH.removed=1;G.deck.splice(G.deck.indexOf(c),1);toast(name(c)+' removed.');render();
+ });
+},
 restpreview:v=>{if(screen!=='rest'||RS.done||!['heal','skip'].includes(v))return;RS.pending=v;render();$('.ember-controls .btn')?.focus()},
 restback:()=>{const prior=RS.pending;delete RS.pending;render();$('[data-a="restpreview"][data-v="'+prior+'"]')?.focus()},
 rheal:()=>{if(screen!=='rest'||RS.done||RS.pending!=='heal'||!restHealing())return;const b=G.hp;heal(restHealing());RS.done=1;RS.msg='You rest by the fire and recover '+(G.hp-b)+' HP.';render()},
