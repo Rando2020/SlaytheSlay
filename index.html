@@ -213,6 +213,15 @@ h1,h2,h3{font-family:Cinzel,serif;line-height:1.05;margin:0;text-wrap:balance;fo
 .pop.o{font-size:19px;color:var(--gold)}.pop.o-varran{color:#ff7563}.pop.o-orun{color:#8cc4ff}.pop.o-mora{color:#c9a2ff}
 .chip.oath{border:0;font:inherit;font-size:13px;font-weight:800;cursor:pointer;color:#1a0d09;box-shadow:0 0 10px currentColor}
 .chip.o-aurel{background:#ffc853}.chip.o-varran{background:#ff6250}.chip.o-orun{background:#7cbcff}.chip.o-mora{background:#c39bff}
+/* Oathbound class selection: keep the full four-god composition visible. */
+#app:has(.oath-preview){max-width:1200px}
+.oath-preview{width:100%;min-height:100vh;display:flex;flex-direction:column}
+.oath-preview .oath-art{width:100%;aspect-ratio:16/9;background-color:#20191a;background-image:url(assets/bg_oath_select.webp),url(assets/bg_gate.webp);background-size:contain,cover;background-position:center;background-repeat:no-repeat;border-bottom:1px solid #e8c86a44}
+.hi .oath-preview .oath-art{background-image:url(assets/bg_oath_select_4k.webp),url(assets/bg_oath_select.webp),url(assets/bg_gate_4k.webp),url(assets/bg_gate.webp)}
+.oath-preview .oath-summary{max-width:720px;margin:0 auto;width:100%;padding:clamp(18px,3vw,32px) 16px 32px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px}
+.oath-preview h1{font-size:clamp(26px,4.5vw,52px);color:var(--gold)}
+.oath-preview .sub{margin:0}
+.oath-preview .row{justify-content:center;flex-wrap:wrap}
 .pick{text-align:center}.heroes{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:16px 0}
 .hcard{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 14px 16px;border-radius:14px;border:1px solid #ffffff22;background:linear-gradient(#2a1814,#160e0c);text-align:center;transition:transform .15s,border-color .15s}
 .hcard:hover,.hcard:focus-visible{transform:translateY(-3px);border-color:var(--gold)}
@@ -774,6 +783,7 @@ function intV(e){const n=e.int,o=[];if(n.a){let d=n.a+(e.st.str||0);if(e.st.weak
  if(n.b)o.push(`<span class="it b" title="Block">${hudIcon("intent-block",14)}${n.b}</span>`);if(n.str)o.push(`<span class="it u" title="Buff">${hudIcon("intent-buff",14)}</span>`);if(n.weak||n.vuln)o.push(`<span class="it d" title="Debuff">${hudIcon("intent-debuff",14)}</span>`);return o.join('')}
 function topV(){return `<div class="top"><span class="stat hp">${ICO.heart}${G.hp}/${G.maxHp}</span><span class="stat gd">${ICO.coin}${G.gold}</span><span class="stat">Floor ${G.floor}/13</span><span class="relics">${G.relics.map(k=>`<button class="rel" data-a="rel" data-v="${k}" aria-label="${RELICS[k].n}">${RELICS[k].n[0]}</button>`).join('')}</span><button class="btn sm" data-a="deck"><img class="deck-back" alt="" src="assets/ui/cards/${({aether:"aetherwright",oath:"oathbound"})[G.hero]||"universal"}-back.png">Deck ${G.deck.length}</button></div>`}
 function pickV(){return `<div class="panel pick"><h2>Choose your climber</h2><p class="sub">Each hero has their own starting deck, relic and cards to find on the way up.</p><div class="heroes">${Object.entries(HEROES).map(([k,h])=>`<button class="hcard" data-a="hero" data-v="${k}"><span class="hp"><img src="${PSET[k].idle}" alt=""></span><b>${h.n}</b><span class="hb">${h.b}</span><span class="hs">${h.hp} HP · ${RELICS[h.relic].n}</span>${k=='oath'?`<span class="oaths">${Object.entries(GODS).map(([o,v])=>`<i class="o-${o}">${v.oath}</i>`).join('')}</span>`:''}</button>`).join('')}</div><button class="btn sm" data-a="title">Back</button></div>`}
+function oathPreviewV(){const h=HEROES.oath;return `<section class="oath-preview" aria-label="Selected character: The Oathbound"><div class="oath-art" role="img" aria-label="The Oathbound kneels before the four gods"></div><div class="oath-summary"><h1>${h.n}</h1><p class="sub">${h.b}</p><span class="hs">${h.hp} HP · ${RELICS[h.relic].n}</span><div class="oaths">${Object.entries(GODS).map(([o,v])=>`<i class="o-${o}">${v.oath}</i>`).join('')}</div><div class="row"><button class="btn" data-a="pickback">Back to characters</button><button class="btn pri" data-a="oathstart">Begin ascent</button></div></div></section>`}
 function titleV(){const s=load();let emb='';for(let i=0;i<14;i++)emb+=`<circle class="emb" cx="${(i*67)%400}" cy="${200+(i*37)%40}" r="${1+(i%3)*.6}" fill="#ff5a36" style="animation-delay:${-(i*.53).toFixed(2)}s"/>`;
  return `<div class="title"><div class="hero" role="img" aria-label="A sealed aether gate in overgrown ruins"><div class="tmark"><h1>Hollow Ascent</h1><p class="kick">A roguelike deckbuilder</p></div></div>
  <div class="tbody"><p class="lede">Climb thirteen floors, shape your deck one card at a time, and topple the Hollow King at the top.</p><div class="row"><button class="btn pri" data-a="new">Begin ascent</button>${s?`<button class="btn" data-a="cont">Continue from floor ${s.floor}</button>`:''}</div>
@@ -817,7 +827,7 @@ function eventV(){const e=EV.e;return `<div class="panel"><svg class="pic" viewB
  ${EV.done?`<button class="btn pri" data-a="map">Continue</button>`:`<div class="opts">${e.o.map((o,i)=>`<button class="btn opt" data-a="evo" data-v="${i}" ${o.ok&&!o.ok()?'disabled':''}>${o.l}</button>`).join('')}</div>`}</div>`}
 function endV(){const w=screen=='win';return `<div class="panel end"><svg class="pic" viewBox="0 0 200 120" aria-hidden="true">${w?`<g transform="translate(100 64) scale(4.2)">${NI.boss}</g>`:`<g transform="translate(100 62) scale(4.2)">${NI.elite}</g>`}</svg><h1>${w?'The King falls':'Your climb ends'}</h1><p class="sub">${w?`You toppled the Hollow King with a deck of ${G.deck.length} cards and ${G.relics.length} relics.`:`You fell on floor ${G.floor} of 13 with ${G.deck.length} cards in your deck.`}</p><button class="btn pri" data-a="new">Start a new run</button></div>`}
 const VIEWS={map:mapV,combat:combatV,reward:rewardV,shop:shopV,rest:restV,shrine:shrineV,event:eventV,dead:endV,win:endV};
-function render(){PT=null;PV.key='';$('#app').innerHTML=screen=='title'?titleV():screen=='pick'?pickV():topV()+VIEWS[screen]();
+function render(){PT=null;PV.key='';$('#app').innerHTML=screen=='title'?titleV():screen=='pick'?pickV():screen=='oathpreview'?oathPreviewV():topV()+VIEWS[screen]();
  if(screen=='map'){const n=$('.node.can');if(n)try{n.scrollIntoView({block:'center'})}catch(e){}}else if(screen!='combat')window.scrollTo(0,0);
  if(screen=='combat'){const st=$('.stage');if(st){bgMount(st);ptMount(st)}const hs=$('#hero .spr');if(hs)rigMount(hs)}
  flush();if(screen=='combat'&&C&&C.sel>=0&&!aimOn){aimOn=true;requestAnimationFrame(aimTick)}}
@@ -827,7 +837,7 @@ function closeModal(){const m=MD;MD=null;$('#modal').innerHTML='';if(m&&m.onClos
 
 /* ---------- input ---------- */
 const A={
-new:()=>newRun(),hero:v=>newRun(v),title:()=>{screen='title';render()},oinfo:v=>toast(GODS[v].oath+' ('+GODS[v].full+'). Law: '+GODS[v].law+' Price: '+(halo(v)?'lifted.':GODS[v].price)),
+new:()=>newRun(),hero:v=>{if(v==='oath'){screen='oathpreview';render()}else newRun(v)},pickback:()=>{screen='pick';render()},oathstart:()=>newRun('oath'),title:()=>{screen='title';render()},oinfo:v=>toast(GODS[v].oath+' ('+GODS[v].full+'). Law: '+GODS[v].law+' Price: '+(halo(v)?'lifted.':GODS[v].price)),
 cont:()=>{G=load();if(!G)return;G.hero=G.hero||'aether';G.oaths=G.oaths||[];G.deck=G.deck.filter(c=>K[c.id]&&(!c.tier||FK[c.id]));G.relics=G.relics.filter(k=>RELICS[k]);uid=Math.max(0,...G.deck.map(c=>c.u||0))+1;goMap()},
 deck:()=>openPick('Your deck ('+G.deck.length+' cards)',G.deck,null),
 rel:v=>toast(RELICS[v].n+': '+RELICS[v].d),
@@ -885,7 +895,7 @@ function oathWeights(im,k){const c=document.createElement('canvas'),W=c.width=Ma
   w[(j*GX+i)*2]=n?cape/n*sm(.18,.55,v)*(.35+.65*out):0;w[(j*GX+i)*2+1]=n&&v<hv?Math.min(1,hair/n*1.4):0}
  for(let p=0;p<2;p++){const o=new Float32Array(w.length);for(let j=0;j<GY;j++)for(let i=0;i<GX;i++)for(let ch=0;ch<2;ch++){let s=0,c=0;for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const ii=i+a,jj=j+b;if(ii<0||jj<0||ii>=GX||jj>=GY)continue;s+=w[(jj*GX+ii)*2+ch];c++}o[(j*GX+i)*2+ch]=s/c}w=o}
  return w}
-function rigLoad(){for(const h in PSET)for(const k in PSET[h]){const key=h+':'+k,im=new Image();im.onload=()=>{RIG.img[key]=im;try{RIG.wt[key]=rigWeights(im,k,h)}catch(e){RIG.wt[key]=new Float32Array(GX*GY*2)}};im.src=PSET[h][k]}}
+function rigLoad(){for(const h in PSET)for(const k in PSET[h]){const key=h+':'+k,im=new Image();im.onload=()=>{RIG.img[key]=im;try{RIG.wt[key]=rigWeights(im,k,h)}catch(e){RIG.wt[key]=new Float32Array(GX*GY*2)}};im.crossOrigin='anonymous';im.src=PSET[h][k]}}
 const VS=`attribute vec2 a_uv;attribute vec2 a_w;uniform float u_t,u_whip,u_ax;uniform vec2 u_sc,u_off;varying vec2 v_uv;
 void main(){vec2 p=a_uv;float t=u_t;float b=.5+.5*sin(t*2.1);float up=clamp((.56-p.y)/.56,0.,1.);
 p.y-=up*.013*b;p.x+=up*up*.006*sin(t*1.05);
