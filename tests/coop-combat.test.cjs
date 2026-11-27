@@ -39,10 +39,28 @@ function launch(heroes, storage = new Map()) {
       run(`A.hero('${hero}')`);
       if (hero === 'oath') run('A.oathstart()');
     }
+    if (heroes.length === 1) {
+      run("for(let seed=0;!G.threshold.offers.includes('fortune');seed++)newRunSeed(G.hero,seed); A.bless('fortune')");
+    }
     assert.equal(run('screen'), 'map');
   }
   return {run, storage};
 }
+
+test('solo Threshold resumes and combat blessings expire after three wins', () => {
+  const {run, storage} = launch(null);
+  run("A.new(); A.hero('aether')");
+  assert.equal(run('screen'), 'threshold');
+  const resumed = launch(null, storage).run;
+  resumed('A.cont()');
+  assert.equal(resumed('screen'), 'threshold');
+  resumed("for(let seed=0;!G.threshold.offers.includes('first-light');seed++)newRunSeed('aether',seed); A.bless('first-light')");
+  for (let i = 0; i < 4; i++) {
+    resumed("startCombat(['scrap'], 'fight')");
+    assert.equal(resumed('C.energy'), i < 3 ? 4 : 3);
+    resumed('winCombat(); A.map()');
+  }
+});
 
 test('enemy HP scales each spawn exactly once for solo through four seats', () => {
   for (const count of [1, 2, 3, 4]) {
