@@ -1,3 +1,4 @@
+# Background removal pass with rembg. Usage: python3 tools/rembg_pass.py isnet-anime (paths point at the original uploads; edit before reuse).
 from rembg import remove, new_session
 from PIL import Image
 import numpy as np,sys
