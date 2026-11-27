@@ -374,6 +374,10 @@ body:has(#app>.stage){overflow:hidden}
  #app>.stage .foes .unit.pw{width:calc(var(--w)*.55px + 8px)}
  #app>.stage .foes .unit.pw .spr.paint{width:calc(var(--w)*.55px);height:calc(var(--h)*.55px)}
 }
+/* Only the nearest scenery softens; actors and the hand stay above this layer. */
+#app>.stage .foreground-soften{position:absolute;inset:80% 0 0;z-index:0;pointer-events:none;-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);-webkit-mask-image:linear-gradient(transparent,#000 80%);mask-image:linear-gradient(transparent,#000 80%);background:linear-gradient(transparent,#100c0d44)}
+#app>.stage .actors{z-index:2}
+#app>.stage .bgL>.bgimg{height:110%;top:-10%}
 </style></head><body>
 <div id="app"></div><div id="modal"></div><svg id="aim" aria-hidden="true"><path id="aimP" fill="none" stroke="none"/><g id="aimG"></g></svg>
 <script>
@@ -419,7 +423,7 @@ king:c=>`${sh(40)}<path d="M60 44C82 46 104 70 118 96H70Z" fill="#2a0f16"/><path
 const HERO=`${sh(28)}<path d="M50 46C36 52 18 74 8 96H50Z" fill="#2f6f63"/><path d="M30 96L42 44H68L80 96Z" fill="#5fb3a1"/><path d="M54 44L60 96H46Z" fill="#000" opacity=".18"/><path d="M36 46C34 20 70 12 76 36L72 48H40Z" fill="#4a9a89"/><ellipse cx="66" cy="36" rx="8" ry="9" fill="#120c0b"/><circle cx="70" cy="35" r="2.2" fill="#ff5a36"/><path d="M70 60L110 44" stroke="#efe4d2" stroke-width="4" stroke-linecap="round"/><path d="M69 52L74 67" stroke="#e8c86a" stroke-width="4" stroke-linecap="round"/><circle cx="66" cy="62" r="5" fill="#3c8b7c"/>`;
 const tree=(x,h,k=1,o=1)=>`<path d="M${x} 200L${x+2*k} ${200-h}M${x+1} ${200-h*.6}L${x-15*k} ${200-h*.86}M${x+1.5} ${200-h*.76}L${x+17*k} ${200-h}M${x+1} ${200-h*.42}L${x+13*k} ${200-h*.56}" stroke="#0b0f09" stroke-width="${4*k}" stroke-linecap="round" fill="none" opacity="${o}"/>`;
 const brazier=x=>`<path d="M${x-3} 198V150h6V198Z" fill="#0c0606"/><path d="M${x-16} 146h32l-6 10h-20Z" fill="#2a1410"/><path class="fl" d="M${x} 112C${x+14} 128 ${x+14} 138 ${x+8} 146H${x-8}C${x-14} 138 ${x-12} 126 ${x} 112Z" fill="#ff5a36"/><path class="fl" d="M${x} 128C${x+6} 136 ${x+6} 142 ${x+3} 146H${x-3}C${x-6} 142 ${x-5} 136 ${x} 128Z" fill="#e8c86a"/><circle cx="${x}" cy="136" r="40" fill="#ff5a36" opacity=".08"/>`;
-const HI=Math.max(window.screen.width,window.screen.height)*(devicePixelRatio||1)>2200,BGS=['ruins_courtyard','tree_courtyard','gate_courtyard'].map(n=>`assets/bg_${n}${HI?'_4k':''}.webp`),BGI={};
+const HI=Math.max(window.screen.width,window.screen.height)*(devicePixelRatio||1)>2200,BGS=['ruins_overhead','tree_overhead','gate_overhead'].map(n=>`assets/bg_${n}${HI?'_4k':''}.webp`),BGI={};
 if(HI)document.documentElement.classList.add('hi');
 BGS.forEach((u,k)=>{const im=new Image();im.className='bg bgimg';im.alt='';im.decoding='async';im.src=u;BGI[k]=im});
 const biome=f=>f>=10?2:f>=5?1:0;
@@ -932,7 +936,7 @@ function handV(){const n=C.hand.length;if(!n)return '<p class="empty">No cards i
  return C.hand.map((c,i)=>{const o=i-mid,x=W/2+o*step-cw/2+12,rot=n>1?o*Math.min(5,26/n):0,y=o*o*Math.min(3.2,16/n),dl=c.dt?c.dt-now:-999,an=dl>-420&&!RM?`;animation:deal .42s ease-out ${dl|0}ms backwards`:'';
   return cardV(c,`data-a="card" data-v="${i}" style="left:${x.toFixed(1)}px;--r:${rot.toFixed(2)}deg;--y:${y.toFixed(1)}px;z-index:${i+1}${an}"`,(i==C.sel?'sel ':'')+(playable(c)?'':'no'))}).join('')}
 function combatV(){const tg=C.sel>=0,now=performance.now();
- return `<div class="stage biome-${biome(G.floor)}">${scene(G.floor)}<p class="hint">${C.won?'Victory':C.busy?'Enemy turn':tg?'Drag to an enemy, or tap one':'Your turn '+C.turn}</p><div class="actors">${heroV(now)}<div class="foes">${C.foes.map(e=>foeV(e,tg,now)).join('')}</div></div>${fgV(G.floor)}</div>
+ return `<div class="stage biome-${biome(G.floor)}">${scene(G.floor)}<div class="foreground-soften" aria-hidden="true"></div><p class="hint">${C.won?'Victory':C.busy?'Enemy turn':tg?'Drag to an enemy, or tap one':'Your turn '+C.turn}</p><div class="actors">${heroV(now)}<div class="foes">${C.foes.map(e=>foeV(e,tg,now)).join('')}</div></div>${fgV(G.floor)}</div>
  <div class="hand">${handV()}</div>
  <div class="ctl"><div class="orb" title="Energy"><b>${C.energy}</b><small>of 3</small></div><span class="piles">${hudIcon("pile-draw",24)}Draw ${C.draw.length} · ${hudIcon("pile-discard",24)}Discard ${C.disc.length}${G.hero=='oath'&&SWN()?'<br>'+G.oaths.map(g=>`<img class="sanctum-art" src="assets/ui/sanctums/${g}.png" alt="">${GODS[g].sanc}`).join(' + ')+' '+actSanc().length:''}${C.exh.length?'<br>'+hudIcon('pile-exhaust',24)+'Exhausted '+C.exh.length:''}</span>${has('key')&&!C.keyUsed&&!C.busy&&dormGods().some(g=>C.sanc[g].length)?`<button class="btn sm" data-a="key" title="${RELICS.key.d}">Key</button>`:''}<button class="btn pri" data-a="end" ${C.busy?'disabled':''}>End turn</button></div>`}
 function rewardV(){const r=RW.relic&&RELICS[RW.relic];return `<div class="panel"><h2>${RW.title||'Victory'}</h2>${RW.gold?`<p class="sub">You found ${RW.gold} gold.</p>`:''}${r?`<button class="btn relbtn" data-a="rrelic"><span class="rel">${relicIcon(RW.relic)}</span><span>Take ${r.n}: ${r.d}</span></button>`:''}
