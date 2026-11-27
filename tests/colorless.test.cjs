@@ -37,7 +37,7 @@ test('merchant has five class slots and two distinct colorless slots; rewards re
    const shop=g.json('mkShop()');assert.equal(shop.cards.length,7);assert.equal(new Set(shop.cards.map(c=>c.id)).size,7);
    for(const c of shop.cards.slice(0,5))assert.equal(g.run(`!!K['${c.id}'].colorless`),false);
    for(const c of shop.cards.slice(5))assert.equal(g.run(`!!K['${c.id}'].colorless`),true);
-   assert.equal(g.run('cardChoices(0).some(id=>K[id].colorless)'),false);
+   assert.equal(g.run('cardChoices("common").some(id=>K[id].colorless)'),false);
    assert.equal(g.run('colorlessChoices().length'),3);
   }
  }
@@ -114,7 +114,7 @@ test('all cooperative concepts have solo behavior, recipient caps and living par
 });
 test('legacy and colorless saves roundtrip, upgraded IDs are stable, generation is deterministic with injected RNG',()=>{
  for(const hero of ['oath','aether']){const g=game(hero);g.run('G.deck.push(...Object.keys(COLORLESS).map(id=>mk(id,1)));save();globalThis.old=JSON.stringify(G);G=load()');assert.equal(g.run('JSON.stringify(G)===old'),true);assert.equal(g.run('G.deck.length'),50);assert.equal(g.run('new Set(G.deck.map(c=>c.u)).size'),50);
- g.run('Math.random=()=>0.5');const first=g.json('[cardChoices(0),mkShop()]');const second=g.json('[cardChoices(0),mkShop()]');assert.deepEqual(first,second);
+ g.run('Math.random=()=>0.5');const first=g.json('[cardChoices("common"),mkShop()]');const second=g.json('[cardChoices("common"),mkShop()]');assert.deepEqual(first,second);
  }
 });
 test('every card and upgrade resolves through real play for both classes and all four Oaths',async()=>{
@@ -210,4 +210,39 @@ test('Sporeling still inflicts Poison and the next turn consumes a stack',()=>{
  g.run("C.foes[0].k='spore';C.foes[0].hp=0;fell(C.foes[0]);globalThis.prePoison=G.hp;startTurn()");
  assert.equal(g.run('prePoison-G.hp'),2);
  assert.equal(g.run('C.p.st.poison'),1);
+});
+
+test('Covering Shot grants Block only against attack intents, including on a finishing shot',()=>{
+ for(const up of [0,1]){
+  const g=game();
+  g.run("C.foes[0].int={b:8}");
+  resolve(g,'iron',up);
+  assert.equal(g.run('C.p.block'),0);
+  assert.equal(g.run('9999-C.foes[0].hp'),up?9:6);
+  g.run("C.foes[0].hp=1;C.foes[0].int={a:5}");
+  resolve(g,'iron',up);
+  assert.equal(g.run('C.p.block'),5);
+ }
+});
+test('Pocket the Brass banks the card for the following turn only after a cartridge discard',()=>{
+ const g=game();stock(g);
+ resolve(g,'shrug',0,[],false);
+ assert.equal(g.run('C.neutralIncoming?.length||0'),0);
+ g.run("C.hand=[mk('defend')]");
+ resolve(g,'bash',0,[g.run('C.hand[0].u')]);
+ resolve(g,'shrug',1,[],false);
+ assert.equal(g.run('C.p.block'),17);
+ assert.equal(g.run('C.hand.length'),0);
+ g.run('startTurn()');
+ assert.equal(g.run('C.hand.length'),6);
+ assert.equal(g.run('C.neutralIncoming.length'),0);
+});
+test('Rivet Punch strips armor before ordinary attack damage and gets no bonus on bare targets',()=>{
+ for(const up of [0,1])for(const block of [0,4,20]){
+  const g=game();g.run('C.foes[0].block='+block);
+  resolve(g,'heavy',up);
+  const remaining=Math.max(0,block-(up?10:7));
+  assert.equal(g.run('9999-C.foes[0].hp'),Math.max(0,(up?15:12)-remaining));
+  assert.equal(g.run('C.foes[0].block'),Math.max(0,remaining-(up?15:12)));
+ }
 });
