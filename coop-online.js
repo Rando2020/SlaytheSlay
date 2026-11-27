@@ -51,9 +51,9 @@
     installEntry();
   }
   function installEntry() {
-    const row = app.querySelector('.tbody .row');
+    const row = app.querySelector('[data-online-menu]');
     if (row && !session && !row.querySelector('.online-entry')) {
-      const b = button('Online co-op', lobby);
+      const b = button('Play online', lobby);
       b.className = 'btn online-entry'; row.append(b);
     }
   }

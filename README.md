@@ -28,7 +28,7 @@ then visit `http://localhost:8000`.
 
 ### Cooperative runs
 
-Choose **Local co-op** on the title screen to share one device with two to four players. Each player chooses a class and manages their own hand, energy, HP, Block, relics and rewards. The party follows one route. Each living hero takes a turn before the enemies act once.
+Choose **Single Player** to begin a solo run, or **Multiplayer** on the title screen to share one device with two to four players. Each player chooses a class and manages their own hand, energy, HP, Block, relics and rewards. The party follows one route. Each living hero takes a turn before the enemies act once.
 
 Every enemy attack targets every living hero. Each hit resolves against that hero's defenses. For example, a 6-damage attack against two heroes with 4 and 0 Block costs them 2 and 6 HP respectively. Player cards retain their individual targeting rules. Enemy starting and maximum HP use the rolled encounter HP multiplied by the starting party size, including bosses. A defeated hero stays down while surviving heroes continue.
 
@@ -38,7 +38,7 @@ For separate devices, start the included room server with Node.js:
 node tools/coop-server.cjs
 ```
 
-Open `http://localhost:8787` on the host and choose **Online co-op**. On the same network, guests open the host computer's LAN address on port 8787 and enter the room code. For internet play, all devices need access to the same reachable server. The host tab runs the battle and must stay open. Guests use a turn controller to inspect cards, choose targets and take actions. The host browser keeps a separate party checkpoint on the map.
+Open `http://localhost:8787` on the host and choose **Multiplayer**, then **Play online**. On the same network, guests open the host computer's LAN address on port 8787 and enter the room code. For internet play, all devices need access to the same reachable server. The host tab runs the battle and must stay open. Guests use a turn controller to inspect cards, choose targets and take actions. The host browser keeps a separate party checkpoint on the map.
 
 ## What's in it
 
